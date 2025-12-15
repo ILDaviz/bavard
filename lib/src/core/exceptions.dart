@@ -1,0 +1,126 @@
+/// Base exception for all ORM-related errors.
+///
+/// Provides a common ancestor for catching any Active Sync exception
+/// while allowing specific handling via subclasses.
+abstract class ActiveSyncException implements Exception {
+  final String message;
+  final dynamic originalError;
+
+  const ActiveSyncException(this.message, [this.originalError]);
+
+  @override
+  String toString() => 'ActiveSyncException: $message';
+}
+
+/// Thrown when a requested model cannot be found in the database.
+///
+/// Typically raised by `findOrFail()` or `firstOrFail()` when no matching
+/// record exists.
+class ModelNotFoundException extends ActiveSyncException {
+  final String model;
+  final dynamic id;
+
+  const ModelNotFoundException({
+    required this.model,
+    this.id,
+    String? message,
+  }) : super(message ?? 'No query results for model [$model]${id != null ? ' with ID: $id' : ''}.');
+
+  @override
+  String toString() => 'ModelNotFoundException: $message';
+}
+
+/// Thrown when a database query fails to execute.
+///
+/// Wraps the underlying driver exception with additional context
+/// about the failing SQL statement.
+class QueryException extends ActiveSyncException {
+  final String sql;
+  final List<dynamic>? bindings;
+
+  const QueryException({
+    required this.sql,
+    this.bindings,
+    required String message,
+    dynamic originalError,
+  }) : super(message, originalError);
+
+  @override
+  String toString() =>
+      'QueryException: $message\nSQL: $sql\nBindings: $bindings';
+}
+
+/// Thrown when a database transaction fails.
+///
+/// Contains information about whether the transaction was rolled back
+/// and the original cause of failure.
+class TransactionException extends ActiveSyncException {
+  final bool wasRolledBack;
+
+  const TransactionException({
+    required String message,
+    this.wasRolledBack = true,
+    dynamic originalError,
+  }) : super(message, originalError);
+
+  @override
+  String toString() =>
+      'TransactionException: $message (Rolled back: $wasRolledBack)';
+}
+
+/// Thrown when attempting to use the database before initialization.
+///
+/// Signals that `DatabaseManager().setDatabase()` was not called.
+class DatabaseNotInitializedException extends ActiveSyncException {
+  const DatabaseNotInitializedException()
+      : super(
+    'Database driver not initialized. '
+        'Call DatabaseManager().setDatabase(driver) first.',
+  );
+
+  @override
+  String toString() => 'DatabaseNotInitializedException: $message';
+}
+
+/// Thrown when mass assignment protection blocks an attribute.
+///
+/// Useful for debugging when `fill()` silently ignores fields.
+class MassAssignmentException extends ActiveSyncException {
+  final String attribute;
+  final String model;
+
+  const MassAssignmentException({
+    required this.attribute,
+    required this.model,
+  }) : super('Cannot mass-assign [$attribute] on model [$model].');
+
+  @override
+  String toString() => 'MassAssignmentException: $message';
+}
+
+/// Thrown when an invalid query structure is detected.
+///
+/// Examples: Invalid operator, malformed identifier, or conflicting clauses.
+class InvalidQueryException extends ActiveSyncException {
+  const InvalidQueryException(String message) : super(message);
+
+  @override
+  String toString() => 'InvalidQueryException: $message';
+}
+
+/// Thrown when a relationship cannot be resolved.
+///
+/// May occur due to missing foreign keys, invalid type maps (MorphTo),
+/// or undefined relation methods.
+class RelationNotFoundException extends ActiveSyncException {
+  final String relation;
+  final String model;
+
+  const RelationNotFoundException({
+    required this.relation,
+    required this.model,
+  }) : super('Relation [$relation] not found on model [$model].');
+
+  @override
+  String toString() => 'RelationNotFoundException: $message';
+}

@@ -1,0 +1,17 @@
+targets:
+  $default:
+    builders:
+      bavard|fillable_generator:
+        enabled: true
+        generate_for:
+          - lib/**/*.dart
+          - test/**/*.dart
+
+builders:
+  fillable_generator:
+    import: "package:bavard/src/generators/builder.dart"
+    builder_factories: ["fillableGenerator"]
+    build_extensions:
+      ".dart": [".fillable.g.dart"]
+    auto_apply: dependents
+    build_to: source
