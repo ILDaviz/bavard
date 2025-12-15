@@ -362,8 +362,9 @@ class QueryBuilder<T extends Model> {
 
   /// Checks existence by fetching a single record (Limit 1 optimization).
   Future<bool> exists() async {
-    limit(1);
-    final results = await get();
+    final clone = cast<T>(creator, instanceFactory: _instanceFactory);
+    clone.limit(1);
+    final results = await clone.get();
     return results.isNotEmpty;
   }
 
@@ -393,7 +394,8 @@ class QueryBuilder<T extends Model> {
   }
 
   Future<T?> find(dynamic id) {
-    return where('id', id).first();
+    final clone = cast<T>(creator, instanceFactory: _instanceFactory);
+    return clone.where('id', id).first();
   }
 
   /// Finds a model by ID or throws [ModelNotFoundException].
@@ -617,8 +619,9 @@ class QueryBuilder<T extends Model> {
   }
 
   Future<T?> first() async {
-    limit(1);
-    final results = await get();
+    final clone = cast<T>(creator, instanceFactory: _instanceFactory);
+    clone.limit(1);
+    final results = await clone.get();
     return results.isNotEmpty ? results.first : null;
   }
 

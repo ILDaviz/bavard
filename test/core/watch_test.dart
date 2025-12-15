@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:active_sync/bavard.dart';
+import 'package:bavard/bavard.dart';
 import '../mocks/moke_database.dart';
 
 class WatchUser extends Model {

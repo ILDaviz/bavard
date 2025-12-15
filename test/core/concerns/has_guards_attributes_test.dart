@@ -1,6 +1,6 @@
-import 'package:active_sync/src/core/concerns/has_guards_attributes.dart';
+import 'package:bavard/src/core/concerns/has_guards_attributes.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:active_sync/bavard.dart';
+import 'package:bavard/bavard.dart';
 import '../../mocks/moke_database.dart';
 
 class WhiteListUser extends Model {

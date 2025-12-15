@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:active_sync/bavard.dart';
+import 'package:bavard/bavard.dart';
 import '../../mocks/moke_database.dart';
-import 'package:active_sync/src/core/concerns/has_uuids.dart';
+import 'package:bavard/src/core/concerns/has_uuids.dart';
 
 class UuidUser extends Model with HasUuids {
   @override

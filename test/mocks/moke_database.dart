@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:active_sync/bavard.dart';
+import 'package:bavard/bavard.dart';
 
 class MockDatabaseSpy implements DatabaseAdapter {
   String lastSql = '';

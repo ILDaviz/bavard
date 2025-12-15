@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:active_sync/bavard.dart';
+import 'package:bavard/bavard.dart';
 import '../../mocks/moke_database.dart';
-import 'package:active_sync/src/core/concerns/has_timestamps.dart';
+import 'package:bavard/src/core/concerns/has_timestamps.dart';
 
 class TimestampUser extends Model with HasTimestamps {
   @override

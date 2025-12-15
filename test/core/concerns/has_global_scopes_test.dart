@@ -1,7 +1,7 @@
-import 'package:active_sync/src/core/concerns/has_global_scopes.dart';
-import 'package:active_sync/src/core/scope.dart';
+import 'package:bavard/src/core/concerns/has_global_scopes.dart';
+import 'package:bavard/src/core/scope.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:active_sync/bavard.dart';
+import 'package:bavard/bavard.dart';
 import '../../mocks/moke_database.dart';
 
 class AgeScope implements Scope {
