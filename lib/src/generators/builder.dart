@@ -78,7 +78,7 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
         .map((e) => "'${e.key}'")
         .join(', ');
 
-    buffer.writeln("import 'package:active_sync/bavard.dart';");
+    buffer.writeln("import 'package:bavard/bavard.dart';");
     buffer.writeln();
 
     buffer.writeln('mixin \$${className}Fillable on Model {');

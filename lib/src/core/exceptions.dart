@@ -1,6 +1,6 @@
 /// Base exception for all ORM-related errors.
 ///
-/// Provides a common ancestor for catching any Active Sync exception
+/// Provides a common ancestor for catching any Bavard exception
 /// while allowing specific handling via subclasses.
 abstract class ActiveSyncException implements Exception {
   final String message;
