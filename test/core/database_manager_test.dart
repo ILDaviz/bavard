@@ -1,6 +1,6 @@
 // --- FILE: test/core/database_manager_test.dart ---
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import '../mocks/moke_database.dart';
 
