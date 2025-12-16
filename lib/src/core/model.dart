@@ -124,10 +124,7 @@ abstract class Model
         [id],
       );
 
-      attributes = {};
-      freshData.forEach((key, value) {
-        setAttribute(key, value);
-      });
+      attributes = Map<String, dynamic>.from(freshData);
 
       syncOriginal();
     }
