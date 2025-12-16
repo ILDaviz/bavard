@@ -3,7 +3,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:build/build.dart';
 import '../../bavard.dart';
-import '../annotations.dart';
 
 /// Entry point for the build runner system.
 ///

@@ -1,3 +1,4 @@
+
 /// Marks a Model class for code generation.
 ///
 /// Triggers generation of the `.g.dart` part file containing type-safe attribute accessors
