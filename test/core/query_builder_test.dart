@@ -288,7 +288,7 @@ void main() {
     final sql = dbSpy.lastSql;
 
     // Check custom SELECT projection
-    expect(sql, startsWith('SELECT name, role FROM users'));
+    expect(sql, startsWith('SELECT users.name, users.role FROM users'));
     // Check JOIN clause preservation
     expect(sql, contains('JOIN roles ON users.role_id = roles.id'));
     // Check combination of standard and raw WHERE clauses

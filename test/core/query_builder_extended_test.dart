@@ -25,10 +25,7 @@ void main() {
     test('where() with null value generates IS NULL', () async {
       await TestUser().newQuery().where('deleted_at', null).get();
 
-      // Note: Current implementation binds null as parameter
-      // For explicit IS NULL, use whereNull()
-      expect(dbSpy.lastSql, contains('deleted_at = ?'));
-      expect(dbSpy.lastArgs, contains(null));
+      expect(dbSpy.lastSql, contains('deleted_at IS NULL'));
     });
 
     test('where() with empty string', () async {

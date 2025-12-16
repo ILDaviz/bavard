@@ -107,6 +107,15 @@ class QueryBuilder<T extends Model> {
     String boolean = 'AND',
   }) {
     _assertIdent(column, dotted: true, what: 'column name');
+
+    if (value == null && (_op(operator) == '=' || _op(operator) == '<>' || _op(operator) == '!=')) {
+      if (_op(operator) == '=' ) {
+        return whereNull(column, boolean: boolean);
+      } else {
+        return whereNotNull(column, boolean: boolean);
+      }
+    }
+
     final op = _op(operator);
     if (!_allowedWhereOps.contains(op)) {
       throw InvalidQueryException('Invalid operator for where: $operator');
@@ -546,7 +555,23 @@ class QueryBuilder<T extends Model> {
   ///
   /// Note: [bindings] remain separate to be passed to the driver's prepared statement.
   String _compileSql() {
-    final cols = _columns.map((c) => c == '*' ? '$table.*' : c).join(', ');
+    final List<String> finalColumns = [];
+    final needsPrefixing = _joins.isNotEmpty;
+
+    for (final c in _columns) {
+      if (c == '*') {
+        finalColumns.add('$table.*');
+      } else if (needsPrefixing && !c.contains('.') && !c.contains('(')) {
+        // Prefix simple column names (no dots or aggregates/functions)
+        // with the main table name to avoid ambiguity in JOINs.
+        finalColumns.add('$table.$c');
+      } else {
+        finalColumns.add(c);
+      }
+    }
+
+    final cols = finalColumns.join(', ');
+
     var sql = 'SELECT $cols FROM $table';
 
     if (_joins.isNotEmpty) sql += ' ${_joins.join(' ')}';
@@ -686,6 +711,17 @@ class QueryBuilder<T extends Model> {
       if (row.isEmpty || row['aggregate'] == null) {
         return null;
       }
+
+      final value = row['aggregate'];
+
+      if (T == int && value is num) {
+        return value.toInt() as T;
+      }
+      if (T == double && value is num) {
+        return value.toDouble() as T;
+      }
+
+      return value as T;
 
       return row['aggregate'] as T;
     } catch (e) {
