@@ -50,7 +50,6 @@ mixin HasCasts {
 
       case 'bool':
         if (value is bool) return value as T;
-        if (value is int) return (value == 1) as T;
         final s = value.toString().toLowerCase();
         return (s == '1' || s == 'true') as T;
 
