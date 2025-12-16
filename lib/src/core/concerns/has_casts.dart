@@ -40,14 +40,15 @@ mixin HasCasts {
     switch (type) {
       case 'int':
         if (value is int) return value as T;
+        if (value is num) return value.toInt() as T;
         return int.tryParse(value.toString()) as T?;
 
       case 'double':
         if (value is double) return value as T;
+        if (value is num) return value.toDouble() as T;
         return double.tryParse(value.toString()) as T?;
 
       case 'bool':
-      // Standardizes '1', 'true', and 1 as true to support various DB drivers (e.g., SQLite).
         if (value is bool) return value as T;
         if (value is int) return (value == 1) as T;
         final s = value.toString().toLowerCase();
@@ -60,7 +61,6 @@ mixin HasCasts {
       case 'json':
       case 'array':
       case 'object':
-      // Lazy deserialization: keeps data as string until requested to avoid perf hits on large blobs.
         if (value is String) {
           try {
             return jsonDecode(value) as T;
