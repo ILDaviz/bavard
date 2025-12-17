@@ -1,8 +1,30 @@
 # Bavard ORM
 
-**A Laravel Eloquent-inspired ORM for Dart/Flutter**
+**A Eloquent-inspired ORM for Dart/Flutter**
 
 Bavard is an Object-Relational Mapping library that brings the Active Record pattern to Dart. If you're familiar with Laravel's Eloquent, you'll feel right at home. The goal is to simplify database interactions with SQLite, PostgreSQL, or PowerSync while keeping your code clean and readable.
+
+---
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Initial Setup](#initial-setup)
+- [Convention Over Configuration](#convention-over-configuration)
+- [Creating a Model](#creating-a-model)
+- [CRUD Operations](#crud-operations)
+- [Query Builder](#query-builder)
+- [Relationships](#relationships)
+- [Type Casting](#type-casting)
+- [Mixins and Advanced Features](#mixins-and-advanced-features)
+- [Mass Assignment Protection](#mass-assignment-protection)
+- [Lifecycle Hooks](#lifecycle-hooks)
+- [Transactions](#transactions)
+- [Watch (Reactive Streams)](#watch-reactive-streams)
+- [Code Generation](#code-generation)
+- [Error Handling](#error-handling)
+- [Implementing a Database Adapter](#implementing-a-database-adapter)
+- [Best Practices](#best-practices)
 
 ---
 
@@ -43,9 +65,253 @@ The adapter must implement the `DatabaseAdapter` interface, which defines the ba
 
 ---
 
+## Convention Over Configuration
+
+Bavard follows the **Convention over Configuration** paradigm, popularized by Ruby on Rails. The idea is simple: by following sensible defaults and naming conventions, you can eliminate boilerplate configuration and focus on what makes your application unique.
+
+### Why Convention Over Configuration?
+
+- **Less boilerplate**: No XML files, no annotation overload, no configuration classes
+- **Predictable behavior**: Once you learn the conventions, you know what to expect
+- **Faster development**: Spend time on business logic, not on wiring things together
+- **Easier onboarding**: New team members can understand the codebase quickly
+
+### Naming Conventions
+
+#### Table Names
+
+By default, Bavard expects table names to be **plural** and **snake_case**:
+
+| Model Class | Expected Table |
+|-------------|----------------|
+| `User` | `users` |
+| `BlogPost` | `blog_posts` |
+| `Category` | `categories` |
+| `UserRole` | `user_roles` |
+
+```dart
+class User extends Model {
+  @override
+  String get table => 'users';  // Convention: plural, snake_case
+}
+```
+
+#### Primary Keys
+
+The default primary key is assumed to be `id`:
+
+```dart
+class User extends Model {
+  @override
+  String get primaryKey => 'id';  // This is the default, no need to specify
+}
+```
+
+If your table uses a different primary key, override it:
+
+```dart
+class User extends Model {
+  @override
+  String get primaryKey => 'uuid';  // Custom primary key
+}
+```
+
+#### Foreign Keys
+
+Foreign keys follow the pattern `{singular_table_name}_id`:
+
+| Relationship | Expected Foreign Key |
+|--------------|---------------------|
+| Post belongs to User | `user_id` on `posts` table |
+| Comment belongs to Post | `post_id` on `comments` table |
+| Profile belongs to User | `user_id` on `profiles` table |
+
+```dart
+// Bavard infers foreign key as 'user_id'
+class Post extends Model {
+  BelongsTo<User> author() => belongsTo(User.new);
+  // Equivalent to: belongsTo(User.new, foreignKey: 'user_id', ownerKey: 'id')
+}
+```
+
+The `Utils.foreignKey()` helper generates these automatically:
+
+```dart
+Utils.foreignKey('users');      // 'user_id'
+Utils.foreignKey('categories'); // 'category_id'
+Utils.foreignKey('blog_posts'); // 'blog_post_id'
+```
+
+#### Pivot Tables (Many-to-Many)
+
+For many-to-many relationships, pivot tables should be named by joining the two table names in **alphabetical order**, separated by an underscore:
+
+| Models | Expected Pivot Table |
+|--------|---------------------|
+| User ↔ Role | `role_user` |
+| Post ↔ Tag | `post_tag` |
+| Category ↔ Product | `category_product` |
+
+Pivot table columns follow the foreign key convention:
+
+```
+role_user
+├── user_id
+└── role_id
+```
+
+#### Polymorphic Relationships
+
+Polymorphic relationships use a `{name}_type` and `{name}_id` column pair:
+
+| Morphable Name | Type Column | ID Column |
+|----------------|-------------|-----------|
+| `commentable` | `commentable_type` | `commentable_id` |
+| `taggable` | `taggable_type` | `taggable_id` |
+| `imageable` | `imageable_type` | `imageable_id` |
+
+The `type` column stores the table name of the parent model:
+
+```dart
+// comments table
+// ├── id
+// ├── body
+// ├── commentable_type  ('posts' or 'videos')
+// └── commentable_id    (the parent's ID)
+
+class Comment extends Model {
+  MorphTo<Model> commentable() => morphToTyped('commentable', {
+    'posts': Post.new,
+    'videos': Video.new,
+  });
+}
+```
+
+#### Timestamps
+
+When using `HasTimestamps`, Bavard expects these columns:
+
+| Column | Purpose |
+|--------|---------|
+| `created_at` | Set when record is first created |
+| `updated_at` | Updated on every save |
+
+You can customize these:
+
+```dart
+class Post extends Model with HasTimestamps {
+  @override
+  String get createdAtColumn => 'date_created';
+  
+  @override
+  String get updatedAtColumn => 'date_modified';
+}
+```
+
+#### Soft Deletes
+
+When using `HasSoftDeletes`, Bavard expects:
+
+| Column | Purpose |
+|--------|---------|
+| `deleted_at` | Timestamp when record was soft-deleted (null if active) |
+
+### Relationship Conventions
+
+#### HasOne and HasMany
+
+The foreign key is assumed to be on the **related** table:
+
+```dart
+class User extends Model {
+  // Bavard looks for 'user_id' on the 'profiles' table
+  HasOne<Profile> profile() => hasOne(Profile.new);
+  
+  // Bavard looks for 'user_id' on the 'posts' table
+  HasMany<Post> posts() => hasMany(Post.new);
+}
+```
+
+#### BelongsTo
+
+The foreign key is assumed to be on the **current** model's table:
+
+```dart
+class Post extends Model {
+  // Bavard looks for 'user_id' on the 'posts' table
+  BelongsTo<User> author() => belongsTo(User.new);
+}
+```
+
+#### HasManyThrough
+
+Keys are inferred from the intermediate model:
+
+```dart
+class Country extends Model {
+  // Country -> User (via country_id) -> Post (via user_id)
+  HasManyThrough<Post, User> posts() => hasManyThrough(Post.new, User.new);
+}
+```
+
+Expected schema:
+```
+countries: id, name
+users:     id, country_id, name
+posts:     id, user_id, title
+```
+
+### Overriding Conventions
+
+Every convention can be overridden when your schema doesn't match:
+
+```dart
+class Post extends Model {
+  @override
+  String get table => 'blog_entries';  // Non-standard table name
+  
+  @override
+  String get primaryKey => 'entry_id';  // Non-standard primary key
+  
+  // Non-standard foreign key
+  BelongsTo<User> author() => belongsTo(
+    User.new,
+    foreignKey: 'author_uuid',
+    ownerKey: 'uuid',
+  );
+  
+  // Non-standard pivot table and keys
+  BelongsToMany<Tag> tags() => belongsToMany(
+    Tag.new,
+    'entry_tags',           // Custom pivot table
+    foreignPivotKey: 'entry_id',
+    relatedPivotKey: 'tag_id',
+  );
+}
+```
+
+### Convention Summary Table
+
+| Element | Convention | Example |
+|---------|------------|---------|
+| Table name | Plural, snake_case | `users`, `blog_posts` |
+| Primary key | `id` | `id` |
+| Foreign key | `{singular_table}_id` | `user_id`, `post_id` |
+| Pivot table | Alphabetical join | `post_tag`, `role_user` |
+| Pivot columns | Both foreign keys | `post_id`, `tag_id` |
+| Morph type | `{name}_type` | `commentable_type` |
+| Morph ID | `{name}_id` | `commentable_id` |
+| Created timestamp | `created_at` | `created_at` |
+| Updated timestamp | `updated_at` | `updated_at` |
+| Soft delete | `deleted_at` | `deleted_at` |
+
+---
+
 ## Creating a Model
 
-Each database table corresponds to a class that extends `Model`:
+Each database table corresponds to a class that extends `Model`.
+
+### Basic Model (without code generation)
 
 ```dart
 class User extends Model {
@@ -59,13 +325,52 @@ class User extends Model {
 }
 ```
 
-That's all you need to get started. Bavard follows "convention over configuration": if you don't specify anything, it assumes the primary key is `id`.
+### Model with Code Generation (recommended)
+
+For type-safe attribute access, use the `@fillable` annotation:
+
+```dart
+import 'package:bavard/bavard.dart';
+
+part 'user.fillable.g.dart';
+
+@fillable
+class User extends Model with $UserFillable {
+  @override
+  String get table => 'users';
+
+  static const schemaTypes = {
+    'name': 'string',
+    'email': 'string',
+    'age': 'int',
+    'is_active': 'bool',
+    'is_admin': 'bool:guarded',
+    'created_at': 'datetime',
+    'settings': 'json',
+  };
+
+  User([super.attributes]);
+
+  @override
+  User fromMap(Map<String, dynamic> map) => User(map);
+}
+```
+
+Run the generator:
+
+```bash
+dart run build_runner build
+```
+
+Now you can use typed getters and setters like `user.name`, `user.email`, etc.
 
 ---
 
 ## CRUD Operations
 
 ### Creating a record
+
+**Basic usage (without code generation):**
 
 ```dart
 final user = User({'name': 'Mario', 'email': 'mario@example.com'});
@@ -75,11 +380,57 @@ await user.save();
 print(user.id); // 1
 ```
 
+**Using attribute setters:**
+
+```dart
+final user = User();
+user.attributes['name'] = 'Mario';
+user.attributes['email'] = 'mario@example.com';
+await user.save();
+```
+
+**With code generation (recommended):**
+
+After running `build_runner`, you get typed getters and setters:
+
+```dart
+final user = User();
+user.name = 'Mario';
+user.email = 'mario@example.com';
+user.age = 30;
+user.isActive = true;
+await user.save();
+
+// After save, access attributes with type safety
+print(user.id);    // 1
+print(user.name);  // 'Mario'
+print(user.email); // 'mario@example.com'
+```
+
+You can also mix constructor initialization with setters:
+
+```dart
+final user = User({'name': 'Mario'});
+user.email = 'mario@example.com';
+user.age = 30;
+await user.save();
+```
+
 ### Reading records
+
+**Without code generation:**
+
+```dart
+final user = await User().query().find(1);
+print(user?.attributes['name']);
+```
+
+**With code generation:**
 
 ```dart
 // Find by ID
 final user = await User().query().find(1);
+print(user?.name);  // Typed access
 
 // Find or throw exception
 final user = await User().query().findOrFail(1);
@@ -98,13 +449,32 @@ final activeUsers = await User()
     .orderBy('name')
     .limit(10)
     .get();
+
+// Access typed attributes
+for (final user in activeUsers) {
+  print('${user.name} is ${user.age} years old');
+  print('Email: ${user.email}');
+  print('Active: ${user.isActive}');
+}
 ```
 
 ### Updating a record
 
+**Without code generation:**
+
 ```dart
 final user = await User().query().find(1);
-user.attributes['name'] = 'Luigi';
+user?.attributes['name'] = 'Luigi';
+await user?.save();
+```
+
+**With code generation:**
+
+```dart
+final user = await User().query().findOrFail(1);
+user.name = 'Luigi';
+user.email = 'luigi@example.com';
+user.age = 32;
 await user.save();
 
 // Bavard tracks only modified fields (dirty checking)
@@ -115,19 +485,23 @@ await user.save();
 
 ```dart
 final user = await User().query().find(1);
-await user.delete();
+await user?.delete();
 ```
 
 ---
 
 ## Query Builder
 
-The Query Builder provides a fluent interface for building SQL queries safely:
+The Query Builder provides a fluent interface for building SQL queries safely.
+
+### Basic WHERE clauses
 
 ```dart
-// WHERE with various operators
+// Simple equality
+await User().query().where('status', 'active').get();
+
+// With operators
 await User().query()
-    .where('status', 'active')
     .where('age', 21, operator: '>=')
     .where('name', '%mario%', operator: 'LIKE')
     .get();
@@ -154,6 +528,24 @@ final subQuery = Post().query().whereRaw('user_id = users.id');
 await User().query().whereExists(subQuery).get();
 ```
 
+### Selecting specific columns
+
+```dart
+final users = await User().query()
+    .select(['id', 'name', 'email'])
+    .get();
+```
+
+### Ordering and pagination
+
+```dart
+final users = await User().query()
+    .orderBy('created_at', direction: 'DESC')
+    .limit(10)
+    .offset(20)
+    .get();
+```
+
 ### Aggregations
 
 ```dart
@@ -162,12 +554,13 @@ final total = await Order().query().sum('amount');
 final average = await Product().query().avg('price');
 final max = await Score().query().max('points');
 final min = await Score().query().min('points');
+final exists = await User().query().where('email', 'test@example.com').exists();
 ```
 
 ### GROUP BY and HAVING
 
 ```dart
-await Order().query()
+final results = await Order().query()
     .select(['customer_id', 'COUNT(*) as order_count', 'SUM(total) as total_spent'])
     .where('status', 'completed')
     .groupBy(['customer_id'])
@@ -179,9 +572,20 @@ await Order().query()
 ### JOIN
 
 ```dart
-await User().query()
+final users = await User().query()
     .join('profiles', 'users.id', '=', 'profiles.user_id')
     .leftJoin('orders', 'users.id', '=', 'orders.user_id')
+    .rightJoin('subscriptions', 'users.id', '=', 'subscriptions.user_id')
+    .get();
+```
+
+### Raw WHERE clauses
+
+For complex conditions, use raw SQL (with bindings for safety):
+
+```dart
+await User().query()
+    .whereRaw('age > ? AND created_at > ?', bindings: [18, '2024-01-01'])
     .get();
 ```
 
@@ -199,13 +603,12 @@ class User extends Model {
   String get table => 'users';
   
   HasOne<Profile> profile() => hasOne(Profile.new);
-  
-  // ...
 }
 
 // Usage
 final user = await User().query().find(1);
-final profile = await user.profile().getResult();
+final profile = await user?.profile().getResult();
+print(profile?.bio);
 ```
 
 ### HasMany (One to Many)
@@ -224,6 +627,10 @@ final recentPosts = await user.posts()
     .orderBy('created_at', direction: 'DESC')
     .limit(5)
     .get();
+
+for (final post in recentPosts) {
+  print(post.title);
+}
 ```
 
 ### BelongsTo (Inverse of HasOne/HasMany)
@@ -233,7 +640,9 @@ class Post extends Model {
   BelongsTo<User> author() => belongsTo(User.new, foreignKey: 'user_id');
 }
 
+// Usage
 final author = await post.author().getResult();
+print(author?.name);
 ```
 
 ### BelongsToMany (Many to Many)
@@ -244,13 +653,17 @@ For relationships that go through a pivot table:
 class User extends Model {
   BelongsToMany<Role> roles() => belongsToMany(
     Role.new,
-    'role_user',  // pivot table
+    'role_user',
     foreignPivotKey: 'user_id',
     relatedPivotKey: 'role_id',
   );
 }
 
+// Usage
 final roles = await user.roles().get();
+for (final role in roles) {
+  print(role.name);
+}
 ```
 
 ### HasManyThrough (Distant Relationships)
@@ -263,6 +676,7 @@ class Country extends Model {
   HasManyThrough<Post, User> posts() => hasManyThrough(Post.new, User.new);
 }
 
+// Usage
 final posts = await country.posts().get();
 ```
 
@@ -272,7 +686,6 @@ When a model can belong to multiple types of parents:
 
 ```dart
 class Comment extends Model {
-  // A comment can belong to Post or Video
   MorphTo<Model> commentable() => morphToTyped('commentable', {
     'posts': Post.new,
     'videos': Video.new,
@@ -281,7 +694,26 @@ class Comment extends Model {
 
 class Post extends Model {
   MorphMany<Comment> comments() => morphMany(Comment.new, 'commentable');
+  MorphOne<Image> featuredImage() => morphOne(Image.new, 'imageable');
 }
+
+// Usage
+final comments = await post.comments().get();
+final image = await post.featuredImage().getResult();
+
+// Inverse (from comment to parent)
+final parent = await comment.commentable().getResult();
+```
+
+### Polymorphic Many-to-Many
+
+```dart
+class Post extends Model {
+  MorphToMany<Tag> tags() => morphToMany(Tag.new, 'taggable');
+}
+
+// Usage
+final tags = await post.tags().get();
 ```
 
 ### Eager Loading
@@ -293,10 +725,36 @@ final users = await User().query()
     .withRelations(['posts', 'profile'])
     .get();
 
-// Now access relationships without additional queries
+// Access relationships without additional queries
 for (final user in users) {
   final posts = user.getRelationList<Post>('posts');
   final profile = user.getRelated<Profile>('profile');
+  
+  print('${user.name} has ${posts.length} posts');
+  print('Bio: ${profile?.bio}');
+}
+```
+
+### Defining getRelation for Eager Loading
+
+To enable eager loading, implement `getRelation` in your model:
+
+```dart
+class User extends Model {
+  HasMany<Post> posts() => hasMany(Post.new);
+  HasOne<Profile> profile() => hasOne(Profile.new);
+  
+  @override
+  Relation? getRelation(String name) {
+    switch (name) {
+      case 'posts':
+        return posts();
+      case 'profile':
+        return profile();
+      default:
+        return null;
+    }
+  }
 }
 ```
 
@@ -316,26 +774,83 @@ class User extends Model {
     'created_at': 'datetime',
     'settings': 'json',
     'tags': 'array',
+    'metadata': 'object',
   };
 }
+```
 
-// Values are converted automatically
-final user = User({'age': '25', 'is_active': 1});
-print(user.getAttribute<int>('age'));        // 25 (int)
-print(user.getAttribute<bool>('is_active')); // true (bool)
+### Reading with casts
+
+```dart
+final user = User({
+  'age': '25',           // String from DB
+  'is_active': 1,        // Int from DB
+  'created_at': '2024-01-15T10:30:00.000',
+  'settings': '{"theme":"dark"}',
+});
+
+// Values are automatically converted
+print(user.getAttribute<int>('age'));           // 25 (int)
+print(user.getAttribute<bool>('is_active'));    // true (bool)
+print(user.getAttribute<DateTime>('created_at')); // DateTime object
+print(user.getAttribute<Map>('settings'));      // {'theme': 'dark'}
+```
+
+### Writing with casts
+
+```dart
+final user = User();
+user.setAttribute('is_active', true);    // Stored as 1
+user.setAttribute('created_at', DateTime.now()); // Stored as ISO string
+user.setAttribute('settings', {'theme': 'dark'}); // Stored as JSON string
 ```
 
 ### Supported Types
 
-| Cast | Dart Type | Notes |
-|------|-----------|-------|
-| `int` | `int` | Converts numeric strings |
-| `double` | `double` | Converts strings and ints |
-| `bool` | `bool` | Accepts 1/0, "true"/"false" |
-| `datetime` | `DateTime` | Parses from ISO-8601 |
-| `json` | `dynamic` | Automatic JSON decode |
-| `array` | `List<dynamic>` | For JSON arrays |
-| `object` | `Map<String, dynamic>` | For JSON objects |
+| Cast | Dart Type | Read Behavior | Write Behavior |
+|------|-----------|---------------|----------------|
+| `int` | `int` | Parses strings, converts nums | Passthrough |
+| `double` | `double` | Parses strings, converts ints | Passthrough |
+| `bool` | `bool` | Accepts 1/0, "true"/"false", "1"/"0" | Converts to 1/0 |
+| `datetime` | `DateTime` | Parses ISO-8601 strings | Converts to ISO string |
+| `json` | `dynamic` | Decodes JSON strings | Encodes to JSON string |
+| `array` | `List<dynamic>` | Decodes JSON arrays | Encodes to JSON string |
+| `object` | `Map<String, dynamic>` | Decodes JSON objects | Encodes to JSON string |
+
+### Enum Support
+
+```dart
+enum UserStatus { active, inactive, pending }
+
+final user = User({'status': 'active'});
+final status = user.getEnum('status', UserStatus.values);
+print(status); // UserStatus.active
+
+// Also works with integer indices
+final user2 = User({'status': 0});
+final status2 = user2.getEnum('status', UserStatus.values);
+print(status2); // UserStatus.active
+```
+
+### Helper Methods
+
+The `HasAttributeHelpers` mixin provides convenient typed accessors:
+
+```dart
+final user = User({...});
+
+// Typed helpers
+String? name = user.string('name');
+int? age = user.integer('age');
+double? score = user.doubleNum('score');
+bool? active = user.boolean('is_active');
+DateTime? created = user.date('created_at');
+Map<String, dynamic>? settings = user.json('settings');
+
+// Bracket notation
+user['name'] = 'Mario';
+print(user['name']);
+```
 
 ---
 
@@ -351,6 +866,34 @@ class Post extends Model with HasTimestamps {
 
 // created_at is set on insert
 // updated_at is refreshed on every save
+
+final post = Post();
+post.title = 'Hello World';
+await post.save();
+
+print(post.createdAt); // Set automatically
+print(post.updatedAt); // Set automatically
+```
+
+Customize column names:
+
+```dart
+class Post extends Model with HasTimestamps {
+  @override
+  String get createdAtColumn => 'date_created';
+  
+  @override
+  String get updatedAtColumn => 'date_modified';
+}
+```
+
+Disable timestamps:
+
+```dart
+class LegacyPost extends Model with HasTimestamps {
+  @override
+  bool get timestamps => false;
+}
 ```
 
 ### Soft Deletes
@@ -365,6 +908,7 @@ class User extends Model with HasSoftDeletes {
 
 // "Delete" (sets deleted_at)
 await user.delete();
+print(user.trashed); // true
 
 // Normal queries automatically exclude deleted records
 final activeUsers = await User().query().get();
@@ -377,8 +921,9 @@ final deletedUsers = await User().onlyTrashed().get();
 
 // Restore a record
 await user.restore();
+print(user.trashed); // false
 
-// Actually delete from database
+// Permanently delete from database
 await user.forceDelete();
 ```
 
@@ -391,8 +936,10 @@ class Document extends Model with HasUuids {
 }
 
 // UUID is generated automatically before save
-final doc = Document({'title': 'Report'});
+final doc = Document();
+doc.title = 'Report Q4';
 await doc.save();
+
 print(doc.id); // "550e8400-e29b-41d4-a716-446655440000"
 ```
 
@@ -411,16 +958,30 @@ class TenantScope implements Scope {
   }
 }
 
-class Project extends Model with HasGlobalScopes {
+class ActiveScope implements Scope {
   @override
-  List<Scope> get globalScopes => [TenantScope(currentTenantId)];
+  void apply(QueryBuilder builder, Model model) {
+    builder.where('is_active', 1);
+  }
 }
 
-// All queries automatically filter by tenant
-final projects = await Project().query().get();
+class Project extends Model with HasGlobalScopes {
+  @override
+  List<Scope> get globalScopes => [
+    TenantScope(currentTenantId),
+    ActiveScope(),
+  ];
+}
 
-// Temporary bypass
+// All queries automatically include scope conditions
+final projects = await Project().query().get();
+// SQL: SELECT * FROM projects WHERE tenant_id = ? AND is_active = ?
+
+// Bypass all scopes
 final allProjects = await Project().withoutGlobalScopes().get();
+
+// Bypass specific scope
+final allTenantProjects = await Project().withoutGlobalScope<ActiveScope>().get();
 ```
 
 ---
@@ -429,25 +990,65 @@ final allProjects = await Project().withoutGlobalScopes().get();
 
 Protect your models from unauthorized mass assignments:
 
+### Using fillable (whitelist)
+
 ```dart
 class User extends Model {
-  // Only these fields can be assigned via fill()
   @override
   List<String> get fillable => ['name', 'email', 'bio'];
-  
-  // Or, block specific fields
-  @override
-  List<String> get guarded => ['is_admin', 'api_key'];
 }
 
-// fill() respects the rules
+// Only whitelisted fields are assigned
+user.fill({
+  'name': 'Mario',
+  'email': 'mario@example.com',
+  'is_admin': true,  // Ignored!
+});
+
+print(user.name);  // 'Mario'
+print(user.attributes.containsKey('is_admin')); // false
+```
+
+### Using guarded (blacklist)
+
+```dart
+class User extends Model {
+  @override
+  List<String> get guarded => ['id', 'is_admin', 'api_key'];
+}
+
+// All fields except guarded ones are assigned
 user.fill({
   'name': 'Mario',
   'is_admin': true,  // Ignored!
 });
+```
 
-// forceFill() bypasses protection (use with caution)
-user.forceFill({'is_admin': true});
+### Default behavior
+
+By default, all models are **totally guarded** (`guarded => ['*']`). You must explicitly define `fillable` or adjust `guarded` to allow mass assignment.
+
+### Bypassing protection
+
+```dart
+// forceFill() bypasses all protection (use with caution!)
+user.forceFill({
+  'name': 'Mario',
+  'is_admin': true,  // Assigned!
+});
+
+// Temporarily disable protection globally (for seeders, tests)
+HasGuardsAttributes.unguard();
+user.fill({'is_admin': true}); // Works now
+HasGuardsAttributes.reguard(); // Re-enable protection
+```
+
+### Check if fillable
+
+```dart
+if (user.isFillable('email')) {
+  user.fill({'email': 'new@example.com'});
+}
 ```
 
 ---
@@ -460,35 +1061,59 @@ Intercept Model lifecycle events:
 class User extends Model {
   @override
   Future<bool> onSaving() async {
-    // Executed before every save
+    // Executed before every save (insert or update)
     // Return false to cancel the operation
+    
+    // Example: Generate slug
     attributes['slug'] = generateSlug(attributes['name']);
-    return true;
+    
+    // Example: Validate
+    if (attributes['email'] == null) {
+      return false; // Cancel save
+    }
+    
+    return true; // Proceed with save
   }
   
   @override
   Future<void> onSaved() async {
     // Executed after a successful save
     await invalidateCache();
+    await sendWelcomeEmail();
   }
   
   @override
   Future<bool> onDeleting() async {
     // Executed before delete
     // Return false to prevent deletion
+    
     if (await hasActiveSubscription()) {
-      return false;
+      return false; // Prevent deletion
     }
     return true;
   }
   
   @override
   Future<void> onDeleted() async {
-    // Executed after delete
+    // Executed after successful delete
     await cleanupRelatedFiles();
+    await notifyAdmins();
   }
 }
 ```
+
+### Hook execution order
+
+**For save:**
+1. `onSaving()` — Return `false` to abort
+2. INSERT or UPDATE executed
+3. Record refreshed from DB
+4. `onSaved()`
+
+**For delete:**
+1. `onDeleting()` — Return `false` to abort
+2. DELETE executed
+3. `onDeleted()`
 
 ---
 
@@ -498,14 +1123,47 @@ Execute multiple operations atomically:
 
 ```dart
 await DatabaseManager().transaction((txn) async {
-  final user = User({'name': 'Mario'});
+  final user = User();
+  user.name = 'Mario';
+  user.email = 'mario@example.com';
   await user.save();
   
-  final profile = Profile({'user_id': user.id, 'bio': 'Hello!'});
+  final profile = Profile();
+  profile.userId = user.id;
+  profile.bio = 'Hello!';
   await profile.save();
   
+  final settings = UserSettings();
+  settings.userId = user.id;
+  settings.theme = 'dark';
+  await settings.save();
+  
   // If anything fails, everything is rolled back
+  return user; // Return value from transaction
 });
+```
+
+### Transaction state
+
+```dart
+// Check if currently in a transaction
+if (DatabaseManager().inTransaction) {
+  print('Inside a transaction');
+}
+```
+
+### Error handling
+
+```dart
+try {
+  await DatabaseManager().transaction((txn) async {
+    await user.save();
+    throw Exception('Something went wrong');
+  });
+} on TransactionException catch (e) {
+  print('Transaction failed: ${e.message}');
+  print('Was rolled back: ${e.wasRolledBack}');
+}
 ```
 
 ---
@@ -520,61 +1178,198 @@ final stream = User().query()
     .orderBy('name')
     .watch();
 
-// In a Flutter widget
-StreamBuilder<List<User>>(
-  stream: stream,
-  builder: (context, snapshot) {
-    if (!snapshot.hasData) return CircularProgressIndicator();
-    return ListView(
-      children: snapshot.data!.map((user) => UserTile(user)).toList(),
-    );
-  },
-)
+// The stream emits new data whenever the underlying data changes
 ```
 
-The stream automatically emits new data when records change in the database (requires adapter support).
+### Flutter integration
+
+```dart
+class UserListWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<User>>(
+      stream: User().query()
+          .where('active', 1)
+          .orderBy('name')
+          .watch(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+        
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+        
+        final users = snapshot.data ?? [];
+        
+        return ListView.builder(
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            final user = users[index];
+            return ListTile(
+              title: Text(user.name ?? ''),
+              subtitle: Text(user.email ?? ''),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+```
+
+> **Note:** Reactive streams require adapter support. The adapter must implement `watch()` to emit updates when data changes.
 
 ---
 
 ## Code Generation
 
-Bavard includes a code generator to create typed accessors:
+Bavard includes a code generator to create typed accessors, eliminating the need to work with raw `attributes` maps.
+
+### Setup
+
+1. Add the `@fillable` annotation to your model
+2. Define a `static const schemaTypes` map with field names and types
+3. Mix in the generated `$ModelNameFillable` mixin
+4. Add the `part` directive for the generated file
 
 ```dart
+import 'package:bavard/bavard.dart';
+
+part 'user.fillable.g.dart';
+
 @fillable
 class User extends Model with $UserFillable {
+  @override
+  String get table => 'users';
+
   static const schemaTypes = {
     'name': 'string',
-    'age': 'int',
     'email': 'string',
-    'is_admin': 'bool:guarded',  // Not fillable
+    'age': 'int',
+    'score': 'double',
+    'is_active': 'bool',
+    'is_admin': 'bool:guarded',
+    'created_at': 'datetime',
+    'settings': 'json',
+    'tags': 'array',
   };
-  
-  // ...
-}
 
-// After running build_runner, you can use:
-user.name = 'Mario';      // Typed setter
-print(user.age);          // Typed getter (int?)
+  User([super.attributes]);
+
+  @override
+  User fromMap(Map<String, dynamic> map) => User(map);
+}
 ```
 
-Run the generator:
+### Generate the code
 
 ```bash
 dart run build_runner build
 ```
 
+Or watch for changes:
+
+```bash
+dart run build_runner watch
+```
+
+### Usage
+
+After generation, use your model with full type safety:
+
+```dart
+// Create with typed setters
+final user = User();
+user.name = 'David';
+user.email = 'david@example.com';
+user.age = 28;
+user.isActive = true;
+user.settings = {'theme': 'dark', 'language': 'en'};
+user.tags = ['developer', 'dart'];
+await user.save();
+
+// Read with typed getters
+print(user.name);      // String?: 'David'
+print(user.age);       // int?: 28
+print(user.isActive);  // bool?: true
+print(user.createdAt); // DateTime?
+print(user.settings);  // dynamic: {'theme': 'dark', ...}
+print(user.tags);      // List<dynamic>?: ['developer', 'dart']
+
+// Update
+user.name = 'David Updated';
+user.score = 95.5;
+await user.save();
+
+// Query and iterate
+final users = await User().query()
+    .where('is_active', 1)
+    .orderBy('name')
+    .get();
+
+for (final u in users) {
+  print('${u.name} (${u.email}) - Age: ${u.age}');
+}
+```
+
+### Type modifiers
+
+| Modifier | Effect | Example |
+|----------|--------|---------|
+| `:guarded` | Excluded from `fillable` list | `'is_admin': 'bool:guarded'` |
+| `?` | Explicitly nullable (default) | `'name': 'string?'` |
+| `!` | Non-nullable | `'email': 'string!'` |
+
+```dart
+static const schemaTypes = {
+  'name': 'string',            // String? name (nullable by default)
+  'email': 'string!',          // String email (non-nullable)
+  'api_key': 'string:guarded', // String? apiKey (protected from fill())
+  'is_admin': 'bool:guarded',  // bool? isAdmin (protected)
+};
+```
+
+### Generated fillable list
+
+The generator automatically creates the `fillable` list, excluding `:guarded` fields:
+
+```dart
+// Generated in user.fillable.g.dart
+mixin $UserFillable on Model {
+  @override
+  List<String> get fillable => const ['name', 'email', 'age', 'score', 'is_active', 'created_at', 'settings', 'tags'];
+  // Note: 'is_admin' and 'api_key' are excluded because they're marked as :guarded
+  
+  String? get name => getAttribute('name');
+  set name(String? value) => setAttribute('name', value);
+  
+  // ... other getters/setters
+}
+```
+
+### Benefits
+
+- **Type safety**: Catch type errors at compile time
+- **IDE autocomplete**: Full IntelliSense support for all attributes
+- **Cleaner code**: `user.name` instead of `user.attributes['name']`
+- **Automatic casting**: Values are properly converted based on types
+- **Mass assignment protection**: `:guarded` fields automatically protected
+
 ---
 
 ## Error Handling
 
-Bavard defines specific exceptions to handle errors granularly:
+Bavard defines specific exceptions for granular error handling:
 
 ```dart
 try {
   final user = await User().query().findOrFail(999);
 } on ModelNotFoundException catch (e) {
-  print('User not found: ${e.id}');
+  print('Model: ${e.model}');
+  print('ID: ${e.id}');
+  print('Message: ${e.message}');
 }
 
 try {
@@ -585,11 +1380,20 @@ try {
 
 try {
   await DatabaseManager().transaction((txn) async {
-    // operations that fail
+    throw Exception('Oops!');
   });
 } on TransactionException catch (e) {
   print('Transaction failed: ${e.message}');
-  print('Rollback executed: ${e.wasRolledBack}');
+  print('Rolled back: ${e.wasRolledBack}');
+  print('Original error: ${e.originalError}');
+}
+
+try {
+  await someQuery.get();
+} on QueryException catch (e) {
+  print('SQL: ${e.sql}');
+  print('Bindings: ${e.bindings}');
+  print('Error: ${e.message}');
 }
 ```
 
@@ -605,6 +1409,18 @@ try {
 | `MassAssignmentException` | Attempting to mass-assign guarded fields |
 | `RelationNotFoundException` | Undefined relationship accessed |
 
+### Catching all ORM exceptions
+
+All exceptions extend `ActiveSyncException`:
+
+```dart
+try {
+  // Any ORM operation
+} on ActiveSyncException catch (e) {
+  print('ORM error: ${e.message}');
+}
+```
+
 ---
 
 ## Implementing a Database Adapter
@@ -613,74 +1429,132 @@ To use Bavard with your preferred database, implement `DatabaseAdapter`:
 
 ```dart
 class MyAdapter implements DatabaseAdapter {
+  final MyDatabaseConnection _connection;
+  
+  MyAdapter(this._connection);
+  
   @override
-  Future<List<Map<String, dynamic>>> getAll(String sql, [List<dynamic>? args]) async {
-    // Execute the query and return results
+  Future<List<Map<String, dynamic>>> getAll(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
+    return await _connection.query(sql, arguments);
   }
   
   @override
-  Future<Map<String, dynamic>> get(String sql, [List<dynamic>? args]) async {
-    // Execute query and return first result
+  Future<Map<String, dynamic>> get(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
+    final results = await getAll(sql, arguments);
+    return results.isNotEmpty ? results.first : {};
   }
   
   @override
-  Future<void> execute(String sql, [List<dynamic>? args]) async {
-    // Execute UPDATE, DELETE, DDL
+  Future<void> execute(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
+    await _connection.execute(sql, arguments);
   }
   
   @override
-  Future<dynamic> insert(String table, Map<String, dynamic> values) async {
-    // Insert and return generated ID
+  Future<dynamic> insert(
+    String table,
+    Map<String, dynamic> values,
+  ) async {
+    // Build and execute INSERT, return generated ID
+    final keys = values.keys.join(', ');
+    final placeholders = List.filled(values.length, '?').join(', ');
+    final sql = 'INSERT INTO $table ($keys) VALUES ($placeholders)';
+    
+    await _connection.execute(sql, values.values.toList());
+    return await _connection.lastInsertId();
   }
   
   @override
-  Stream<List<Map<String, dynamic>>> watch(String sql, {List<dynamic>? parameters}) {
-    // Return a stream for reactive queries
-  }
-  
-  @override
-  Future<T> transaction<T>(Future<T> Function(TransactionContext) callback) async {
-    // Handle the transaction
+  Stream<List<Map<String, dynamic>>> watch(
+    String sql, {
+    List<dynamic>? parameters,
+  }) {
+    // Return a stream that emits when data changes
+    return _connection.watchQuery(sql, parameters);
   }
   
   @override
   bool get supportsTransactions => true;
+  
+  @override
+  Future<T> transaction<T>(
+    Future<T> Function(TransactionContext txn) callback,
+  ) async {
+    await _connection.execute('BEGIN');
+    try {
+      final context = MyTransactionContext(_connection);
+      final result = await callback(context);
+      await _connection.execute('COMMIT');
+      return result;
+    } catch (e) {
+      await _connection.execute('ROLLBACK');
+      rethrow;
+    }
+  }
+}
+
+class MyTransactionContext implements TransactionContext {
+  final MyDatabaseConnection _connection;
+  
+  MyTransactionContext(this._connection);
+  
+  @override
+  Future<List<Map<String, dynamic>>> getAll(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
+    return await _connection.query(sql, arguments);
+  }
+  
+  @override
+  Future<Map<String, dynamic>> get(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
+    final results = await getAll(sql, arguments);
+    return results.isNotEmpty ? results.first : {};
+  }
+  
+  @override
+  Future<void> execute(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
+    await _connection.execute(sql, arguments);
+  }
+  
+  @override
+  Future<dynamic> insert(
+    String table,
+    Map<String, dynamic> values,
+  ) async {
+    // Same as adapter's insert
+  }
 }
 ```
-
-The `TransactionContext` interface mirrors the adapter methods, ensuring all operations within the callback participate in the transaction.
 
 ---
 
 ## Best Practices
 
-1. **Always use `query()`** to get a typed QueryBuilder
-2. **Define `casts`** to ensure correct types
-3. **Use `fillable` or `guarded`** to protect sensitive fields
-4. **Prefer `withRelations()`** to avoid N+1 queries
-5. **Use transactions** for operations that must be atomic
-6. **Handle exceptions** appropriately in your app
-7. **Leverage lifecycle hooks** for cross-cutting concerns like validation or caching
-
----
-
-## Project Structure
-
-```
-bavard/
-├── lib/
-│   ├── bavard.dart              # Main entry point
-│   └── src/
-│       ├── core/
-│       │   ├── model.dart       # Base Model class
-│       │   ├── query_builder.dart
-│       │   ├── database_adapter.dart
-│       │   ├── database_manager.dart
-│       │   ├── exceptions.dart
-│       │   └── concerns/        # Mixins (timestamps, soft deletes, etc.)
-│       ├── relations/           # Relationship definitions
-│       └── generators/          # Code generation
-```
+1. **Follow the conventions** — Let Bavard do the heavy lifting with sensible defaults
+2. **Use code generation** — Get type safety and better IDE support
+3. **Always use `query()`** — Returns a typed `QueryBuilder<T>` for your model
+4. **Define `casts`** — Ensure correct type conversions between DB and Dart
+5. **Use `fillable` or `guarded`** — Protect sensitive fields from mass assignment
+6. **Prefer `withRelations()`** — Avoid N+1 queries by eager loading
+7. **Use transactions** — For operations that must be atomic
+8. **Handle exceptions** — Catch specific exceptions for better error handling
+9. **Leverage lifecycle hooks** — For validation, caching, and side effects
+10. **Use soft deletes** — When you need to preserve data history
 
 ---
 
