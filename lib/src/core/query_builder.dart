@@ -614,13 +614,13 @@ class QueryBuilder<T extends Model> {
   Future<void> _eagerLoad(List<T> models) async {
     if (_with.isEmpty || models.isEmpty) return;
 
-    for (var relationName in _with) {
-      // Assumes all models in list are of same type T and share the relation definition.
+    // Eager load related models parallel
+    await Future.wait(_with.map((relationName) async {
       final relation = models.first.getRelation(relationName);
       if (relation != null) {
         await relation.match(models, relationName);
       }
-    }
+    }));
   }
 
   /// Maps raw DB rows to concrete Model instances.
@@ -722,8 +722,6 @@ class QueryBuilder<T extends Model> {
       }
 
       return value as T;
-
-      return row['aggregate'] as T;
     } catch (e) {
       throw QueryException(
         sql: sql,

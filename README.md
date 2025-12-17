@@ -13,34 +13,4 @@ Bavard is an Eloquent-like ORM for Flutter/Dart, designed to work with SQLite, P
 
 ### Documentation
 Documentation is a work in progress and will be published soon.
-
----
-
-## Quick Start
-
-### 1. Initialization
-You must inject a driver adapter before using any model.
-
-```dart
-void main() {
-  // Use any adapter implementing DatabaseAdapter
-  DatabaseManager().setDatabase(DemoAdapter()); 
-  runApp(MyApp());
-}
-```
-
-### 2. Define a Model
-You must inject a driver adapter before using any model.
-This is a example.
-
-```dart
-class User extends Model {
-  @override
-  String get table => 'users';
-
-  User([super.attributes]);
-
-  @override
-  User fromMap(Map<String, dynamic> map) => User(map);
-}
-```
+See DOC.md file for wip documentation.
