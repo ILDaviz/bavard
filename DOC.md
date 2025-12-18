@@ -1,5 +1,8 @@
 # Bavard ORM
 
+> [!CAUTION]
+> **This project is under active development. APIs and documentation may change.**
+
 **A Eloquent-inspired ORM for Dart/Flutter**
 
 Bavard is an Object-Relational Mapping library that brings the Active Record pattern to Dart. If you're familiar with Laravel's Eloquent, you'll feel right at home. The goal is to simplify database interactions with SQLite, PostgreSQL, or PowerSync while keeping your code clean and readable.
@@ -719,6 +722,9 @@ final tags = await post.tags().get();
 ### Eager Loading
 
 To avoid the N+1 problem, load relationships in advance:
+
+> [!WARNING]  
+> Only one level of nested posts is allowed.
 
 ```dart
 final users = await User().query()
