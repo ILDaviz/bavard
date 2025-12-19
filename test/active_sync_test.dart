@@ -30,7 +30,9 @@ class MockDatabaseAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<void> execute(String sql, [List<dynamic>? arguments]) async {}
+  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+    return 1;
+  }
 
   @override
   Stream<List<Map<String, dynamic>>> watch(
@@ -76,7 +78,7 @@ class _MockTransactionContext implements TransactionContext {
   }
 
   @override
-  Future<void> execute(String sql, [List<dynamic>? arguments]) {
+  Future<int> execute(String sql, [List<dynamic>? arguments]) {
     return _adapter.execute(sql, arguments);
   }
 

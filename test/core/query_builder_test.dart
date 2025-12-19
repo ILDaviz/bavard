@@ -243,14 +243,7 @@ void main() {
     expect(existsMock.lastSql, contains('LIMIT 1'));
   });
 
-  /// Verifies that the [cast] method correctly transfers all SQL clauses, bindings,
-  /// and query configurations from the original QueryBuilder instance to the new one.
-  ///
-  /// This ensures that transforming a query (e.g., from a raw User model to an AdminView)
-  /// does not lose critical constraints like WHERE clauses, JOINs, or pagination limits.
   test('cast() preserves ALL query state and bindings', () async {
-    // Initialize the Mock Database to intercept and inspect generated SQL.
-    // We simulate a response for the 'users' table to allow execution to proceed.
     final dbSpy = MockDatabaseSpy([], {
       'FROM users': [
         {'id': 1, 'name': 'SuperAdmin', 'role': 'admin'},
@@ -258,75 +251,44 @@ void main() {
     });
     DatabaseManager().setDatabase(dbSpy);
 
-    // 1. Build a complex query on the original model (TestUser).
-    // We intentionally use various clauses (select, join, where, raw, order, limit, offset)
-    // to ensure 'cast' handles a fully populated state.
     final originalQuery = TestUser()
         .query()
-        .select(['name', 'role']) // Custom column projection
-        .join('roles', 'users.role_id', '=', 'roles.id') // Explicit JOIN
-        .where('active', 1) // Standard WHERE clause
+        .select(['name', 'role'])
+        .join('roles', 'users.role_id', '=', 'roles.id')
+        .where('active', 1)
         .whereRaw(
-          'age > ?',
-          bindings: [21],
-        ) // Raw SQL WHERE with parameter binding
-        .orderBy('created_at', direction: 'DESC') // Sorting configuration
-        .limit(10) // Pagination limit
-        .offset(5); // Pagination offset
+      'age > ?',
+      bindings: [21],
+    )
+        .orderBy('created_at', direction: 'DESC')
+        .limit(10)
+        .offset(5);
 
-    // 2. Perform the cast to a new model type (AdminView).
-    // This creates a new QueryBuilder<AdminView> carrying over the previous state.
     final castedQuery = originalQuery.cast<AdminView>(AdminView.new);
 
-    // 3. Execute the casted query to trigger SQL generation and database interaction.
     final results = await castedQuery.get();
 
-    // A. Verify type safety: The result list and its items must match the target generic type (AdminView).
     expect(results, isA<List<AdminView>>());
     expect(results.first, isA<AdminView>());
 
-    // B. Verify SQL Generation: The generated SQL must contain all original query components.
     final sql = dbSpy.lastSql;
 
-    // Check custom SELECT projection
     expect(sql, startsWith('SELECT users.name, users.role FROM users'));
-    // Check JOIN clause preservation
     expect(sql, contains('JOIN roles ON users.role_id = roles.id'));
-    // Check combination of standard and raw WHERE clauses
     expect(sql, contains('WHERE active = ? AND age > ?'));
-    // Check ORDER BY clause
     expect(sql, contains('ORDER BY created_at DESC'));
-    // Check LIMIT and OFFSET
     expect(sql, contains('LIMIT 10'));
     expect(sql, contains('OFFSET 5'));
-
-    // C. Verify Parameter Bindings: This is crucial for security and correctness.
-    // The bindings list must strictly maintain the order of parameters:
-    // 1 (from 'active') and 21 (from 'age').
     expect(dbSpy.lastArgs, equals([1, 21]));
   });
 
-  /// Verifies that eager loading configurations (the [_with] list) are copied during a cast.
-  ///
-  /// Since `_with` is a private internal state, we cannot assert its content directly
-  /// without reflection. This test ensures that the operation completes without error
-  /// and that the new builder instance is valid.
   test('cast() copies eager loading (_with) configuration', () async {
     final dbSpy = MockDatabaseSpy();
     DatabaseManager().setDatabase(dbSpy);
 
-    // Build a query requesting eager loading of the 'posts' relation.
     final originalQuery = TestUser().query().withRelations(['posts']);
-
-    // Perform the cast.
-    // Note: For a comprehensive integration test, [AdminView] should also define
-    // the 'posts' relation. Here we primarily test that the internal list copy logic
-    // does not throw exceptions and produces a non-null instance.
     final castedQuery = originalQuery.cast<AdminView>(AdminView.new);
 
-    // Assert that the builder was created successfully.
-    // (In a full integration scenario, executing this query and inspecting
-    // executed SQL for relation fetching would confirm the behavior).
     expect(castedQuery, isNotNull);
   });
 }

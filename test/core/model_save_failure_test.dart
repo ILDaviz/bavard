@@ -17,7 +17,7 @@ class FailingMockDatabase extends MockDatabaseSpy {
   }
 
   @override
-  Future<void> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
     if (shouldFailUpdate && sql.contains('UPDATE')) {
       throw Exception('Database update failed');
     }

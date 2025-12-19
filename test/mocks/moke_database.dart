@@ -56,7 +56,7 @@ class MockDatabaseSpy implements DatabaseAdapter {
   }
 
   @override
-  Future<void> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
     lastSql = sql;
     lastArgs = arguments;
     history.add(sql);
@@ -67,7 +67,10 @@ class MockDatabaseSpy implements DatabaseAdapter {
       if (shouldFailTransaction) {
         throw Exception('Simulated transaction failure');
       }
+
+      return 1;
     }
+    return 1;
   }
 
   @override
@@ -149,7 +152,7 @@ class MockTransactionContext implements TransactionContext {
   }
 
   @override
-  Future<void> execute(String sql, [List<dynamic>? arguments]) {
+  Future<int> execute(String sql, [List<dynamic>? arguments]) {
     return _db.execute(sql, arguments);
   }
 
