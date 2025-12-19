@@ -47,11 +47,23 @@ abstract class Model
   /// Used to calculate diffs for efficient UPDATE queries.
   Map<String, dynamic> original = {};
 
+  dynamic _deepCopy(dynamic value) {
+    if (value is Map) {
+      return value.map<String, dynamic>((k, v) => MapEntry(k.toString(), _deepCopy(v)));
+    } else if (value is List) {
+      return value.map((v) => _deepCopy(v)).toList();
+    } else if (value is Set) {
+      return value.map((v) => _deepCopy(v)).toSet();
+    }
+
+    return value;
+  }
+
   /// Snapshots current attributes to [original].
   ///
   /// Critical for "Dirty Checking" to ensure only changed fields are sent to the DB.
   void syncOriginal() {
-    original = Map<String, dynamic>.from(attributes);
+    original = _deepCopy(attributes) as Map<String, dynamic>;
   }
 
   /// Container for eager-loaded data (e.g., `user.relations['posts']`).

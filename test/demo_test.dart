@@ -20,7 +20,7 @@ void main() {
   });
 
   test('first() uses a clone and does not mutate original query builder state', () async {
-    final query = TestUser().newQuery().where('active', 1);
+    final query = TestUser().query().where('active', 1);
 
     // Esegue first(). Questo dovrebbe usare internamente una copia con LIMIT 1
     await query.first();

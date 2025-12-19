@@ -91,12 +91,25 @@ class AsyncHookUser extends Model {
   }
 }
 
+class ThrowingHookUser extends Model {
+  @override
+  String get table => 'users';
+  ThrowingHookUser([super.attributes]);
+  @override
+  ThrowingHookUser fromMap(Map<String, dynamic> map) => ThrowingHookUser(map);
+
+  @override
+  Future<bool> onSaving() async {
+    throw Exception('Error in onSaving');
+  }
+}
+
 void main() {
   late MockDatabaseSpy dbSpy;
 
   setUp(() {
     dbSpy = MockDatabaseSpy([], {
-      'last_insert_rowid': [
+      'last_insert_row_id': [
         {'id': 1}
       ],
       'FROM users': [
@@ -132,7 +145,7 @@ void main() {
 
     test('onSaving can modify attributes before save', () async {
       final mockDb = MockDatabaseSpy([], {
-        'last_insert_rowid': [
+        'last_insert_row_id': [
           {'id': 1}
         ],
         'FROM users': [
@@ -148,6 +161,8 @@ void main() {
       mockDb.history.firstWhere((s) => s.contains('INSERT'), orElse: () => '');
       expect(insertSql, contains('modified_by_hook'));
       expect(insertSql, contains('slug'));
+      expect(user.attributes['modified_by_hook'], isTrue);
+      expect(user.attributes['slug'], 'test-user');
     });
 
 
@@ -239,5 +254,19 @@ void main() {
 
       expect(user.asyncOrder, ['onSaving_complete', 'onSaved_complete']);
     });
+  });
+
+  test('save() propagates exception from onSaving and prevents DB operation', () async {
+    final user = ThrowingHookUser({'name': 'David'});
+
+    try {
+      await user.save();
+      fail('Should have thrown Exception');
+    } catch (e) {
+      expect(e.toString(), contains('Error in onSaving'));
+    }
+
+    expect(dbSpy.history, isEmpty);
+    expect(user.exists, isFalse);
   });
 }

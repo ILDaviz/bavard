@@ -44,7 +44,7 @@ class ScopedUser extends Model with HasGlobalScopes {
 }
 
 void main() {
-  group('TypedQuery.query() respects Model.newQuery() overrides', () {
+  group('TypedQuery.query() respects Model.query() overrides', () {
     test('SoftDeletes is applied also via typed query()', () async {
       final dbSpy = MockDatabaseSpy();
       DatabaseManager().setDatabase(dbSpy);

@@ -29,7 +29,7 @@ void main() {
   });
 
   test('It generates basic SELECT *', () async {
-    await TestUser().newQuery().get();
+    await TestUser().query().get();
     expect(dbSpy.lastSql, 'SELECT users.* FROM users');
   });
 
@@ -42,7 +42,7 @@ void main() {
 
   test('It chains multiple WHERE clauses', () async {
     await TestUser()
-        .newQuery()
+        .query()
         .where('role', 'admin')
         .where('age', 18, operator: '>')
         .get();
@@ -58,7 +58,7 @@ void main() {
 
   test('It generates ORDER BY and LIMIT', () async {
     await TestUser()
-        .newQuery()
+        .query()
         .orderBy('created_at', direction: 'DESC')
         .limit(5)
         .get();
@@ -68,21 +68,21 @@ void main() {
   });
 
   test('It handles WHERE IN', () async {
-    await TestUser().newQuery().whereIn('id', [1, 2, 3]).get();
+    await TestUser().query().whereIn('id', [1, 2, 3]).get();
 
     expect(dbSpy.lastSql, contains('id IN (?, ?, ?)'));
     expect(dbSpy.lastArgs, [1, 2, 3]);
   });
 
   test('orderBy accepts dotted identifiers (table.column)', () async {
-    await TestUser().newQuery().orderBy('users.created_at', direction: 'DESC').get();
+    await TestUser().query().orderBy('users.created_at', direction: 'DESC').get();
 
     expect(dbSpy.lastSql, contains('ORDER BY users.created_at DESC'));
   });
 
   test('orderBy accepts dotted identifiers (table.column)', () async {
     await TestUser()
-        .newQuery()
+        .query()
         .orderBy('users.created_at', direction: 'DESC')
         .get();
 
@@ -92,7 +92,7 @@ void main() {
   test('orderBy rejects injection attempts in identifier', () async {
     expect(
           () => TestUser()
-          .newQuery()
+          .query()
           .orderBy('users.created_at; DROP TABLE users', direction: 'DESC'),
       throwsA(isA<InvalidQueryException>()),
     );
@@ -100,7 +100,7 @@ void main() {
 
   test('It handles OR WHERE clauses', () async {
     await TestUser()
-        .newQuery()
+        .query()
         .where('id', 1)
         .orWhere('email', 'admin@test.com')
         .get();
@@ -110,7 +110,7 @@ void main() {
   });
 
   test('It handles whereNull and whereNotNull', () async {
-    final q = TestUser().newQuery().whereNull('deleted_at').orWhereNotNull('posted_at');
+    final q = TestUser().query().whereNull('deleted_at').orWhereNotNull('posted_at');
     await q.get();
 
     expect(dbSpy.lastSql, contains('WHERE deleted_at IS NULL OR posted_at IS NOT NULL'));
@@ -119,7 +119,7 @@ void main() {
 
   test('It handles whereRaw with bindings', () async {
     await TestUser()
-        .newQuery()
+        .query()
         .whereRaw('age > ?', bindings: [18])
         .get();
 
@@ -129,7 +129,7 @@ void main() {
 
   test('It handles orWhereRaw with bindings', () async {
     await TestUser()
-        .newQuery()
+        .query()
         .where('id', 1)
         .orWhereRaw('age < ?', [10])
         .get();
@@ -145,7 +145,7 @@ void main() {
         .select(['1']);
 
     await TestUser()
-        .newQuery()
+        .query()
         .whereExists(subQuery)
         .get();
 
@@ -157,14 +157,14 @@ void main() {
   test('It handles whereNotExists', () async {
     final subQuery = QueryBuilder<TestUser>('posts', (map) => TestUser(map)).select(['1']);
 
-    await TestUser().newQuery().whereNotExists(subQuery).get();
+    await TestUser().query().whereNotExists(subQuery).get();
 
     expect(dbSpy.lastSql, contains('WHERE NOT EXISTS (SELECT 1 FROM posts)'));
   });
 
   test('It handles orWhereIn', () async {
     await TestUser()
-        .newQuery()
+        .query()
         .where('id', 1)
         .orWhereIn('role', ['admin', 'editor'])
         .get();
@@ -174,26 +174,16 @@ void main() {
   });
 
   test('It handles select() projection', () async {
-    await TestUser().newQuery().select(['name', 'email']).get();
+    await TestUser().query().select(['name', 'email']).get();
 
     expect(dbSpy.lastSql, startsWith('SELECT name, email FROM users'));
   });
 
   test('It handles offset()', () async {
-    await TestUser().newQuery().limit(10).offset(5).get();
+    await TestUser().query().limit(10).offset(5).get();
 
     expect(dbSpy.lastSql, contains('LIMIT 10'));
     expect(dbSpy.lastSql, contains('OFFSET 5'));
-  });
-
-  test('findOrFail() throws exception if not found', () async {
-    final emptyMock = MockDatabaseSpy([], {});
-    DatabaseManager().setDatabase(emptyMock);
-
-    expect(
-          () async => await TestUser().newQuery().findOrFail(999),
-      throwsException,
-    );
   });
 
   test('findOrFail() returns model if found', () async {
@@ -202,7 +192,7 @@ void main() {
     });
     DatabaseManager().setDatabase(foundMock);
 
-    final user = await TestUser().newQuery().findOrFail(1);
+    final user = await TestUser().query().findOrFail(1);
     expect(user.id, 1);
   });
 
@@ -230,7 +220,7 @@ void main() {
     });
     DatabaseManager().setDatabase(sumMock);
 
-    final total = await TestUser().newQuery().sum('price');
+    final total = await TestUser().query().sum('price');
     expect(total, 100.50);
     expect(sumMock.lastSql, contains('SELECT SUM(price) as aggregate'));
 
@@ -264,7 +254,7 @@ void main() {
     // 1. Build a complex query on the original model (TestUser).
     // We intentionally use various clauses (select, join, where, raw, order, limit, offset)
     // to ensure 'cast' handles a fully populated state.
-    final originalQuery = TestUser().newQuery()
+    final originalQuery = TestUser().query()
         .select(['name', 'role']) // Custom column projection
         .join('roles', 'users.role_id', '=', 'roles.id') // Explicit JOIN
         .where('active', 1) // Standard WHERE clause
@@ -315,7 +305,7 @@ void main() {
     DatabaseManager().setDatabase(dbSpy);
 
     // Build a query requesting eager loading of the 'posts' relation.
-    final originalQuery = TestUser().newQuery().withRelations(['posts']);
+    final originalQuery = TestUser().query().withRelations(['posts']);
 
     // Perform the cast.
     // Note: For a comprehensive integration test, [AdminView] should also define

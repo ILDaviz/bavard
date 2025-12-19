@@ -18,39 +18,36 @@ void main() {
     DatabaseManager().setDatabase(dbSpy);
   });
 
-  // ===========================================================================
-  // WHERE CLAUSES
-  // ===========================================================================
   group('WHERE Clauses - Extended', () {
     test('where() with null value generates IS NULL', () async {
-      await TestUser().newQuery().where('deleted_at', null).get();
+      await TestUser().query().where('deleted_at', null).get();
 
       expect(dbSpy.lastSql, contains('deleted_at IS NULL'));
     });
 
     test('where() with empty string', () async {
-      await TestUser().newQuery().where('name', '').get();
+      await TestUser().query().where('name', '').get();
 
       expect(dbSpy.lastSql, contains('name = ?'));
       expect(dbSpy.lastArgs, contains(''));
     });
 
     test('whereIn() with empty list generates 0 = 1', () async {
-      await TestUser().newQuery().whereIn('id', []).get();
+      await TestUser().query().whereIn('id', []).get();
 
       expect(dbSpy.lastSql, contains('0 = 1'));
       expect(dbSpy.lastArgs, isEmpty);
     });
 
     test('whereIn() with single item', () async {
-      await TestUser().newQuery().whereIn('id', [42]).get();
+      await TestUser().query().whereIn('id', [42]).get();
 
       expect(dbSpy.lastSql, contains('id IN (?)'));
       expect(dbSpy.lastArgs, equals([42]));
     });
 
     test('whereIn() with duplicate values', () async {
-      await TestUser().newQuery().whereIn('id', [1, 1, 2, 2, 3]).get();
+      await TestUser().query().whereIn('id', [1, 1, 2, 2, 3]).get();
 
       expect(dbSpy.lastSql, contains('id IN (?, ?, ?, ?, ?)'));
       expect(dbSpy.lastArgs, equals([1, 1, 2, 2, 3]));
@@ -58,7 +55,7 @@ void main() {
 
     test('orWhereNull() generates correct SQL', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .where('active', 1)
           .orWhereNull('deleted_at')
           .get();
@@ -68,7 +65,7 @@ void main() {
 
     test('orWhereNotNull() generates correct SQL', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .where('active', 0)
           .orWhereNotNull('verified_at')
           .get();
@@ -79,7 +76,7 @@ void main() {
 
     test('where with LIKE operator and wildcards', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .where('name', '%David%', operator: 'LIKE')
           .get();
 
@@ -89,7 +86,7 @@ void main() {
 
     test('where with NOT LIKE operator', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .where('email', '%spam%', operator: 'NOT LIKE')
           .get();
 
@@ -99,7 +96,7 @@ void main() {
 
     test('multiple chained where clauses with mixed operators', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .where('age', 18, operator: '>=')
           .where('age', 65, operator: '<=')
           .where('status', 'active')
@@ -112,9 +109,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // AGGREGATES
-  // ===========================================================================
   group('Aggregates - Extended', () {
     test('count() with column name', () async {
       final countMock = MockDatabaseSpy([], {
@@ -124,7 +118,7 @@ void main() {
       });
       DatabaseManager().setDatabase(countMock);
 
-      final count = await TestUser().newQuery().count('email');
+      final count = await TestUser().query().count('email');
 
       expect(count, 50);
       expect(countMock.lastSql, contains('COUNT(email)'));
@@ -138,7 +132,7 @@ void main() {
       });
       DatabaseManager().setDatabase(countMock);
 
-      final count = await TestUser().newQuery().where('active', 1).count();
+      final count = await TestUser().query().where('active', 1).count();
 
       expect(count, 10);
       expect(countMock.lastSql, contains('WHERE active = ?'));
@@ -152,7 +146,7 @@ void main() {
       });
       DatabaseManager().setDatabase(sumMock);
 
-      final sum = await TestUser().newQuery().sum('amount');
+      final sum = await TestUser().query().sum('amount');
 
       expect(sum, 0);
     });
@@ -165,12 +159,12 @@ void main() {
       });
       DatabaseManager().setDatabase(sumMock);
 
-      final sum = await TestUser().newQuery().sum('score');
+      final sum = await TestUser().query().sum('score');
 
       expect(sum, 150);
     });
 
-    test('avg() with empty result returns 0.0', () async {
+    test('avg() with empty result returns null', () async {
       final avgMock = MockDatabaseSpy([], {
         'SELECT AVG(rating) as aggregate': [
           {'aggregate': null}
@@ -178,9 +172,9 @@ void main() {
       });
       DatabaseManager().setDatabase(avgMock);
 
-      final avg = await TestUser().newQuery().avg('rating');
+      final avg = await TestUser().query().avg('rating');
 
-      expect(avg, 0.0);
+      expect(avg, null);
     });
 
     test('avg() with integer column', () async {
@@ -191,7 +185,7 @@ void main() {
       });
       DatabaseManager().setDatabase(avgMock);
 
-      final avg = await TestUser().newQuery().avg('age');
+      final avg = await TestUser().query().avg('age');
 
       expect(avg, 35.0);
       expect(avg, isA<double>());
@@ -205,7 +199,7 @@ void main() {
       });
       DatabaseManager().setDatabase(minMock);
 
-      final min = await TestUser().newQuery().min('price');
+      final min = await TestUser().query().min('price');
 
       expect(min, isNull);
     });
@@ -218,7 +212,7 @@ void main() {
       });
       DatabaseManager().setDatabase(maxMock);
 
-      final max = await TestUser().newQuery().max('score');
+      final max = await TestUser().query().max('score');
 
       expect(max, isNull);
     });
@@ -231,7 +225,7 @@ void main() {
       });
       DatabaseManager().setDatabase(minMock);
 
-      final min = await TestUser().newQuery().min('created_at');
+      final min = await TestUser().query().min('created_at');
 
       expect(min, '2020-01-01T00:00:00.000');
     });
@@ -244,21 +238,18 @@ void main() {
       });
       DatabaseManager().setDatabase(maxMock);
 
-      final max = await TestUser().newQuery().max('name');
+      final max = await TestUser().query().max('name');
 
       expect(max, 'Zoe');
     });
   });
 
-  // ===========================================================================
-  // QUERY METHODS
-  // ===========================================================================
   group('Query Methods - Extended', () {
     test('first() returns null on empty result', () async {
       final emptyMock = MockDatabaseSpy([], {});
       DatabaseManager().setDatabase(emptyMock);
 
-      final user = await TestUser().newQuery().first();
+      final user = await TestUser().query().first();
 
       expect(user, isNull);
     });
@@ -267,7 +258,7 @@ void main() {
       final emptyMock = MockDatabaseSpy([], {});
       DatabaseManager().setDatabase(emptyMock);
 
-      final user = await TestUser().newQuery().find(999);
+      final user = await TestUser().query().find(999);
 
       expect(user, isNull);
     });
@@ -280,7 +271,7 @@ void main() {
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final user = await TestUser().newQuery().find('abc-123');
+      final user = await TestUser().query().find('abc-123');
 
       expect(user, isNotNull);
       expect(mockDb.lastArgs, contains('abc-123'));
@@ -295,7 +286,7 @@ void main() {
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final user = await TestUser().newQuery().find(uuid);
+      final user = await TestUser().query().find(uuid);
 
       expect(user, isNotNull);
       expect(mockDb.lastArgs, contains(uuid));
@@ -305,7 +296,7 @@ void main() {
       final emptyMock = MockDatabaseSpy([], {});
       DatabaseManager().setDatabase(emptyMock);
 
-      final exists = await TestUser().newQuery().exists();
+      final exists = await TestUser().query().exists();
 
       expect(exists, isFalse);
     });
@@ -314,14 +305,14 @@ void main() {
       final emptyMock = MockDatabaseSpy([], {});
       DatabaseManager().setDatabase(emptyMock);
 
-      final notExist = await TestUser().newQuery().notExist();
+      final notExist = await TestUser().query().notExist();
 
       expect(notExist, isTrue);
     });
 
     test('toSql() returns complete SQL string', () async {
       final sql = TestUser()
-          .newQuery()
+          .query()
           .select(['id', 'name'])
           .where('active', 1)
           .orderBy('name')
@@ -337,14 +328,14 @@ void main() {
     });
 
     test('select() with table prefix (users.name)', () async {
-      await TestUser().newQuery().select(['users.id', 'users.name']).get();
+      await TestUser().query().select(['users.id', 'users.name']).get();
 
       expect(dbSpy.lastSql, contains('SELECT users.id, users.name'));
     });
 
     test('select() with alias (name AS user_name)', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .select(['id', 'name AS user_name', 'email AS contact'])
           .get();
 
@@ -353,13 +344,10 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // JOINS
-  // ===========================================================================
   group('Joins - Extended', () {
     test('multiple joins in single query', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .join('profiles', 'users.id', '=', 'profiles.user_id')
           .join('roles', 'users.role_id', '=', 'roles.id')
           .get();
@@ -370,7 +358,7 @@ void main() {
 
     test('join with different operators (>, <, !=)', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .join('scores', 'users.min_score', '<', 'scores.value')
           .get();
 
@@ -379,7 +367,7 @@ void main() {
 
     test('leftJoin generates LEFT JOIN', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .leftJoin('profiles', 'users.id', '=', 'profiles.user_id')
           .get();
 
@@ -388,7 +376,7 @@ void main() {
 
     test('rightJoin generates RIGHT JOIN', () async {
       await TestUser()
-          .newQuery()
+          .query()
           .rightJoin('profiles', 'users.id', '=', 'profiles.user_id')
           .get();
 
@@ -396,20 +384,17 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // VALIDATION & SECURITY
-  // ===========================================================================
   group('Validation & Security', () {
     test('where() rejects invalid column names', () {
       expect(
-            () => TestUser().newQuery().where('column; DROP TABLE users', 'value'),
+            () => TestUser().query().where('column; DROP TABLE users', 'value'),
         throwsA(isA<InvalidQueryException>()),
       );
     });
 
     test('whereIn() rejects invalid column names', () {
       expect(
-            () => TestUser().newQuery().whereIn('id; DELETE FROM', [1, 2]),
+            () => TestUser().query().whereIn('id; DELETE FROM', [1, 2]),
         throwsA(isA<InvalidQueryException>()),
       );
     });
@@ -417,7 +402,7 @@ void main() {
     test('join() rejects invalid table names', () {
       expect(
             () => TestUser()
-            .newQuery()
+            .query()
             .join('users; DROP TABLE', 'a.id', '=', 'b.id'),
         throwsA(isA<InvalidQueryException>()),
       );
@@ -426,7 +411,7 @@ void main() {
     test('join() rejects invalid operators', () {
       expect(
             () => TestUser()
-            .newQuery()
+            .query()
             .join('profiles', 'users.id', 'INVALID', 'profiles.user_id'),
         throwsA(isA<InvalidQueryException>()),
       );
@@ -434,14 +419,14 @@ void main() {
 
     test('orderBy() rejects invalid direction', () {
       expect(
-            () => TestUser().newQuery().orderBy('name', direction: 'RANDOM'),
+            () => TestUser().query().orderBy('name', direction: 'RANDOM'),
         throwsA(isA<InvalidQueryException>()),
       );
     });
 
     test('groupBy() rejects invalid column names', () {
       expect(
-            () => TestUser().newQuery().groupBy(['status; DROP TABLE']),
+            () => TestUser().query().groupBy(['status; DROP TABLE']),
         throwsA(isA<InvalidQueryException>()),
       );
     });
@@ -449,7 +434,7 @@ void main() {
     test('having() rejects invalid operators', () {
       expect(
             () => TestUser()
-            .newQuery()
+            .query()
             .groupBy(['status'])
             .having('COUNT(*)', 5, operator: 'INJECT'),
         throwsA(isA<InvalidQueryException>()),

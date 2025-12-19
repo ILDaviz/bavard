@@ -40,7 +40,7 @@ void main() {
 
   group('Global Scopes', () {
     test('It applies registered scopes automatically', () async {
-      await ScopedUser().newQuery().get();
+      await ScopedUser().query().get();
 
       expect(dbSpy.lastSql, contains('age >= ?'));
       expect(dbSpy.lastSql, contains('is_active = ?'));

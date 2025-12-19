@@ -382,24 +382,61 @@ class QueryBuilder<T extends Model> {
   }
 
   Future<int?> count([String column = '*']) async {
+    if (_groupBy.isNotEmpty || _havings.isNotEmpty) {
+      final dbManager = DatabaseManager();
+      final subQuery = _compileSql();
+      final bindings = [..._bindings, ..._havingBindings];
+      final wrapperSql = 'SELECT COUNT(*) as aggregate FROM ($subQuery) as temp_table';
+      try {
+        final row = await dbManager.get(wrapperSql, bindings);
+        if (row.isEmpty || row['aggregate'] == null) return 0;
+
+        final value = row['aggregate'];
+        return (value is num) ? value.toInt() : value as int;
+      } catch (e) {
+        throw QueryException(
+          sql: wrapperSql,
+          bindings: bindings,
+          message: 'Failed to execute count with group by: ${e.toString()}',
+          originalError: e,
+        );
+      }
+    }
+
     return await _scalar<int>('COUNT($column)');
   }
 
   Future<num> sum(String column) async {
+    _guardAgainstGrouping('sum');
     return await _scalar<num>('SUM($column)') ?? 0;
   }
 
+  Future<double?> avg(String column) async {
+    _guardAgainstGrouping('avg');
+    final result = await _scalar('AVG($column)');
+    return result != null ? (result as num).toDouble() : null;
+  }
+
   Future<dynamic> max(String column) async {
+    _guardAgainstGrouping('max');
     return await _scalar('MAX($column)');
   }
 
   Future<dynamic> min(String column) async {
+    _guardAgainstGrouping('min');
     return await _scalar('MIN($column)');
   }
 
-  Future<double> avg(String column) async {
-    final result = await _scalar('AVG($column)');
-    return result != null ? (result as num).toDouble() : 0.0;
+  void _guardAgainstGrouping(String method) {
+    if (_groupBy.isNotEmpty || _havings.isNotEmpty) {
+      throw QueryException(
+        sql: _compileSql(),
+        bindings: [],
+        message: 'Cannot use $method() with groupBy() or having(). '
+            'This would return a single value from a list of groups, which is ambiguous or mathematically wrong. '
+            'Use get() to retrieve grouped results.',
+      );
+    }
   }
 
   Future<T?> find(dynamic id) {

@@ -96,8 +96,8 @@ class MockDatabaseSpy implements DatabaseAdapter {
       }
     }
 
-    if (_smartResponses.containsKey('last_insert_rowid')) {
-      final row = _smartResponses['last_insert_rowid']!.first;
+    if (_smartResponses.containsKey('last_insert_row_id')) {
+      final row = _smartResponses['last_insert_row_id']!.first;
       return row['id'] ?? 1;
     }
 

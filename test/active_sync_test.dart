@@ -20,7 +20,7 @@ class MockDatabaseAdapter implements DatabaseAdapter {
 
   @override
   Future<Map<String, dynamic>> get(String sql, [List<dynamic>? arguments]) async {
-    if (sql.contains('last_insert_rowid')) {
+    if (sql.contains('last_insert_row_id')) {
       return {'id': 1};
     }
     return _mockData.first;

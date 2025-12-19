@@ -67,7 +67,7 @@ void main() {
 
   group('HasGlobalScopes Extended', () {
     test('multiple scopes applied in order', () async {
-      await MultiScopeUser().newQuery().get();
+      await MultiScopeUser().query().get();
 
       // All three scopes should be applied
       expect(dbSpy.lastSql, contains('tenant_id = ?'));
@@ -79,7 +79,7 @@ void main() {
     });
 
     test('scope with dynamic parameters (TenantScope)', () async {
-      await MultiScopeUser().newQuery().get();
+      await MultiScopeUser().query().get();
 
       expect(dbSpy.lastArgs, contains(42));
     });
@@ -120,7 +120,7 @@ void main() {
     });
 
     test('scopes combined with additional where clauses', () async {
-      await MultiScopeUser().newQuery().where('name', 'David').get();
+      await MultiScopeUser().query().where('name', 'David').get();
 
       // Scopes + manual where
       expect(dbSpy.lastSql, contains('tenant_id = ?'));

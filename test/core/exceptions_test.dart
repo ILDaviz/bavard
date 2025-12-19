@@ -13,19 +13,18 @@ class User extends Model {
 }
 
 void main() {
-  group('Custom Exceptions', () {
+  group('Exceptions', () {
     group('ModelNotFoundException', () {
       test('findOrFail() throws ModelNotFoundException when not found', () async {
         final emptyMock = MockDatabaseSpy([], {});
         DatabaseManager().setDatabase(emptyMock);
 
         try {
-          await User().newQuery().findOrFail(999);
+          await User().query().findOrFail(999);
           fail('Should have thrown ModelNotFoundException');
         } catch (e) {
           expect(e, isA<ModelNotFoundException>());
           final error = e as ModelNotFoundException;
-          // Table name is used as model identifier
           expect(error.model, 'users');
           expect(error.id, 999);
           expect(error.message, contains('999'));
@@ -37,7 +36,7 @@ void main() {
         DatabaseManager().setDatabase(emptyMock);
 
         try {
-          await User().newQuery().where('id', 1).firstOrFail();
+          await User().query().where('id', 1).firstOrFail();
           fail('Should have thrown ModelNotFoundException');
         } catch (e) {
           expect(e, isA<ModelNotFoundException>());
@@ -50,7 +49,7 @@ void main() {
     group('DatabaseNotInitializedException', () {
       test('throws when database not initialized', () {
         // Create a new DatabaseManager instance to test uninitialized state
-        // Note: In real code, we'd need to reset the singleton
+        // In real code, we'd need to reset the singleton
         // For this test, we verify the exception type exists and formats correctly
         const exception = DatabaseNotInitializedException();
 
@@ -62,21 +61,21 @@ void main() {
     group('InvalidQueryException', () {
       test('thrown for invalid column identifiers', () {
         expect(
-              () => User().newQuery().where('column; DROP TABLE', 'value'),
+              () => User().query().where('column; DROP TABLE', 'value'),
           throwsA(isA<InvalidQueryException>()),
         );
       });
 
       test('thrown for invalid operators', () {
         expect(
-              () => User().newQuery().where('id', 1, operator: 'INVALID'),
+              () => User().query().where('id', 1, operator: 'INVALID'),
           throwsA(isA<InvalidQueryException>()),
         );
       });
 
       test('thrown for invalid orderBy direction', () {
         expect(
-              () => User().newQuery().orderBy('id', direction: 'INVALID'),
+              () => User().query().orderBy('id', direction: 'INVALID'),
           throwsA(isA<InvalidQueryException>()),
         );
       });

@@ -27,7 +27,7 @@ void main() {
 
   setUp(() {
     dbSpy = MockDatabaseSpy([], {
-      'last_insert_rowid': [
+      'last_insert_row_id': [
         {'id': 1},
       ],
       'FROM users': [
