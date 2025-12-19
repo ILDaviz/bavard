@@ -147,10 +147,7 @@ abstract class Model
   /// Triggers [onDeleting] (can cancel) and [onDeleted] hooks.
   Future<void> delete() async {
     if (id != null && await onDeleting()) {
-      await DatabaseManager().db.execute(
-        'DELETE FROM $table WHERE $primaryKey = ?',
-        [id],
-      );
+      await newQuery().where(primaryKey, id).delete();
       await onDeleted();
     }
   }

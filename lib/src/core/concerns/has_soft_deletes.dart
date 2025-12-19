@@ -15,6 +15,7 @@ mixin HasSoftDeletes on Model {
   @override
   QueryBuilder<Model> newQuery() {
     final query = super.newQuery();
+
     return query.whereNull('deleted_at');
   }
 

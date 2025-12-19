@@ -3,6 +3,8 @@ import 'database_manager.dart';
 import 'model.dart';
 import 'exceptions.dart';
 
+typedef ScopeCallback = void Function(QueryBuilder builder);
+
 /// Fluent interface for constructing type-safe SQL queries and hydrating results into [Model] instances.
 ///
 /// Abstracts raw SQL generation, manages parameter binding for security (SQL injection prevention),
@@ -23,6 +25,9 @@ class QueryBuilder<T extends Model> {
   final List<String> _groupBy = [];
   final List<Map<String, String>> _havings = [];
   final List<dynamic> _havingBindings = [];
+
+  final Map<String, ScopeCallback> _globalScopes = {};
+  bool _ignoreGlobalScopes = false;
 
   int? _offset;
   String? _orderBy;
@@ -91,6 +96,33 @@ class QueryBuilder<T extends Model> {
     if (!ok) {
       throw InvalidQueryException('Invalid $what: $v');
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // SCOPE
+  // ---------------------------------------------------------------------------
+
+  QueryBuilder<T> withGlobalScope(String name, ScopeCallback scope) {
+    _globalScopes[name] = scope;
+    return this;
+  }
+
+  QueryBuilder<T> withoutGlobalScopes() {
+    _ignoreGlobalScopes = true;
+    return this;
+  }
+
+  QueryBuilder<T> withoutGlobalScope(String name) {
+    _globalScopes.remove(name);
+    return this;
+  }
+
+  void _applyScopes() {
+    if (_ignoreGlobalScopes) return;
+
+    _globalScopes.forEach((name, scope) {
+      scope(this);
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -630,6 +662,8 @@ class QueryBuilder<T extends Model> {
     qb._groupBy.addAll(_groupBy);
     qb._havings.addAll(_havings);
     qb._havingBindings.addAll(_havingBindings);
+    qb._globalScopes.addAll(_globalScopes);
+    qb._ignoreGlobalScopes = _ignoreGlobalScopes;
     qb._orderBy = _orderBy;
     qb._limit = _limit;
     qb._offset = _offset;
@@ -740,6 +774,7 @@ class QueryBuilder<T extends Model> {
 
   /// Executes the compiled query and hydrates results.
   Future<List<T>> get() async {
+    _applyScopes();
     final dbManager = DatabaseManager();
     final sql = _compileSql();
     final allBindings = [..._bindings, ..._havingBindings];
@@ -757,11 +792,52 @@ class QueryBuilder<T extends Model> {
     }
   }
 
+  Future<int> update(Map<String, dynamic> values) async {
+    _applyScopes();
+
+    if (values.isEmpty) {
+      return 0;
+    }
+
+    final setClauses = <String>[];
+    final setBindings = <dynamic>[];
+
+    values.forEach((key, value) {
+      _assertIdent(key, what: 'column name', dotted: false);
+      setClauses.add('$key = ?');
+      setBindings.add(value);
+    });
+
+    final setSql = setClauses.join(', ');
+
+    var sql = 'UPDATE $table SET $setSql';
+
+    if (_wheres.isNotEmpty) {
+      sql += _buildWhereClause();
+    }
+
+    final allBindings = [...setBindings, ..._bindings];
+
+    return await DatabaseManager().execute(sql, allBindings);
+  }
+
+  Future<int> delete() async {
+    _applyScopes();
+    var sql = 'DELETE FROM $table';
+
+    if (_wheres.isNotEmpty) {
+      sql += _buildWhereClause();
+    }
+
+    return await DatabaseManager().execute(sql, _bindings);
+  }
+
   /// Returns a reactive stream that emits updated results when the table changes.
   ///
   /// Leverages the underlying database adapter's change notifications (e.g., SQLite triggers).
   /// Essential for Flutter reactive UIs (StreamBuilder).
   Stream<List<T>> watch() {
+    _applyScopes();
     final db = DatabaseManager().db;
     final sql = _compileSql();
     final allBindings = [..._bindings, ..._havingBindings];
@@ -773,6 +849,7 @@ class QueryBuilder<T extends Model> {
   ///
   /// Modifies the SELECT clause to return a single scalar value.
   Future<T?> _scalar<T>(String expression) async {
+    _applyScopes();
     final dbManager = DatabaseManager();
 
     var sql = 'SELECT $expression as aggregate FROM $table';

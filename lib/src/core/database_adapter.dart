@@ -12,7 +12,7 @@ abstract class DatabaseAdapter {
   ]);
 
   /// Executes non-selecting commands (UPDATE, DELETE) or schema changes (DDL).
-  Future<void> execute(String sql, [List<dynamic>? arguments]);
+  Future<int> execute(String sql, [List<dynamic>? arguments]);
 
   /// Convenience wrapper to fetch the first result of a query.
   Future<Map<String, dynamic>> get(String sql, [List<dynamic>? arguments]);
@@ -72,7 +72,7 @@ abstract class TransactionContext {
   ]);
 
   /// Executes non-selecting commands within the transaction.
-  Future<void> execute(String sql, [List<dynamic>? arguments]);
+  Future<int> execute(String sql, [List<dynamic>? arguments]);
 
   /// Fetches the first result within the transaction.
   Future<Map<String, dynamic>> get(String sql, [List<dynamic>? arguments]);

@@ -101,13 +101,12 @@ class DatabaseManager {
 
   /// Executes SQL using the active transaction if available, otherwise uses the main connection.
   ///
-  /// This is the primary method Model operations should use to ensure
-  /// they participate in active transactions.
-  Future<void> execute(String sql, [List<dynamic>? arguments]) async {
+  /// Returns the number of rows affected (if supported by the adapter).
+  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
     if (_activeTransaction != null) {
-      await _activeTransaction!.execute(sql, arguments);
+      return await _activeTransaction!.execute(sql, arguments);
     } else {
-      await db.execute(sql, arguments);
+      return await db.execute(sql, arguments);
     }
   }
 
