@@ -65,8 +65,8 @@ class DatabaseManager {
   /// });
   /// ```
   Future<T> transaction<T>(
-      Future<T> Function(TransactionContext txn) callback,
-      ) async {
+    Future<T> Function(TransactionContext txn) callback,
+  ) async {
     if (!db.supportsTransactions) {
       throw const TransactionException(
         message: 'The current database adapter does not support transactions.',
@@ -113,9 +113,9 @@ class DatabaseManager {
 
   /// Fetches all results using the active transaction if available.
   Future<List<Map<String, dynamic>>> getAll(
-      String sql, [
-        List<dynamic>? arguments,
-      ]) async {
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     if (_activeTransaction != null) {
       return await _activeTransaction!.getAll(sql, arguments);
     }
@@ -124,9 +124,9 @@ class DatabaseManager {
 
   /// Fetches a single result using the active transaction if available.
   Future<Map<String, dynamic>> get(
-      String sql, [
-        List<dynamic>? arguments,
-      ]) async {
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     if (_activeTransaction != null) {
       return await _activeTransaction!.get(sql, arguments);
     }

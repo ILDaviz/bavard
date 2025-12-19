@@ -88,10 +88,7 @@ void main() {
     test('fill() with empty fillable blocks all (default behavior)', () {
       final user = TotallyGuardedUser();
 
-      user.fill({
-        'name': 'David',
-        'email': 'david@test.com',
-      });
+      user.fill({'name': 'David', 'email': 'david@test.com'});
 
       expect(user.attributes, isEmpty);
     });
@@ -142,11 +139,7 @@ void main() {
     test('forceFill() sets guarded attributes', () {
       final user = TotallyGuardedUser();
 
-      user.forceFill({
-        'name': 'David',
-        'is_admin': true,
-        'api_key': 'secret',
-      });
+      user.forceFill({'name': 'David', 'is_admin': true, 'api_key': 'secret'});
 
       expect(user.attributes['name'], 'David');
       expect(user.attributes['is_admin'], true);

@@ -42,10 +42,10 @@ mixin HasRelationships {
   ///
   /// Example: User has one Phone. (Phone table has `user_id`).
   HasOne<R> hasOne<R extends Model>(
-      R Function(Map<String, dynamic>) creator, {
-        String? foreignKey,
-        String? localKey,
-      }) {
+    R Function(Map<String, dynamic>) creator, {
+    String? foreignKey,
+    String? localKey,
+  }) {
     return HasOne<R>(
       _asModel,
       creator,
@@ -58,10 +58,10 @@ mixin HasRelationships {
   ///
   /// Example: Blog has many Posts. (Post table has `blog_id`).
   HasMany<R> hasMany<R extends Model>(
-      R Function(Map<String, dynamic>) creator, {
-        String? foreignKey,
-        String? localKey,
-      }) {
+    R Function(Map<String, dynamic>) creator, {
+    String? foreignKey,
+    String? localKey,
+  }) {
     return HasMany<R>(
       _asModel,
       creator,
@@ -77,10 +77,10 @@ mixin HasRelationships {
   /// Note: Instantiates a temporary [R] to inspect its `table` and `primaryKey`
   /// for default key inference.
   BelongsTo<R> belongsTo<R extends Model>(
-      R Function(Map<String, dynamic>) creator, {
-        String? foreignKey,
-        String? ownerKey,
-      }) {
+    R Function(Map<String, dynamic>) creator, {
+    String? foreignKey,
+    String? ownerKey,
+  }) {
     // We create a dummy instance to inspect the parent's table and primary key defaults.
     final instance = creator({});
     return BelongsTo<R>(
@@ -97,11 +97,11 @@ mixin HasRelationships {
   ///
   /// * [pivotTable]: Explicit name required if strictly following convention isn't possible or desired.
   BelongsToMany<R> belongsToMany<R extends Model>(
-      R Function(Map<String, dynamic>) creator,
-      String pivotTable, {
-        String? foreignPivotKey,
-        String? relatedPivotKey,
-      }) {
+    R Function(Map<String, dynamic>) creator,
+    String pivotTable, {
+    String? foreignPivotKey,
+    String? relatedPivotKey,
+  }) {
     final instance = creator({});
     return BelongsToMany<R>(
       _asModel,
@@ -117,11 +117,11 @@ mixin HasRelationships {
   /// Example: Country has many Posts through User.
   /// (Country -> User -> Post). Useful to avoid manual nested joins.
   HasManyThrough<R, I> hasManyThrough<R extends Model, I extends Model>(
-      R Function(Map<String, dynamic>) relatedCreator,
-      I Function(Map<String, dynamic>) intermediateCreator, {
-        String? firstKey,
-        String? secondKey,
-      }) {
+    R Function(Map<String, dynamic>) relatedCreator,
+    I Function(Map<String, dynamic>) intermediateCreator, {
+    String? firstKey,
+    String? secondKey,
+  }) {
     return HasManyThrough<R, I>(
       _asModel,
       relatedCreator,
@@ -137,17 +137,17 @@ mixin HasRelationships {
   ///
   /// Example: Post has many Comments (and Video also has many Comments).
   MorphMany<R> morphMany<R extends Model>(
-      R Function(Map<String, dynamic>) creator,
-      String name,
-      ) {
+    R Function(Map<String, dynamic>) creator,
+    String name,
+  ) {
     return MorphMany<R>(_asModel, creator, name);
   }
 
   /// Polymorphic 1:1. Similar to [morphMany] but enforces a single result.
   MorphOne<R> morphOne<R extends Model>(
-      R Function(Map<String, dynamic>) creator,
-      String name,
-      ) {
+    R Function(Map<String, dynamic>) creator,
+    String name,
+  ) {
     return MorphOne<R>(_asModel, creator, name);
   }
 
@@ -158,9 +158,9 @@ mixin HasRelationships {
   ///
   /// * [typeMap]: Maps the stored string discriminator (e.g., 'post') to the concrete Model factory.
   MorphTo<Model> morphToTyped(
-      String name,
-      Map<String, Model Function(Map<String, dynamic>)> typeMap,
-      ) {
+    String name,
+    Map<String, Model Function(Map<String, dynamic>)> typeMap,
+  ) {
     return MorphTo<Model>(_asModel, name, typeMap);
   }
 
@@ -169,9 +169,9 @@ mixin HasRelationships {
   /// Allows a model to belong to many other models of different types via a pivot table
   /// that includes type discriminators.
   MorphToMany<R> morphToMany<R extends Model>(
-      R Function(Map<String, dynamic>) creator,
-      String name,
-      ) {
+    R Function(Map<String, dynamic>) creator,
+    String name,
+  ) {
     return MorphToMany<R>(_asModel, creator, name);
   }
 }

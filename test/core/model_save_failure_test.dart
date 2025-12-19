@@ -52,7 +52,11 @@ void main() {
         expect(e, isA<Exception>());
       }
 
-      expect(user.exists, isFalse, reason: 'exists should remain false after failed insert');
+      expect(
+        user.exists,
+        isFalse,
+        reason: 'exists should remain false after failed insert',
+      );
     });
 
     test('model state remains consistent after failed UPDATE', () async {
@@ -100,7 +104,9 @@ void main() {
       expect(user.attributes['name'], isNot(equals(user.original['name'])));
 
       final workingDb = MockDatabaseSpy([], {
-        'FROM users': [{'id': 1, 'name': 'Updated'}],
+        'FROM users': [
+          {'id': 1, 'name': 'Updated'},
+        ],
       });
       DatabaseManager().setDatabase(workingDb);
 

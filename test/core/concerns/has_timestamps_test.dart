@@ -75,7 +75,9 @@ void main() {
       final user = TimestampUser({'name': 'David'});
       await user.save();
 
-      final insertSql = dbSpy.history.firstWhere((sql) => sql.contains('INSERT INTO users'));
+      final insertSql = dbSpy.history.firstWhere(
+        (sql) => sql.contains('INSERT INTO users'),
+      );
 
       expect(insertSql, contains('created_at'));
       expect(insertSql, contains('updated_at'));
@@ -95,8 +97,9 @@ void main() {
 
       await user.save();
 
-      final updateSql =
-      dbSpy.history.firstWhere((sql) => sql.contains('UPDATE users'));
+      final updateSql = dbSpy.history.firstWhere(
+        (sql) => sql.contains('UPDATE users'),
+      );
 
       expect(updateSql, contains('updated_at = ?'));
       expect(updateSql, isNot(contains('created_at = ?')));
@@ -128,8 +131,7 @@ void main() {
 
       final insertArgs = dbSpy.lastArgs!;
 
-      final hasDateTime =
-      insertArgs.any((v) => v is DateTime);
+      final hasDateTime = insertArgs.any((v) => v is DateTime);
 
       expect(hasDateTime, isFalse);
     });
@@ -147,8 +149,9 @@ void main() {
       user.attributes['name'] = 'Updated';
       await user.save();
 
-      final updateSql =
-      dbSpy.history.firstWhere((sql) => sql.contains('UPDATE users'));
+      final updateSql = dbSpy.history.firstWhere(
+        (sql) => sql.contains('UPDATE users'),
+      );
 
       expect(updateSql, isNot(contains('created_at')));
       expect(updateSql, contains('updated_at'));

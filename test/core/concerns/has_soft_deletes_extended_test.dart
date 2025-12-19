@@ -37,7 +37,7 @@ void main() {
   setUp(() {
     dbSpy = MockDatabaseSpy([], {
       'SELECT * FROM users WHERE id = ?': [
-        {'id': 1, 'name': 'David', 'deleted_at': '2023-01-01'}
+        {'id': 1, 'name': 'David', 'deleted_at': '2023-01-01'},
       ],
     });
     DatabaseManager().setDatabase(dbSpy);
@@ -71,15 +71,12 @@ void main() {
     test('restore() clears deleted_at', () async {
       final restoreMock = MockDatabaseSpy([], {
         'SELECT * FROM users WHERE id = ?': [
-          {'id': 1, 'name': 'David', 'deleted_at': null}
+          {'id': 1, 'name': 'David', 'deleted_at': null},
         ],
       });
       DatabaseManager().setDatabase(restoreMock);
 
-      final user = SoftUser({
-        'id': 1,
-        'deleted_at': '2023-01-01T10:00:00',
-      });
+      final user = SoftUser({'id': 1, 'deleted_at': '2023-01-01T10:00:00'});
       user.exists = true;
       user.syncOriginal();
 
@@ -92,7 +89,7 @@ void main() {
     test('restore() on non-trashed model still saves', () async {
       final mockDb = MockDatabaseSpy([], {
         'SELECT * FROM users WHERE id = ?': [
-          {'id': 1, 'name': 'David', 'deleted_at': null}
+          {'id': 1, 'name': 'David', 'deleted_at': null},
         ],
       });
       DatabaseManager().setDatabase(mockDb);

@@ -13,12 +13,12 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   final String relatedPivotKey;
 
   BelongsToMany(
-      super.parent,
-      super.creator,
-      this.pivotTable,
-      this.foreignPivotKey,
-      this.relatedPivotKey,
-      ) {
+    super.parent,
+    super.creator,
+    this.pivotTable,
+    this.foreignPivotKey,
+    this.relatedPivotKey,
+  ) {
     addConstraints();
   }
 
@@ -72,16 +72,14 @@ class BelongsToMany<R extends Model> extends Relation<R> {
     ).whereIn(pk, relatedIds).get();
 
     // Map for O(1) lookup: related_id -> model instance
-    final relatedDict = {
-      for (var m in relatedModels) normKey(m.id)!: m,
-    };
+    final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};
 
     for (var model in models) {
       final myId = normKey(model.id);
 
       // Filter pivots belonging to this specific parent
       final myPivots = pivotRows.where(
-            (r) => normKey(r[foreignPivotKey]) == myId,
+        (r) => normKey(r[foreignPivotKey]) == myId,
       );
 
       final matches = <R>[];

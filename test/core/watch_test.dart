@@ -15,7 +15,7 @@ class WatchUser extends Model {
 
 class StreamingMockDatabase extends MockDatabaseSpy {
   final StreamController<List<Map<String, dynamic>>> _controller =
-  StreamController.broadcast();
+      StreamController.broadcast();
 
   StreamingMockDatabase() : super();
 
@@ -25,9 +25,9 @@ class StreamingMockDatabase extends MockDatabaseSpy {
 
   @override
   Stream<List<Map<String, dynamic>>> watch(
-      String sql, {
-        List<dynamic>? parameters,
-      }) {
+    String sql, {
+    List<dynamic>? parameters,
+  }) {
     lastSql = sql;
     lastArgs = parameters;
     return _controller.stream;
@@ -89,7 +89,7 @@ void main() {
 
       // Emit first batch
       streamingDb.emit([
-        {'id': 1, 'name': 'David'}
+        {'id': 1, 'name': 'David'},
       ]);
 
       await Future.delayed(const Duration(milliseconds: 50));
@@ -97,7 +97,7 @@ void main() {
       // Emit second batch
       streamingDb.emit([
         {'id': 1, 'name': 'David'},
-        {'id': 2, 'name': 'Romolo'}
+        {'id': 2, 'name': 'Romolo'},
       ]);
 
       await Future.delayed(const Duration(milliseconds: 50));
@@ -122,14 +122,14 @@ void main() {
       });
 
       streamingDb.emit([
-        {'id': 1}
+        {'id': 1},
       ]);
       await Future.delayed(const Duration(milliseconds: 10));
 
       await subscription.cancel();
 
       streamingDb.emit([
-        {'id': 2}
+        {'id': 2},
       ]); // Should not be received
       await Future.delayed(const Duration(milliseconds: 10));
 

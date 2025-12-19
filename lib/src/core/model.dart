@@ -18,7 +18,6 @@ abstract class Model
         HasRelationships,
         HasAttributeHelpers,
         HasGuardsAttributes {
-
   Model newInstance() => fromMap(const {});
 
   @override
@@ -37,7 +36,7 @@ abstract class Model
   set id(dynamic value) => attributes[primaryKey] = value;
 
   Model([Map<String, dynamic> attributes = const {}])
-      : attributes = Map<String, dynamic>.from(attributes);
+    : attributes = Map<String, dynamic>.from(attributes);
 
   /// Indicates if the model currently exists in the database (persisted).
   /// This change logic for CREATE or UPDATE
@@ -49,7 +48,9 @@ abstract class Model
 
   dynamic _deepCopy(dynamic value) {
     if (value is Map) {
-      return value.map<String, dynamic>((k, v) => MapEntry(k.toString(), _deepCopy(v)));
+      return value.map<String, dynamic>(
+        (k, v) => MapEntry(k.toString(), _deepCopy(v)),
+      );
     } else if (value is List) {
       return value.map((v) => _deepCopy(v)).toList();
     } else if (value is Set) {
@@ -77,11 +78,8 @@ abstract class Model
   ///
   /// Binds the [fromMap] factory to the builder to ensure results are hydrated
   /// into concrete Model instances rather than raw Maps.
-  QueryBuilder<Model> newQuery() => QueryBuilder(
-    table,
-    fromMap,
-    instanceFactory: () => newInstance(),
-  );
+  QueryBuilder<Model> newQuery() =>
+      QueryBuilder(table, fromMap, instanceFactory: () => newInstance());
 
   QueryBuilder<Model> where(String column, dynamic value) =>
       newQuery().where(column, value);

@@ -61,7 +61,9 @@ class ModifyingHookUser extends Model {
   Future<bool> onSaving() async {
     // Modify attributes before save
     attributes['modified_by_hook'] = true;
-    attributes['slug'] = (attributes['name'] as String?)?.toLowerCase().replaceAll(' ', '-');
+    attributes['slug'] = (attributes['name'] as String?)
+        ?.toLowerCase()
+        .replaceAll(' ', '-');
     return true;
   }
 }
@@ -110,10 +112,10 @@ void main() {
   setUp(() {
     dbSpy = MockDatabaseSpy([], {
       'last_insert_row_id': [
-        {'id': 1}
+        {'id': 1},
       ],
       'FROM users': [
-        {'id': 1, 'name': 'David'}
+        {'id': 1, 'name': 'David'},
       ],
     });
     DatabaseManager().setDatabase(dbSpy);
@@ -146,10 +148,15 @@ void main() {
     test('onSaving can modify attributes before save', () async {
       final mockDb = MockDatabaseSpy([], {
         'last_insert_row_id': [
-          {'id': 1}
+          {'id': 1},
         ],
         'FROM users': [
-          {'id': 1, 'name': 'Test User', 'modified_by_hook': true, 'slug': 'test-user'}
+          {
+            'id': 1,
+            'name': 'Test User',
+            'modified_by_hook': true,
+            'slug': 'test-user',
+          },
         ],
       });
       DatabaseManager().setDatabase(mockDb);
@@ -157,14 +164,15 @@ void main() {
       final user = ModifyingHookUser({'name': 'Test User'});
       await user.save();
 
-      final insertSql =
-      mockDb.history.firstWhere((s) => s.contains('INSERT'), orElse: () => '');
+      final insertSql = mockDb.history.firstWhere(
+        (s) => s.contains('INSERT'),
+        orElse: () => '',
+      );
       expect(insertSql, contains('modified_by_hook'));
       expect(insertSql, contains('slug'));
       expect(user.attributes['modified_by_hook'], isTrue);
       expect(user.attributes['slug'], 'test-user');
     });
-
 
     test('onSaved called after successful insert', () async {
       final user = HookUser({'name': 'David'});
@@ -256,17 +264,20 @@ void main() {
     });
   });
 
-  test('save() propagates exception from onSaving and prevents DB operation', () async {
-    final user = ThrowingHookUser({'name': 'David'});
+  test(
+    'save() propagates exception from onSaving and prevents DB operation',
+    () async {
+      final user = ThrowingHookUser({'name': 'David'});
 
-    try {
-      await user.save();
-      fail('Should have thrown Exception');
-    } catch (e) {
-      expect(e.toString(), contains('Error in onSaving'));
-    }
+      try {
+        await user.save();
+        fail('Should have thrown Exception');
+      } catch (e) {
+        expect(e.toString(), contains('Error in onSaving'));
+      }
 
-    expect(dbSpy.history, isEmpty);
-    expect(user.exists, isFalse);
-  });
+      expect(dbSpy.history, isEmpty);
+      expect(user.exists, isFalse);
+    },
+  );
 }

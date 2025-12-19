@@ -12,12 +12,7 @@ class HasMany<R extends Model> extends Relation<R> {
   /// The column on the current parent model acting as the reference (usually 'id').
   final String localKey;
 
-  HasMany(
-      super.parent,
-      super.creator,
-      this.foreignKey,
-      this.localKey,
-      ) {
+  HasMany(super.parent, super.creator, this.foreignKey, this.localKey) {
     addConstraints();
   }
 
@@ -35,7 +30,10 @@ class HasMany<R extends Model> extends Relation<R> {
   Future<void> match(List<Model> models, String relationName) async {
     final ids = getKeys(models, localKey);
 
-    final results = await QueryBuilder<R>(table, creator).whereIn(foreignKey, ids).get();
+    final results = await QueryBuilder<R>(
+      table,
+      creator,
+    ).whereIn(foreignKey, ids).get();
 
     for (var model in models) {
       final myKey = normKey(model.attributes[localKey]);

@@ -256,28 +256,28 @@ void main() {
 
     test('sum() throws QueryException when used with groupBy', () async {
       expect(
-            () => Order().query().groupBy(['customer_id']).sum('total'),
+        () => Order().query().groupBy(['customer_id']).sum('total'),
         throwsA(isA<QueryException>()),
       );
     });
 
     test('avg() throws QueryException when used with groupBy', () async {
       expect(
-            () => Order().query().groupBy(['customer_id']).avg('score'),
+        () => Order().query().groupBy(['customer_id']).avg('score'),
         throwsA(isA<QueryException>()),
       );
     });
 
     test('min() throws QueryException when used with groupBy', () async {
       expect(
-            () => Order().query().groupBy(['customer_id']).min('total'),
+        () => Order().query().groupBy(['customer_id']).min('total'),
         throwsA(isA<QueryException>()),
       );
     });
 
     test('max() throws QueryException when used with groupBy', () async {
       expect(
-            () => Order().query().groupBy(['customer_id']).max('total'),
+        () => Order().query().groupBy(['customer_id']).max('total'),
         throwsA(isA<QueryException>()),
       );
     });

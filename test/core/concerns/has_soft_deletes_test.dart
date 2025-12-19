@@ -47,7 +47,7 @@ void main() {
 
     test(
       'Standard query automatically excludes soft deleted records',
-          () async {
+      () async {
         await User().query().get();
         expect(dbSpy.lastSql, contains('WHERE deleted_at IS NULL'));
       },

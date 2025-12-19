@@ -10,11 +10,11 @@ abstract class Relation<R extends Model> extends QueryBuilder<R> {
   final Model parent;
 
   Relation(this.parent, R Function(Map<String, dynamic>) creator)
-      : super(
-    creator(const {}).table,
-    creator,
-    instanceFactory: () => creator(const {}).newInstance() as R,
-  );
+    : super(
+        creator(const {}).table,
+        creator,
+        instanceFactory: () => creator(const {}).newInstance() as R,
+      );
 
   /// Applies the initial SQL filtering (e.g., `WHERE user_id = ?`) to scope
   /// the query to the current [parent].

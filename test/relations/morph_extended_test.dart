@@ -67,26 +67,31 @@ void main() {
             'id': 1,
             'commentable_type': 'posts',
             'commentable_id': 1,
-            'body': 'Post comment'
+            'body': 'Post comment',
           },
           {
             'id': 2,
             'commentable_type': 'videos',
             'commentable_id': 1,
-            'body': 'Video comment'
+            'body': 'Video comment',
           },
         ],
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final posts = [Post({'id': 1})];
+      final posts = [
+        Post({'id': 1}),
+      ];
       await posts.first.comments().match(posts, 'comments');
 
       final postComments = posts.first.relations['comments'] as List;
 
       // Should only include post comments, not video comments
       expect(postComments.length, 1);
-      expect((postComments.first as Comment).attributes['body'], 'Post comment');
+      expect(
+        (postComments.first as Comment).attributes['body'],
+        'Post comment',
+      );
     });
 
     test('eager load groups by parent id AND type', () async {
@@ -115,7 +120,9 @@ void main() {
       final emptyMock = MockDatabaseSpy([], {});
       DatabaseManager().setDatabase(emptyMock);
 
-      final posts = [Post({'id': 1})];
+      final posts = [
+        Post({'id': 1}),
+      ];
       await posts.first.image().match(posts, 'image');
 
       expect(posts.first.relations['image'], isNull);
@@ -124,16 +131,26 @@ void main() {
     test('eager load unwraps to single model', () async {
       final mockDb = MockDatabaseSpy([], {
         'FROM images': [
-          {'id': 100, 'imageable_type': 'posts', 'imageable_id': 1, 'url': 'test.jpg'},
+          {
+            'id': 100,
+            'imageable_type': 'posts',
+            'imageable_id': 1,
+            'url': 'test.jpg',
+          },
         ],
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final posts = [Post({'id': 1})];
+      final posts = [
+        Post({'id': 1}),
+      ];
       await posts.first.image().match(posts, 'image');
 
       expect(posts.first.relations['image'], isA<Image>());
-      expect((posts.first.relations['image'] as Image).attributes['url'], 'test.jpg');
+      expect(
+        (posts.first.relations['image'] as Image).attributes['url'],
+        'test.jpg',
+      );
     });
 
     test('eager load sets null for missing', () async {

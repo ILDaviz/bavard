@@ -16,10 +16,10 @@ void main() {
   setUp(() {
     dbSpy = MockDatabaseSpy([], {
       'last_insert_row_id': [
-        {'id': 1}
+        {'id': 1},
       ],
       'FROM users': [
-        {'id': 1, 'name': 'David', 'email': 'david@test.com'}
+        {'id': 1, 'name': 'David', 'email': 'david@test.com'},
       ],
     });
     DatabaseManager().setDatabase(dbSpy);
@@ -37,7 +37,7 @@ void main() {
     test('save() with pre-set id (no auto-increment)', () async {
       final mockDb = MockDatabaseSpy([], {
         'FROM users': [
-          {'id': 'custom-uuid-123', 'name': 'David'}
+          {'id': 'custom-uuid-123', 'name': 'David'},
         ],
       });
       DatabaseManager().setDatabase(mockDb);
@@ -45,8 +45,7 @@ void main() {
       final user = User({'id': 'custom-uuid-123', 'name': 'David'});
       await user.save();
 
-      final insertSql =
-      mockDb.history.firstWhere((s) => s.contains('INSERT'));
+      final insertSql = mockDb.history.firstWhere((s) => s.contains('INSERT'));
       expect(insertSql, contains('id'));
 
       expect(user.id, 'custom-uuid-123');
@@ -55,10 +54,10 @@ void main() {
     test('save() preserves attribute types after refresh', () async {
       final mockDb = MockDatabaseSpy([], {
         'last_insert_row_id': [
-          {'id': 1}
+          {'id': 1},
         ],
         'FROM users': [
-          {'id': 1, 'name': 'David', 'age': 30, 'active': 1}
+          {'id': 1, 'name': 'David', 'age': 30, 'active': 1},
         ],
       });
       DatabaseManager().setDatabase(mockDb);
@@ -105,7 +104,7 @@ void main() {
         'id': 1,
         'name': 'David',
         'email': 'david@test.com',
-        'age': 30
+        'age': 30,
       });
       user.exists = true;
       user.syncOriginal();
@@ -114,23 +113,27 @@ void main() {
 
       await user.save();
 
-      final updateSql =
-      dbSpy.history.firstWhere((s) => s.contains('UPDATE'), orElse: () => '');
+      final updateSql = dbSpy.history.firstWhere(
+        (s) => s.contains('UPDATE'),
+        orElse: () => '',
+      );
       expect(updateSql, contains('email = ?'));
       expect(updateSql, isNot(contains('name = ?')));
       expect(updateSql, isNot(contains('age = ?')));
     });
 
-    test('save() with unchanged attributes does nothing and returns early',
-            () async {
-          final user = User({'id': 1, 'name': 'David'});
-          user.exists = true;
-          user.syncOriginal();
+    test(
+      'save() with unchanged attributes does nothing and returns early',
+      () async {
+        final user = User({'id': 1, 'name': 'David'});
+        user.exists = true;
+        user.syncOriginal();
 
-          await user.save();
+        await user.save();
 
-          expect(dbSpy.history, isEmpty);
-        });
+        expect(dbSpy.history, isEmpty);
+      },
+    );
 
     test('save() resets dirty state after success', () async {
       final user = User({'id': 1, 'name': 'David'});
@@ -151,8 +154,10 @@ void main() {
       user.attributes['email'] = null;
       await user.save();
 
-      final updateSql =
-      dbSpy.history.firstWhere((s) => s.contains('UPDATE'), orElse: () => '');
+      final updateSql = dbSpy.history.firstWhere(
+        (s) => s.contains('UPDATE'),
+        orElse: () => '',
+      );
       expect(updateSql, contains('email = ?'));
     });
 
@@ -165,8 +170,10 @@ void main() {
       user.attributes['active'] = false;
       await user.save();
 
-      final updateSql =
-      dbSpy.history.firstWhere((s) => s.contains('UPDATE'), orElse: () => '');
+      final updateSql = dbSpy.history.firstWhere(
+        (s) => s.contains('UPDATE'),
+        orElse: () => '',
+      );
       expect(updateSql, contains('count = ?'));
       expect(updateSql, contains('active = ?'));
     });
@@ -193,7 +200,11 @@ void main() {
 
   group('Refresh & Sync Operations', () {
     test('syncOriginal() creates deep copy', () async {
-      final user = User({'id': 1, 'name': 'David', 'tags': ['a', 'b']});
+      final user = User({
+        'id': 1,
+        'name': 'David',
+        'tags': ['a', 'b'],
+      });
       user.syncOriginal();
 
       user.attributes['name'] = 'Changed';
@@ -205,10 +216,10 @@ void main() {
     test('syncOriginal() after save reflects DB values', () async {
       final mockDb = MockDatabaseSpy([], {
         'last_insert_row_id': [
-          {'id': 99}
+          {'id': 99},
         ],
         'FROM users': [
-          {'id': 99, 'name': 'FromDB', 'created_at': '2024-01-01'}
+          {'id': 99, 'name': 'FromDB', 'created_at': '2024-01-01'},
         ],
       });
       DatabaseManager().setDatabase(mockDb);
@@ -242,24 +253,27 @@ void main() {
     expect(user.original['tags'], equals(['a', 'b']));
   });
 
-  test('syncOriginal performs true DEEP COPY on nested mutable objects', () async {
-    final initialTags = ['flutter', 'dart'];
-    final settings = {'theme': 'dark'};
+  test(
+    'syncOriginal performs true DEEP COPY on nested mutable objects',
+    () async {
+      final initialTags = ['flutter', 'dart'];
+      final settings = {'theme': 'dark'};
 
-    final user = User({
-      'name': 'David',
-      'tags': initialTags,
-      'settings': settings
-    });
+      final user = User({
+        'name': 'David',
+        'tags': initialTags,
+        'settings': settings,
+      });
 
-    user.syncOriginal();
+      user.syncOriginal();
 
-    (user.attributes['tags'] as List).add('orm');
-    (user.attributes['settings'] as Map)['theme'] = 'light';
+      (user.attributes['tags'] as List).add('orm');
+      (user.attributes['settings'] as Map)['theme'] = 'light';
 
-    expect(user.original['tags'], equals(['flutter', 'dart']));
-    expect(user.original['settings'], equals({'theme': 'dark'}));
+      expect(user.original['tags'], equals(['flutter', 'dart']));
+      expect(user.original['settings'], equals({'theme': 'dark'}));
 
-    expect(user.attributes['tags'], contains('orm'));
-  });
+      expect(user.attributes['tags'], contains('orm'));
+    },
+  );
 }

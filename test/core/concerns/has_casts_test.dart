@@ -62,16 +62,19 @@ void main() {
       expect(user.getAttribute<int>('age'), isNull);
     });
 
-    test('getAttribute int from double string returns null (int.tryParse limitation)', () {
-      final user = CastUser({'age': '25.9'});
-      final result = user.getAttribute<int>('age');
+    test(
+      'getAttribute int from double string returns null (int.tryParse limitation)',
+      () {
+        final user = CastUser({'age': '25.9'});
+        final result = user.getAttribute<int>('age');
 
-      // int.tryParse('25.9') returns null because it cannot parse decimal strings
-      // This is the expected behavior of the current implementation
-      // Return null
-      // TODO: Change?
-      expect(result, isNull);
-    });
+        // int.tryParse('25.9') returns null because it cannot parse decimal strings
+        // This is the expected behavior of the current implementation
+        // Return null
+        // TODO: Change?
+        expect(result, isNull);
+      },
+    );
   });
 
   group('getAttribute - Double', () {
@@ -187,7 +190,7 @@ void main() {
 
     test('getAttribute json from Map (passthrough)', () {
       final user = CastUser({
-        'settings': {'theme': 'light'}
+        'settings': {'theme': 'light'},
       });
       final settings = user.getAttribute<Map<String, dynamic>>('settings');
 
@@ -205,7 +208,7 @@ void main() {
 
     test('getAttribute array from List (passthrough)', () {
       final user = CastUser({
-        'tags': ['a', 'b', 'c']
+        'tags': ['a', 'b', 'c'],
       });
       final tags = user.getAttribute<List>('tags');
 
@@ -261,7 +264,7 @@ void main() {
     test('setAttribute encodes nested objects to JSON', () {
       final user = CastUser();
       user.setAttribute('settings', {
-        'nested': {'deep': true}
+        'nested': {'deep': true},
       });
 
       expect(user.attributes['settings'], contains('"nested"'));

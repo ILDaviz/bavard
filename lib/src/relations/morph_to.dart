@@ -16,7 +16,7 @@ class MorphTo<R extends Model> extends Relation<R> {
   // Passes a dummy `_MorphModel` to the super constructor because the actual target table
   // is unknown at instantiation time. Real queries use `typeMap` factories.
   MorphTo(Model parent, this.name, this.typeMap)
-      : super(parent, (_) => _MorphModel() as R);
+    : super(parent, (_) => _MorphModel() as R);
 
   /// No-op: Standard SQL constraints cannot be applied globally here because
   /// the target table varies from record to record.
@@ -57,7 +57,7 @@ class MorphTo<R extends Model> extends Relation<R> {
   Future<List<R>> get() {
     throw UnsupportedError(
       'MorphTo does not support get() because the target table is dynamic. '
-          'Use getResult() / first() or eager load via withRelations().',
+      'Use getResult() / first() or eager load via withRelations().',
     );
   }
 
@@ -105,9 +105,7 @@ class MorphTo<R extends Model> extends Relation<R> {
         instanceFactory: () => dummyModel.newInstance(),
       ).whereIn(dummyModel.primaryKey, ids).get();
 
-      resultsByType[type] = {
-        for (var r in results) normKey(r.id)!: r,
-      };
+      resultsByType[type] = {for (var r in results) normKey(r.id)!: r};
     }
 
     // 3. Assign results back to children

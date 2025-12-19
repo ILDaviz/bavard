@@ -9,9 +9,9 @@ class MockDatabaseAdapter implements DatabaseAdapter {
 
   @override
   Future<List<Map<String, dynamic>>> getAll(
-      String sql, [
-        List<dynamic>? arguments,
-      ]) async {
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     if (sql.contains('FROM users')) {
       return _mockData;
     }
@@ -19,7 +19,10 @@ class MockDatabaseAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<Map<String, dynamic>> get(String sql, [List<dynamic>? arguments]) async {
+  Future<Map<String, dynamic>> get(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     if (sql.contains('last_insert_row_id')) {
       return {'id': 1};
     }
@@ -31,9 +34,9 @@ class MockDatabaseAdapter implements DatabaseAdapter {
 
   @override
   Stream<List<Map<String, dynamic>>> watch(
-      String sql, {
-        List<dynamic>? parameters,
-      }) {
+    String sql, {
+    List<dynamic>? parameters,
+  }) {
     return Stream.value(_mockData);
   }
 
@@ -46,7 +49,9 @@ class MockDatabaseAdapter implements DatabaseAdapter {
   bool get supportsTransactions => true;
 
   @override
-  Future<T> transaction<T>(Future<T> Function(TransactionContext txn) callback) async {
+  Future<T> transaction<T>(
+    Future<T> Function(TransactionContext txn) callback,
+  ) async {
     final context = _MockTransactionContext(this);
     return await callback(context);
   }
@@ -58,7 +63,10 @@ class _MockTransactionContext implements TransactionContext {
   _MockTransactionContext(this._adapter);
 
   @override
-  Future<List<Map<String, dynamic>>> getAll(String sql, [List<dynamic>? arguments]) {
+  Future<List<Map<String, dynamic>>> getAll(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) {
     return _adapter.getAll(sql, arguments);
   }
 

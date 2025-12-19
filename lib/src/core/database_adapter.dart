@@ -7,9 +7,9 @@ abstract class DatabaseAdapter {
   ///
   /// Implementations MUST support variable binding in [arguments] to prevent SQL injection.
   Future<List<Map<String, dynamic>>> getAll(
-      String sql, [
-        List<dynamic>? arguments,
-      ]);
+    String sql, [
+    List<dynamic>? arguments,
+  ]);
 
   /// Executes non-selecting commands (UPDATE, DELETE) or schema changes (DDL).
   Future<void> execute(String sql, [List<dynamic>? arguments]);
@@ -25,9 +25,9 @@ abstract class DatabaseAdapter {
   /// Critical for Flutter integration: implementations should emit a new event
   /// whenever the data targeted by [sql] is modified, triggering UI rebuilds.
   Stream<List<Map<String, dynamic>>> watch(
-      String sql, {
-        List<dynamic>? parameters,
-      });
+    String sql, {
+    List<dynamic>? parameters,
+  });
 
   // ---------------------------------------------------------------------------
   // TRANSACTION SUPPORT
@@ -50,9 +50,7 @@ abstract class DatabaseAdapter {
   ///   return 'success';
   /// });
   /// ```
-  Future<T> transaction<T>(
-      Future<T> Function(TransactionContext txn) callback,
-      );
+  Future<T> transaction<T>(Future<T> Function(TransactionContext txn) callback);
 
   /// Indicates whether the adapter supports transactions.
   ///
@@ -69,9 +67,9 @@ abstract class DatabaseAdapter {
 abstract class TransactionContext {
   /// Executes a SELECT query within the transaction.
   Future<List<Map<String, dynamic>>> getAll(
-      String sql, [
-        List<dynamic>? arguments,
-      ]);
+    String sql, [
+    List<dynamic>? arguments,
+  ]);
 
   /// Executes non-selecting commands within the transaction.
   Future<void> execute(String sql, [List<dynamic>? arguments]);

@@ -32,11 +32,7 @@ class MultiScopeUser extends Model with HasGlobalScopes {
   String get table => 'users';
 
   @override
-  List<Scope> get globalScopes => [
-    TenantScope(42),
-    ActiveScope(),
-    AgeScope(),
-  ];
+  List<Scope> get globalScopes => [TenantScope(42), ActiveScope(), AgeScope()];
 
   MultiScopeUser([super.attributes]);
 

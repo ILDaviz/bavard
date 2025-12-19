@@ -70,8 +70,11 @@ void main() {
     });
     DatabaseManager().setDatabase(mockDb);
 
-    final comment =
-    Comment({'id': 1, 'commentable_type': 'posts', 'commentable_id': 100});
+    final comment = Comment({
+      'id': 1,
+      'commentable_type': 'posts',
+      'commentable_id': 100,
+    });
 
     final parent = await comment.commentable().getResult();
 

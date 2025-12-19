@@ -220,7 +220,11 @@ void main() {
     test('chained where on relation query', () async {
       final user = User({'id': 1});
 
-      await user.posts().where('status', 'published').where('views', 100, operator: '>').get();
+      await user
+          .posts()
+          .where('status', 'published')
+          .where('views', 100, operator: '>')
+          .get();
 
       expect(dbSpy.lastSql, contains('user_id = ?'));
       expect(dbSpy.lastSql, contains('status = ?'));

@@ -19,7 +19,7 @@ void main() {
   setUp(() {
     dbSpy = MockDatabaseSpy([], {
       'FROM users': [
-        {'id': 'will-be-replaced', 'name': 'David'}
+        {'id': 'will-be-replaced', 'name': 'David'},
       ],
     });
     DatabaseManager().setDatabase(dbSpy);
@@ -43,7 +43,7 @@ void main() {
 
       final mockDb = MockDatabaseSpy([], {
         'FROM users': [
-          {'id': customUuid, 'name': 'David'}
+          {'id': customUuid, 'name': 'David'},
         ],
       });
       DatabaseManager().setDatabase(mockDb);
@@ -52,8 +52,10 @@ void main() {
 
       await user.save();
 
-      final insertSql =
-      mockDb.history.firstWhere((s) => s.contains('INSERT'), orElse: () => '');
+      final insertSql = mockDb.history.firstWhere(
+        (s) => s.contains('INSERT'),
+        orElse: () => '',
+      );
       expect(insertSql, contains('id'));
 
       expect(user.id, customUuid);

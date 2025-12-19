@@ -18,12 +18,12 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
   final String? secondKey;
 
   HasManyThrough(
-      super.parent,
-      super.creator,
-      this.intermediateCreator,
-      this.firstKey,
-      this.secondKey,
-      ) {
+    super.parent,
+    super.creator,
+    this.intermediateCreator,
+    this.firstKey,
+    this.secondKey,
+  ) {
     addConstraints();
   }
 
@@ -75,9 +75,10 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
     final intermediateIds = intermediateMap.keys.whereType<String>().toList();
     if (intermediateIds.isEmpty) return;
 
-    final targets = await QueryBuilder<R>(table, creator)
-        .whereIn(_secondKey, intermediateIds)
-        .get();
+    final targets = await QueryBuilder<R>(
+      table,
+      creator,
+    ).whereIn(_secondKey, intermediateIds).get();
 
     for (var model in models) {
       final myParentId = normKey(model.id);
@@ -91,7 +92,11 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
 
       // Filter targets linked to those intermediate IDs
       model.relations[relationName] = targets
-          .where((t) => relevantIntermediateIds.contains(normKey(t.attributes[_secondKey])))
+          .where(
+            (t) => relevantIntermediateIds.contains(
+              normKey(t.attributes[_secondKey]),
+            ),
+          )
           .toList();
     }
   }

@@ -40,12 +40,12 @@ void main() {
 
   group('MorphToMany Extended', () {
     test('returns empty when no pivot entries', () async {
-      final mockDb = MockDatabaseSpy([], {
-        'FROM taggables': [],
-      });
+      final mockDb = MockDatabaseSpy([], {'FROM taggables': []});
       DatabaseManager().setDatabase(mockDb);
 
-      final posts = [Post({'id': 1})];
+      final posts = [
+        Post({'id': 1}),
+      ];
       await posts.first.tags().match(posts, 'tags');
 
       // Usa getRelationList per gestire il caso null
@@ -57,7 +57,11 @@ void main() {
       final mockDb = MockDatabaseSpy([], {
         'FROM taggables': [
           {'tag_id': 10, 'taggable_id': 1, 'taggable_type': 'posts'},
-          {'tag_id': 11, 'taggable_id': 1, 'taggable_type': 'videos'}, // Different type
+          {
+            'tag_id': 11,
+            'taggable_id': 1,
+            'taggable_type': 'videos',
+          }, // Different type
         ],
         'FROM tags': [
           {'id': 10, 'name': 'Flutter'},
@@ -66,7 +70,9 @@ void main() {
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final posts = [Post({'id': 1})];
+      final posts = [
+        Post({'id': 1}),
+      ];
       await posts.first.tags().match(posts, 'tags');
 
       final tags = posts.first.relations['tags'] as List;
@@ -89,7 +95,9 @@ void main() {
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final posts = [Post({'id': 1})];
+      final posts = [
+        Post({'id': 1}),
+      ];
       await posts.first.tags().match(posts, 'tags');
 
       final tags = posts.first.relations['tags'] as List;

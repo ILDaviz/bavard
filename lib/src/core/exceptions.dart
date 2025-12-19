@@ -20,11 +20,11 @@ class ModelNotFoundException extends ActiveSyncException {
   final String model;
   final dynamic id;
 
-  const ModelNotFoundException({
-    required this.model,
-    this.id,
-    String? message,
-  }) : super(message ?? 'No query results for model [$model]${id != null ? ' with ID: $id' : ''}.');
+  const ModelNotFoundException({required this.model, this.id, String? message})
+    : super(
+        message ??
+            'No query results for model [$model]${id != null ? ' with ID: $id' : ''}.',
+      );
 
   @override
   String toString() => 'ModelNotFoundException: $message';
@@ -73,10 +73,10 @@ class TransactionException extends ActiveSyncException {
 /// Signals that `DatabaseManager().setDatabase()` was not called.
 class DatabaseNotInitializedException extends ActiveSyncException {
   const DatabaseNotInitializedException()
-      : super(
-    'Database driver not initialized. '
+    : super(
+        'Database driver not initialized. '
         'Call DatabaseManager().setDatabase(driver) first.',
-  );
+      );
 
   @override
   String toString() => 'DatabaseNotInitializedException: $message';
@@ -89,10 +89,8 @@ class MassAssignmentException extends ActiveSyncException {
   final String attribute;
   final String model;
 
-  const MassAssignmentException({
-    required this.attribute,
-    required this.model,
-  }) : super('Cannot mass-assign [$attribute] on model [$model].');
+  const MassAssignmentException({required this.attribute, required this.model})
+    : super('Cannot mass-assign [$attribute] on model [$model].');
 
   @override
   String toString() => 'MassAssignmentException: $message';
@@ -116,10 +114,8 @@ class RelationNotFoundException extends ActiveSyncException {
   final String relation;
   final String model;
 
-  const RelationNotFoundException({
-    required this.relation,
-    required this.model,
-  }) : super('Relation [$relation] not found on model [$model].');
+  const RelationNotFoundException({required this.relation, required this.model})
+    : super('Relation [$relation] not found on model [$model].');
 
   @override
   String toString() => 'RelationNotFoundException: $message';

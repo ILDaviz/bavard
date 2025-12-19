@@ -14,12 +14,12 @@ void main() {
     test('setDatabase replaces existing adapter', () async {
       final firstAdapter = MockDatabaseSpy([], {
         'FROM test': [
-          {'id': 1}
+          {'id': 1},
         ],
       });
       final secondAdapter = MockDatabaseSpy([], {
         'FROM test': [
-          {'id': 2}
+          {'id': 2},
         ],
       });
 

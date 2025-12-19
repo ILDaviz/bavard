@@ -18,10 +18,10 @@ Builder fillableGenerator(BuilderOptions options) =>
 class FillableGenerator extends GeneratorForAnnotation<Fillable> {
   @override
   Future<String> generateForAnnotatedElement(
-      Element element,
-      ConstantReader annotation,
-      BuildStep buildStep,
-      ) async {
+    Element element,
+    ConstantReader annotation,
+    BuildStep buildStep,
+  ) async {
     // Utility to strip metadata (e.g., 'int:guarded' -> 'int').
     String baseType(String value) {
       return value.split(':').first;

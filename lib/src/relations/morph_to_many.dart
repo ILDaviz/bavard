@@ -80,16 +80,14 @@ class MorphToMany<R extends Model> extends Relation<R> {
     ).whereIn(relatedPk, relatedIds).get();
 
     // Map: related_id -> model instance
-    final relatedDict = {
-      for (var m in relatedModels) normKey(m.id)!: m,
-    };
+    final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};
 
     for (var model in models) {
       final myId = normKey(model.id);
 
       final myPivots = pivotRows.where(
-            (r) =>
-        normKey(r[pivotMorphId]) == myId &&
+        (r) =>
+            normKey(r[pivotMorphId]) == myId &&
             r[pivotMorphType] == parent.table,
       );
 

@@ -39,12 +39,12 @@ void main() {
 
   group('BelongsToMany Extended', () {
     test('returns empty list when no pivot entries', () async {
-      final emptyMock = MockDatabaseSpy([], {
-        'FROM role_user': [],
-      });
+      final emptyMock = MockDatabaseSpy([], {'FROM role_user': []});
       DatabaseManager().setDatabase(emptyMock);
 
-      final users = [User({'id': 1})];
+      final users = [
+        User({'id': 1}),
+      ];
       await users.first.roles().match(users, 'roles');
 
       // Quando non ci sono pivot entries, la relazione potrebbe non essere settata
@@ -67,7 +67,9 @@ void main() {
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final users = [User({'id': 1})];
+      final users = [
+        User({'id': 1}),
+      ];
       await users.first.roles().match(users, 'roles');
 
       // Should have 3 entries (including duplicate)
@@ -76,9 +78,7 @@ void main() {
     });
 
     test('eager load with empty pivot table', () async {
-      final mockDb = MockDatabaseSpy([], {
-        'FROM role_user': [],
-      });
+      final mockDb = MockDatabaseSpy([], {'FROM role_user': []});
       DatabaseManager().setDatabase(mockDb);
 
       final users = [

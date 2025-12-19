@@ -10,7 +10,7 @@ extension TypedQuery<T extends Model> on T {
   QueryBuilder<T> query() {
     final base = (this as Model).newQuery();
     return base.cast<T>(
-          (map) => fromMap(map) as T,
+      (map) => fromMap(map) as T,
       instanceFactory: () => (this as Model).newInstance() as T,
     );
   }

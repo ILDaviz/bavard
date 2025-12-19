@@ -72,7 +72,7 @@ void main() {
     test('find() returns T? with correct type', () async {
       final mockDb = MockDatabaseSpy([], {
         'LIMIT 1': [
-          {'id': 1, 'name': 'David'}
+          {'id': 1, 'name': 'David'},
         ],
       });
       DatabaseManager().setDatabase(mockDb);

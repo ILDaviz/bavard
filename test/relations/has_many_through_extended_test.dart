@@ -38,13 +38,12 @@ void main() {
 
   group('HasManyThrough Extended', () {
     test('returns empty when no intermediate records', () async {
-      final mockDb = MockDatabaseSpy([], {
-        'FROM users': [],
-        'FROM posts': [],
-      });
+      final mockDb = MockDatabaseSpy([], {'FROM users': [], 'FROM posts': []});
       DatabaseManager().setDatabase(mockDb);
 
-      final countries = [Country({'id': 1})];
+      final countries = [
+        Country({'id': 1}),
+      ];
       await countries.first.posts().match(countries, 'posts');
 
       // Usa getRelationList per gestire il caso null
@@ -55,13 +54,15 @@ void main() {
     test('returns empty when intermediate exists but no target', () async {
       final mockDb = MockDatabaseSpy([], {
         'FROM users': [
-          {'id': 10, 'country_id': 1}
+          {'id': 10, 'country_id': 1},
         ],
         'FROM posts': [],
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final countries = [Country({'id': 1})];
+      final countries = [
+        Country({'id': 1}),
+      ];
       await countries.first.posts().match(countries, 'posts');
 
       expect(countries.first.relations['posts'], isEmpty);

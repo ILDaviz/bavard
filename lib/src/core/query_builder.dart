@@ -108,8 +108,11 @@ class QueryBuilder<T extends Model> {
   }) {
     _assertIdent(column, dotted: true, what: 'column name');
 
-    if (value == null && (_op(operator) == '=' || _op(operator) == '<>' || _op(operator) == '!=')) {
-      if (_op(operator) == '=' ) {
+    if (value == null &&
+        (_op(operator) == '=' ||
+            _op(operator) == '<>' ||
+            _op(operator) == '!=')) {
+      if (_op(operator) == '=') {
         return whereNull(column, boolean: boolean);
       } else {
         return whereNotNull(column, boolean: boolean);
@@ -154,9 +157,14 @@ class QueryBuilder<T extends Model> {
 
   /// Internal helper to process nested queries.
   QueryBuilder<T> _addNestedWhere(
-      void Function(QueryBuilder<T> query) callback, String boolean) {
-    final nestedBuilder = QueryBuilder<T>(table, creator,
-        instanceFactory: _instanceFactory);
+    void Function(QueryBuilder<T> query) callback,
+    String boolean,
+  ) {
+    final nestedBuilder = QueryBuilder<T>(
+      table,
+      creator,
+      instanceFactory: _instanceFactory,
+    );
 
     callback(nestedBuilder);
 
@@ -165,10 +173,7 @@ class QueryBuilder<T extends Model> {
     if (nestedClause.isNotEmpty) {
       final sqlInside = nestedClause.substring(7);
 
-      _wheres.add({
-        'type': boolean,
-        'sql': '($sqlInside)',
-      });
+      _wheres.add({'type': boolean, 'sql': '($sqlInside)'});
 
       _bindings.addAll(nestedBuilder._bindings);
     }
@@ -428,7 +433,8 @@ class QueryBuilder<T extends Model> {
       final dbManager = DatabaseManager();
       final subQuery = _compileSql();
       final bindings = [..._bindings, ..._havingBindings];
-      final wrapperSql = 'SELECT COUNT(*) as aggregate FROM ($subQuery) as temp_table';
+      final wrapperSql =
+          'SELECT COUNT(*) as aggregate FROM ($subQuery) as temp_table';
       try {
         final row = await dbManager.get(wrapperSql, bindings);
         if (row.isEmpty || row['aggregate'] == null) return 0;
@@ -474,7 +480,8 @@ class QueryBuilder<T extends Model> {
       throw QueryException(
         sql: _compileSql(),
         bindings: [],
-        message: 'Cannot use $method() with groupBy() or having(). '
+        message:
+            'Cannot use $method() with groupBy() or having(). '
             'This would return a single value from a list of groups, which is ambiguous or mathematically wrong. '
             'Use get() to retrieve grouped results.',
       );
@@ -694,12 +701,14 @@ class QueryBuilder<T extends Model> {
     if (_with.isEmpty || models.isEmpty) return;
 
     // Eager load related models parallel
-    await Future.wait(_with.map((relationName) async {
-      final relation = models.first.getRelation(relationName);
-      if (relation != null) {
-        await relation.match(models, relationName);
-      }
-    }));
+    await Future.wait(
+      _with.map((relationName) async {
+        final relation = models.first.getRelation(relationName);
+        if (relation != null) {
+          await relation.match(models, relationName);
+        }
+      }),
+    );
   }
 
   /// Maps raw DB rows to concrete Model instances.

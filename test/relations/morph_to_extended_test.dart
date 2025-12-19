@@ -88,7 +88,7 @@ void main() {
       });
 
       expect(
-            () => comment.commentable().get(),
+        () => comment.commentable().get(),
         throwsA(isA<UnsupportedError>()),
       );
     });
@@ -101,7 +101,7 @@ void main() {
       });
 
       expect(
-            () => comment.commentable().watch(),
+        () => comment.commentable().watch(),
         throwsA(isA<UnsupportedError>()),
       );
     });
@@ -127,10 +127,12 @@ void main() {
       await comments.first.commentable().match(comments, 'commentable');
 
       // Should have made 2 queries (one per type), not 3
-      final fromPostsCount =
-          mockDb.history.where((s) => s.contains('FROM posts')).length;
-      final fromVideosCount =
-          mockDb.history.where((s) => s.contains('FROM videos')).length;
+      final fromPostsCount = mockDb.history
+          .where((s) => s.contains('FROM posts'))
+          .length;
+      final fromVideosCount = mockDb.history
+          .where((s) => s.contains('FROM videos'))
+          .length;
 
       expect(fromPostsCount, 1);
       expect(fromVideosCount, 1);
@@ -146,8 +148,11 @@ void main() {
 
       final comments = [
         Comment({'id': 1, 'commentable_type': 'posts', 'commentable_id': 100}),
-        Comment(
-            {'id': 2, 'commentable_type': 'unknown', 'commentable_id': 999}),
+        Comment({
+          'id': 2,
+          'commentable_type': 'unknown',
+          'commentable_id': 999,
+        }),
       ];
 
       await comments.first.commentable().match(comments, 'commentable');

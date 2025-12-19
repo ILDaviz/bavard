@@ -79,7 +79,7 @@ enum OrmCastType {
       case OrmCastType.datetime:
         return 'DateTime$suffix';
       case OrmCastType.json:
-      // 'dynamic' avoids generic complexity; nullability is handled by the value check.
+        // 'dynamic' avoids generic complexity; nullability is handled by the value check.
         return 'dynamic';
       case OrmCastType.array:
         return 'List<dynamic>$suffix';

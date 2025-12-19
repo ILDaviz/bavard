@@ -47,9 +47,7 @@ void main() {
         .where('age', 18, operator: '>')
         .get();
 
-    final q = TestUser()
-        .where('role', 'admin')
-        .where('age', 18, operator: '>');
+    final q = TestUser().where('role', 'admin').where('age', 18, operator: '>');
     await q.get();
 
     expect(dbSpy.lastSql, contains('WHERE role = ? AND age > ?'));
@@ -75,7 +73,10 @@ void main() {
   });
 
   test('orderBy accepts dotted identifiers (table.column)', () async {
-    await TestUser().query().orderBy('users.created_at', direction: 'DESC').get();
+    await TestUser()
+        .query()
+        .orderBy('users.created_at', direction: 'DESC')
+        .get();
 
     expect(dbSpy.lastSql, contains('ORDER BY users.created_at DESC'));
   });
@@ -91,9 +92,10 @@ void main() {
 
   test('orderBy rejects injection attempts in identifier', () async {
     expect(
-          () => TestUser()
-          .query()
-          .orderBy('users.created_at; DROP TABLE users', direction: 'DESC'),
+      () => TestUser().query().orderBy(
+        'users.created_at; DROP TABLE users',
+        direction: 'DESC',
+      ),
       throwsA(isA<InvalidQueryException>()),
     );
   });
@@ -110,52 +112,56 @@ void main() {
   });
 
   test('It handles whereNull and whereNotNull', () async {
-    final q = TestUser().query().whereNull('deleted_at').orWhereNotNull('posted_at');
+    final q = TestUser()
+        .query()
+        .whereNull('deleted_at')
+        .orWhereNotNull('posted_at');
     await q.get();
 
-    expect(dbSpy.lastSql, contains('WHERE deleted_at IS NULL OR posted_at IS NOT NULL'));
+    expect(
+      dbSpy.lastSql,
+      contains('WHERE deleted_at IS NULL OR posted_at IS NOT NULL'),
+    );
     expect(dbSpy.lastArgs, isEmpty);
   });
 
   test('It handles whereRaw with bindings', () async {
-    await TestUser()
-        .query()
-        .whereRaw('age > ?', bindings: [18])
-        .get();
+    await TestUser().query().whereRaw('age > ?', bindings: [18]).get();
 
     expect(dbSpy.lastSql, contains('WHERE age > ?'));
     expect(dbSpy.lastArgs, [18]);
   });
 
   test('It handles orWhereRaw with bindings', () async {
-    await TestUser()
-        .query()
-        .where('id', 1)
-        .orWhereRaw('age < ?', [10])
-        .get();
+    await TestUser().query().where('id', 1).orWhereRaw('age < ?', [10]).get();
 
     expect(dbSpy.lastSql, contains('WHERE id = ? OR age < ?'));
     expect(dbSpy.lastArgs, [1, 10]);
   });
 
   test('It handles whereExists (Subqueries)', () async {
-    final subQuery = QueryBuilder<TestUser>('posts', (map) => TestUser(map))
-        .whereRaw('user_id = users.id')
-        .where('active', 1)
-        .select(['1']);
+    final subQuery = QueryBuilder<TestUser>(
+      'posts',
+      (map) => TestUser(map),
+    ).whereRaw('user_id = users.id').where('active', 1).select(['1']);
 
-    await TestUser()
-        .query()
-        .whereExists(subQuery)
-        .get();
+    await TestUser().query().whereExists(subQuery).get();
 
-    expect(dbSpy.lastSql, contains('WHERE EXISTS (SELECT 1 FROM posts WHERE user_id = users.id AND active = ?)'));
+    expect(
+      dbSpy.lastSql,
+      contains(
+        'WHERE EXISTS (SELECT 1 FROM posts WHERE user_id = users.id AND active = ?)',
+      ),
+    );
 
     expect(dbSpy.lastArgs, [1]);
   });
 
   test('It handles whereNotExists', () async {
-    final subQuery = QueryBuilder<TestUser>('posts', (map) => TestUser(map)).select(['1']);
+    final subQuery = QueryBuilder<TestUser>(
+      'posts',
+      (map) => TestUser(map),
+    ).select(['1']);
 
     await TestUser().query().whereNotExists(subQuery).get();
 
@@ -163,11 +169,10 @@ void main() {
   });
 
   test('It handles orWhereIn', () async {
-    await TestUser()
-        .query()
-        .where('id', 1)
-        .orWhereIn('role', ['admin', 'editor'])
-        .get();
+    await TestUser().query().where('id', 1).orWhereIn('role', [
+      'admin',
+      'editor',
+    ]).get();
 
     expect(dbSpy.lastSql, contains('WHERE id = ? OR role IN (?, ?)'));
     expect(dbSpy.lastArgs, [1, 'admin', 'editor']);
@@ -188,7 +193,9 @@ void main() {
 
   test('findOrFail() returns model if found', () async {
     final foundMock = MockDatabaseSpy([], {
-      'LIMIT 1': [{'id': 1, 'name': 'David'}]
+      'LIMIT 1': [
+        {'id': 1, 'name': 'David'},
+      ],
     });
     DatabaseManager().setDatabase(foundMock);
 
@@ -254,11 +261,15 @@ void main() {
     // 1. Build a complex query on the original model (TestUser).
     // We intentionally use various clauses (select, join, where, raw, order, limit, offset)
     // to ensure 'cast' handles a fully populated state.
-    final originalQuery = TestUser().query()
+    final originalQuery = TestUser()
+        .query()
         .select(['name', 'role']) // Custom column projection
         .join('roles', 'users.role_id', '=', 'roles.id') // Explicit JOIN
         .where('active', 1) // Standard WHERE clause
-        .whereRaw('age > ?', bindings: [21]) // Raw SQL WHERE with parameter binding
+        .whereRaw(
+          'age > ?',
+          bindings: [21],
+        ) // Raw SQL WHERE with parameter binding
         .orderBy('created_at', direction: 'DESC') // Sorting configuration
         .limit(10) // Pagination limit
         .offset(5); // Pagination offset

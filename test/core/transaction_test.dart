@@ -95,8 +95,9 @@ void main() {
       });
 
       // Verify both inserts happened within transaction
-      final insertCount =
-          dbSpy.transactionHistory.where((s) => s.contains('INSERT')).length;
+      final insertCount = dbSpy.transactionHistory
+          .where((s) => s.contains('INSERT'))
+          .length;
       expect(insertCount, 2);
     });
 

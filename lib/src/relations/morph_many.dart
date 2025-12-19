@@ -17,8 +17,8 @@ class MorphMany<R extends Model> extends Relation<R> {
   final String id;
 
   MorphMany(super.parent, super.creator, this.name)
-      : type = parent.table,
-        id = parent.id.toString() {
+    : type = parent.table,
+      id = parent.id.toString() {
     addConstraints();
   }
 
@@ -50,9 +50,9 @@ class MorphMany<R extends Model> extends Relation<R> {
       model.relations[relationName] = results
           .where(
             (r) =>
-        normKey(r.attributes['${name}_id']) == myId &&
-            r.attributes['${name}_type'] == type,
-      )
+                normKey(r.attributes['${name}_id']) == myId &&
+                r.attributes['${name}_type'] == type,
+          )
           .toList();
     }
   }

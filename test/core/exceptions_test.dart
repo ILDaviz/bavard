@@ -15,21 +15,24 @@ class User extends Model {
 void main() {
   group('Exceptions', () {
     group('ModelNotFoundException', () {
-      test('findOrFail() throws ModelNotFoundException when not found', () async {
-        final emptyMock = MockDatabaseSpy([], {});
-        DatabaseManager().setDatabase(emptyMock);
+      test(
+        'findOrFail() throws ModelNotFoundException when not found',
+        () async {
+          final emptyMock = MockDatabaseSpy([], {});
+          DatabaseManager().setDatabase(emptyMock);
 
-        try {
-          await User().query().findOrFail(999);
-          fail('Should have thrown ModelNotFoundException');
-        } catch (e) {
-          expect(e, isA<ModelNotFoundException>());
-          final error = e as ModelNotFoundException;
-          expect(error.model, 'users');
-          expect(error.id, 999);
-          expect(error.message, contains('999'));
-        }
-      });
+          try {
+            await User().query().findOrFail(999);
+            fail('Should have thrown ModelNotFoundException');
+          } catch (e) {
+            expect(e, isA<ModelNotFoundException>());
+            final error = e as ModelNotFoundException;
+            expect(error.model, 'users');
+            expect(error.id, 999);
+            expect(error.message, contains('999'));
+          }
+        },
+      );
 
       test('firstOrFail() throws ModelNotFoundException when empty', () async {
         final emptyMock = MockDatabaseSpy([], {});
@@ -54,28 +57,31 @@ void main() {
         const exception = DatabaseNotInitializedException();
 
         expect(exception.message, contains('not initialized'));
-        expect(exception.toString(), contains('DatabaseNotInitializedException'));
+        expect(
+          exception.toString(),
+          contains('DatabaseNotInitializedException'),
+        );
       });
     });
 
     group('InvalidQueryException', () {
       test('thrown for invalid column identifiers', () {
         expect(
-              () => User().query().where('column; DROP TABLE', 'value'),
+          () => User().query().where('column; DROP TABLE', 'value'),
           throwsA(isA<InvalidQueryException>()),
         );
       });
 
       test('thrown for invalid operators', () {
         expect(
-              () => User().query().where('id', 1, operator: 'INVALID'),
+          () => User().query().where('id', 1, operator: 'INVALID'),
           throwsA(isA<InvalidQueryException>()),
         );
       });
 
       test('thrown for invalid orderBy direction', () {
         expect(
-              () => User().query().orderBy('id', direction: 'INVALID'),
+          () => User().query().orderBy('id', direction: 'INVALID'),
           throwsA(isA<InvalidQueryException>()),
         );
       });
@@ -151,10 +157,7 @@ void main() {
           const DatabaseNotInitializedException(),
           isA<ActiveSyncException>(),
         );
-        expect(
-          const InvalidQueryException(''),
-          isA<ActiveSyncException>(),
-        );
+        expect(const InvalidQueryException(''), isA<ActiveSyncException>());
         expect(
           const MassAssignmentException(attribute: '', model: ''),
           isA<ActiveSyncException>(),
