@@ -134,6 +134,48 @@ class QueryBuilder<T extends Model> {
     return where(column, value, operator: operator, boolean: 'OR');
   }
 
+  /// Adds a nested WHERE group wrapped in parentheses: AND (...).
+  ///
+  /// Example:
+  /// query.whereGroup((q) => q.where('a', 1).orWhere('b', 1))
+  /// Generates: ... AND (a = 1 OR b = 1)
+  QueryBuilder<T> whereGroup(void Function(QueryBuilder<T> query) callback) {
+    return _addNestedWhere(callback, 'AND');
+  }
+
+  /// Adds a nested WHERE group wrapped in parentheses: OR (...).
+  ///
+  /// Example:
+  /// query.orWhereGroup((q) => q.where('active', 1).where('age', '>', 18))
+  /// Generates: ... OR (active = 1 AND age > 18)
+  QueryBuilder<T> orWhereGroup(void Function(QueryBuilder<T> query) callback) {
+    return _addNestedWhere(callback, 'OR');
+  }
+
+  /// Internal helper to process nested queries.
+  QueryBuilder<T> _addNestedWhere(
+      void Function(QueryBuilder<T> query) callback, String boolean) {
+    final nestedBuilder = QueryBuilder<T>(table, creator,
+        instanceFactory: _instanceFactory);
+
+    callback(nestedBuilder);
+
+    final nestedClause = nestedBuilder._buildWhereClause();
+
+    if (nestedClause.isNotEmpty) {
+      final sqlInside = nestedClause.substring(7);
+
+      _wheres.add({
+        'type': boolean,
+        'sql': '($sqlInside)',
+      });
+
+      _bindings.addAll(nestedBuilder._bindings);
+    }
+
+    return this;
+  }
+
   QueryBuilder<T> whereNull(String column, {String boolean = 'AND'}) {
     _assertIdent(column, dotted: true, what: 'column name');
     _wheres.add({'type': boolean, 'sql': '$column IS NULL'});

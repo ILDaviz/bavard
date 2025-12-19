@@ -5,7 +5,9 @@ import '../mocks/moke_database.dart';
 class TestUser extends Model {
   @override
   String get table => 'users';
+
   TestUser([super.attributes]);
+
   @override
   TestUser fromMap(Map<String, dynamic> map) => TestUser(map);
 }
@@ -71,14 +73,13 @@ void main() {
           .get();
 
       expect(
-          dbSpy.lastSql, contains('WHERE active = ? OR verified_at IS NOT NULL'));
+        dbSpy.lastSql,
+        contains('WHERE active = ? OR verified_at IS NOT NULL'),
+      );
     });
 
     test('where with LIKE operator and wildcards', () async {
-      await TestUser()
-          .query()
-          .where('name', '%David%', operator: 'LIKE')
-          .get();
+      await TestUser().query().where('name', '%David%', operator: 'LIKE').get();
 
       expect(dbSpy.lastSql, contains('name LIKE ?'));
       expect(dbSpy.lastArgs, contains('%David%'));
@@ -103,9 +104,53 @@ void main() {
           .orWhere('role', 'admin')
           .get();
 
-      expect(dbSpy.lastSql,
-          contains('WHERE age >= ? AND age <= ? AND status = ? OR role = ?'));
+      expect(
+        dbSpy.lastSql,
+        contains('WHERE age >= ? AND age <= ? AND status = ? OR role = ?'),
+      );
       expect(dbSpy.lastArgs, equals([18, 65, 'active', 'admin']));
+    });
+
+    test('It handles nested where groups (parentheses)', () async {
+      await TestUser().query().where('status', 'active').whereGroup((q) {
+        q.where('role', 'admin').orWhere('role', 'editor');
+      }).get();
+
+      expect(
+        dbSpy.lastSql,
+        contains("WHERE status = ? AND (role = ? OR role = ?)"),
+      );
+      expect(dbSpy.lastArgs, ['active', 'admin', 'editor']);
+    });
+
+    test('It handles nested OR groups with correct binding order', () async {
+      await TestUser().query().where('age', 18, operator: '>').orWhereGroup((
+        q,
+      ) {
+        q
+            .where('status', 'pending')
+            .where('created_at', '2023-01-01', operator: '>');
+      }).get();
+
+      expect(
+        dbSpy.lastSql,
+        contains("WHERE age > ? OR (status = ? AND created_at > ?)"),
+      );
+      expect(dbSpy.lastArgs, [18, 'pending', '2023-01-01']);
+    });
+
+    test('It supports deep nesting', () async {
+      await TestUser().query().where('a', 1).whereGroup((q1) {
+        q1.where('b', 2).orWhereGroup((q2) {
+          q2.where('c', 3).where('d', 4);
+        });
+      }).get();
+
+      expect(
+        dbSpy.lastSql,
+        contains("WHERE a = ? AND (b = ? OR (c = ? AND d = ?))"),
+      );
+      expect(dbSpy.lastArgs, [1, 2, 3, 4]);
     });
   });
 
@@ -113,7 +158,7 @@ void main() {
     test('count() with column name', () async {
       final countMock = MockDatabaseSpy([], {
         'SELECT COUNT(email) as aggregate': [
-          {'aggregate': 50}
+          {'aggregate': 50},
         ],
       });
       DatabaseManager().setDatabase(countMock);
@@ -127,7 +172,7 @@ void main() {
     test('count() with WHERE clause', () async {
       final countMock = MockDatabaseSpy([], {
         'SELECT COUNT(*) as aggregate': [
-          {'aggregate': 10}
+          {'aggregate': 10},
         ],
       });
       DatabaseManager().setDatabase(countMock);
@@ -141,7 +186,7 @@ void main() {
     test('sum() returns 0 for empty result', () async {
       final sumMock = MockDatabaseSpy([], {
         'SELECT SUM(amount) as aggregate': [
-          {'aggregate': null}
+          {'aggregate': null},
         ],
       });
       DatabaseManager().setDatabase(sumMock);
@@ -154,7 +199,7 @@ void main() {
     test('sum() with null values in column', () async {
       final sumMock = MockDatabaseSpy([], {
         'SELECT SUM(score) as aggregate': [
-          {'aggregate': 150}
+          {'aggregate': 150},
         ],
       });
       DatabaseManager().setDatabase(sumMock);
@@ -167,7 +212,7 @@ void main() {
     test('avg() with empty result returns null', () async {
       final avgMock = MockDatabaseSpy([], {
         'SELECT AVG(rating) as aggregate': [
-          {'aggregate': null}
+          {'aggregate': null},
         ],
       });
       DatabaseManager().setDatabase(avgMock);
@@ -180,7 +225,7 @@ void main() {
     test('avg() with integer column', () async {
       final avgMock = MockDatabaseSpy([], {
         'SELECT AVG(age) as aggregate': [
-          {'aggregate': 35}
+          {'aggregate': 35},
         ],
       });
       DatabaseManager().setDatabase(avgMock);
@@ -194,7 +239,7 @@ void main() {
     test('min() with empty result', () async {
       final minMock = MockDatabaseSpy([], {
         'SELECT MIN(price) as aggregate': [
-          {'aggregate': null}
+          {'aggregate': null},
         ],
       });
       DatabaseManager().setDatabase(minMock);
@@ -207,7 +252,7 @@ void main() {
     test('max() with empty result', () async {
       final maxMock = MockDatabaseSpy([], {
         'SELECT MAX(score) as aggregate': [
-          {'aggregate': null}
+          {'aggregate': null},
         ],
       });
       DatabaseManager().setDatabase(maxMock);
@@ -220,7 +265,7 @@ void main() {
     test('min() with datetime column', () async {
       final minMock = MockDatabaseSpy([], {
         'SELECT MIN(created_at) as aggregate': [
-          {'aggregate': '2020-01-01T00:00:00.000'}
+          {'aggregate': '2020-01-01T00:00:00.000'},
         ],
       });
       DatabaseManager().setDatabase(minMock);
@@ -233,7 +278,7 @@ void main() {
     test('max() with string column', () async {
       final maxMock = MockDatabaseSpy([], {
         'SELECT MAX(name) as aggregate': [
-          {'aggregate': 'Zoe'}
+          {'aggregate': 'Zoe'},
         ],
       });
       DatabaseManager().setDatabase(maxMock);
@@ -266,7 +311,7 @@ void main() {
     test('find() with string id', () async {
       final mockDb = MockDatabaseSpy([], {
         'LIMIT 1': [
-          {'id': 'abc-123', 'name': 'David'}
+          {'id': 'abc-123', 'name': 'David'},
         ],
       });
       DatabaseManager().setDatabase(mockDb);
@@ -281,7 +326,7 @@ void main() {
       final uuid = '550e8400-e29b-41d4-a716-446655440000';
       final mockDb = MockDatabaseSpy([], {
         'LIMIT 1': [
-          {'id': uuid, 'name': 'David'}
+          {'id': uuid, 'name': 'David'},
         ],
       });
       DatabaseManager().setDatabase(mockDb);
@@ -334,13 +379,16 @@ void main() {
     });
 
     test('select() with alias (name AS user_name)', () async {
-      await TestUser()
-          .query()
-          .select(['id', 'name AS user_name', 'email AS contact'])
-          .get();
+      await TestUser().query().select([
+        'id',
+        'name AS user_name',
+        'email AS contact',
+      ]).get();
 
-      expect(dbSpy.lastSql,
-          contains('SELECT id, name AS user_name, email AS contact'));
+      expect(
+        dbSpy.lastSql,
+        contains('SELECT id, name AS user_name, email AS contact'),
+      );
     });
   });
 
@@ -352,7 +400,10 @@ void main() {
           .join('roles', 'users.role_id', '=', 'roles.id')
           .get();
 
-      expect(dbSpy.lastSql, contains('JOIN profiles ON users.id = profiles.user_id'));
+      expect(
+        dbSpy.lastSql,
+        contains('JOIN profiles ON users.id = profiles.user_id'),
+      );
       expect(dbSpy.lastSql, contains('JOIN roles ON users.role_id = roles.id'));
     });
 
@@ -362,7 +413,10 @@ void main() {
           .join('scores', 'users.min_score', '<', 'scores.value')
           .get();
 
-      expect(dbSpy.lastSql, contains('JOIN scores ON users.min_score < scores.value'));
+      expect(
+        dbSpy.lastSql,
+        contains('JOIN scores ON users.min_score < scores.value'),
+      );
     });
 
     test('leftJoin generates LEFT JOIN', () async {
@@ -371,7 +425,10 @@ void main() {
           .leftJoin('profiles', 'users.id', '=', 'profiles.user_id')
           .get();
 
-      expect(dbSpy.lastSql, contains('LEFT JOIN profiles ON users.id = profiles.user_id'));
+      expect(
+        dbSpy.lastSql,
+        contains('LEFT JOIN profiles ON users.id = profiles.user_id'),
+      );
     });
 
     test('rightJoin generates RIGHT JOIN', () async {
@@ -380,60 +437,64 @@ void main() {
           .rightJoin('profiles', 'users.id', '=', 'profiles.user_id')
           .get();
 
-      expect(dbSpy.lastSql, contains('RIGHT JOIN profiles ON users.id = profiles.user_id'));
+      expect(
+        dbSpy.lastSql,
+        contains('RIGHT JOIN profiles ON users.id = profiles.user_id'),
+      );
     });
   });
 
   group('Validation & Security', () {
     test('where() rejects invalid column names', () {
       expect(
-            () => TestUser().query().where('column; DROP TABLE users', 'value'),
+        () => TestUser().query().where('column; DROP TABLE users', 'value'),
         throwsA(isA<InvalidQueryException>()),
       );
     });
 
     test('whereIn() rejects invalid column names', () {
       expect(
-            () => TestUser().query().whereIn('id; DELETE FROM', [1, 2]),
+        () => TestUser().query().whereIn('id; DELETE FROM', [1, 2]),
         throwsA(isA<InvalidQueryException>()),
       );
     });
 
     test('join() rejects invalid table names', () {
       expect(
-            () => TestUser()
-            .query()
-            .join('users; DROP TABLE', 'a.id', '=', 'b.id'),
+        () => TestUser().query().join('users; DROP TABLE', 'a.id', '=', 'b.id'),
         throwsA(isA<InvalidQueryException>()),
       );
     });
 
     test('join() rejects invalid operators', () {
       expect(
-            () => TestUser()
-            .query()
-            .join('profiles', 'users.id', 'INVALID', 'profiles.user_id'),
+        () => TestUser().query().join(
+          'profiles',
+          'users.id',
+          'INVALID',
+          'profiles.user_id',
+        ),
         throwsA(isA<InvalidQueryException>()),
       );
     });
 
     test('orderBy() rejects invalid direction', () {
       expect(
-            () => TestUser().query().orderBy('name', direction: 'RANDOM'),
+        () => TestUser().query().orderBy('name', direction: 'RANDOM'),
         throwsA(isA<InvalidQueryException>()),
       );
     });
 
     test('groupBy() rejects invalid column names', () {
       expect(
-            () => TestUser().query().groupBy(['status; DROP TABLE']),
+        () => TestUser().query().groupBy(['status; DROP TABLE']),
         throwsA(isA<InvalidQueryException>()),
       );
     });
 
     test('having() rejects invalid operators', () {
       expect(
-            () => TestUser()
+        () => TestUser()
             .query()
             .groupBy(['status'])
             .having('COUNT(*)', 5, operator: 'INJECT'),
