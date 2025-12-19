@@ -125,21 +125,15 @@ abstract class Model
         values,
       );
     }
-
-    if (id != null) {
-      // Reloads the record to ensure the application state matches the database
-      // (handling triggers, default values, or datetime precision loss).
-      final freshData = await dbManager.get(
-        'SELECT * FROM $table WHERE $primaryKey = ?',
-        [id],
-      );
-
-      attributes = Map<String, dynamic>.from(freshData);
-
-      syncOriginal();
-    }
-
+    await refresh();
     await onSaved();
+  }
+
+  Future<void> refresh() async {
+    if (id == null) return;
+    final freshInstance = await newQuery().findOrFail(id);
+    attributes = freshInstance.attributes;
+    syncOriginal();
   }
 
   /// Permanently removes the record (unless [HasSoftDeletes] overrides this).
