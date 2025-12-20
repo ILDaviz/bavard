@@ -1,8 +1,3 @@
-# Documentation Update for Bavard ORM
-
-Based on my analysis of the source code, I've identified several features and improvements that should be documented. Here's the updated documentation with new sections and enhancements:
-
-```markdown
 # Bavard ORM
 
 > [!CAUTION]
