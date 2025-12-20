@@ -1,3 +1,8 @@
+# Documentation Update for Bavard ORM
+
+Based on my analysis of the source code, I've identified several features and improvements that should be documented. Here's the updated documentation with new sections and enhancements:
+
+```markdown
 # Bavard ORM
 
 > [!CAUTION]
@@ -26,6 +31,7 @@ Bavard is an Object-Relational Mapping library that brings the Active Record pat
 - [Watch (Reactive Streams)](#watch-reactive-streams)
 - [Code Generation](#code-generation)
 - [Error Handling](#error-handling)
+- [Testing](#testing)
 - [Implementing a Database Adapter](#implementing-a-database-adapter)
 - [Best Practices](#best-practices)
 
@@ -491,6 +497,30 @@ final user = await User().query().find(1);
 await user?.delete();
 ```
 
+### Bulk Operations
+
+You can perform updates and deletes on multiple records at once using the query builder:
+
+```dart
+// Update multiple records
+final rowsAffected = await User()
+    .query()
+    .where('status', 'inactive')
+    .update({'archived': true, 'archived_at': DateTime.now().toIso8601String()});
+
+print('Archived $rowsAffected users');
+
+// Delete multiple records
+final deletedCount = await User()
+    .query()
+    .where('created_at', '2020-01-01', operator: '<')
+    .delete();
+
+print('Deleted $deletedCount old records');
+```
+
+> **Note:** Bulk operations bypass model lifecycle hooks (`onSaving`, `onDeleting`, etc.) since they operate directly on the database without hydrating individual models.
+
 ---
 
 ## Query Builder
@@ -531,11 +561,55 @@ final subQuery = Post().query().whereRaw('user_id = users.id');
 await User().query().whereExists(subQuery).get();
 ```
 
+### Nested WHERE Groups
+
+For complex logical conditions, you can group WHERE clauses with parentheses:
+
+```dart
+// AND group: WHERE status = 'active' AND (role = 'admin' OR role = 'editor')
+await User()
+    .query()
+    .where('status', 'active')
+    .whereGroup((q) {
+      q.where('role', 'admin').orWhere('role', 'editor');
+    })
+    .get();
+
+// OR group: WHERE age > 18 OR (status = 'pending' AND created_at > '2023-01-01')
+await User()
+    .query()
+    .where('age', 18, operator: '>')
+    .orWhereGroup((q) {
+      q.where('status', 'pending').where('created_at', '2023-01-01', operator: '>');
+    })
+    .get();
+
+// Deep nesting is supported
+await User()
+    .query()
+    .where('a', 1)
+    .whereGroup((q1) {
+      q1.where('b', 2).orWhereGroup((q2) {
+        q2.where('c', 3).where('d', 4);
+      });
+    })
+    .get();
+// Generates: WHERE a = ? AND (b = ? OR (c = ? AND d = ?))
+```
+
 ### Selecting specific columns
 
 ```dart
 final users = await User().query()
     .select(['id', 'name', 'email'])
+    .get();
+
+// With raw expressions for aggregates
+final stats = await Order().query()
+    .select(['customer_id'])
+    .selectRaw('COUNT(*) as order_count')
+    .selectRaw('SUM(total) as total_spent')
+    .groupBy(['customer_id'])
     .get();
 ```
 
@@ -558,6 +632,7 @@ final average = await Product().query().avg('price');
 final max = await Score().query().max('points');
 final min = await Score().query().min('points');
 final exists = await User().query().where('email', 'test@example.com').exists();
+final notExist = await User().query().where('email', 'ghost@example.com').notExist();
 ```
 
 ### GROUP BY and HAVING
@@ -570,7 +645,46 @@ final results = await Order().query()
     .having('COUNT(*)', 3, operator: '>=')
     .orderBy('total_spent', direction: 'DESC')
     .get();
+
+// Multiple HAVING conditions
+await Order().query()
+    .select(['customer_id', 'COUNT(*) as count'])
+    .groupBy(['customer_id'])
+    .having('COUNT(*)', 5, operator: '>=')
+    .having('SUM(total)', 100, operator: '>')
+    .get();
+
+// OR HAVING
+await Order().query()
+    .select(['customer_id', 'COUNT(*) as count'])
+    .groupBy(['customer_id'])
+    .having('COUNT(*)', 10, operator: '>=')
+    .orHaving('SUM(total)', 5000, operator: '>')
+    .get();
+
+// Raw HAVING for complex expressions
+await Product().query()
+    .select(['category', 'AVG(price) as avg_price'])
+    .groupBy(['category'])
+    .havingRaw('AVG(price) > ? AND COUNT(*) >= ?', bindings: [50, 10])
+    .get();
+
+// HAVING BETWEEN
+await Order().query()
+    .select(['customer_id', 'COUNT(*) as order_count'])
+    .groupBy(['customer_id'])
+    .havingBetween('COUNT(*)', 5, 20)
+    .get();
+
+// HAVING NULL checks
+await Order().query()
+    .select(['customer_id', 'MAX(discount) as max_discount'])
+    .groupBy(['customer_id'])
+    .havingNotNull('MAX(discount)')
+    .get();
 ```
+
+> **Note:** When using `count()` with `groupBy()`, Bavard wraps the query in a subquery to return the total number of groups. Other aggregates like `sum()`, `avg()`, `min()`, and `max()` throw an exception when combined with `groupBy()` since the result would be ambiguous.
 
 ### JOIN
 
@@ -591,6 +705,29 @@ await User().query()
     .whereRaw('age > ? AND created_at > ?', bindings: [18, '2024-01-01'])
     .get();
 ```
+
+### Debugging Queries
+
+Bavard provides helpful methods for debugging your queries:
+
+```dart
+// Get the compiled SQL string
+final sql = User().query().where('active', 1).toSql();
+print(sql); // SELECT users.* FROM users WHERE active = ?
+
+// Get SQL with bindings substituted (for debugging only!)
+final rawSql = User().query().where('active', 1).toRawSql();
+print(rawSql); // SELECT users.* FROM users WHERE active = 1
+
+// Chain debug methods
+await User().query()
+    .where('status', 'active')
+    .printQueryAndBindings()  // Prints query and bindings separately
+    .printRawSql()            // Prints SQL with substituted values
+    .get();
+```
+
+> **Warning:** Never use `toRawSql()` output for actual database queries. It's intended for debugging only and doesn't properly escape values.
 
 ---
 
@@ -634,6 +771,13 @@ final recentPosts = await user.posts()
 for (final post in recentPosts) {
   print(post.title);
 }
+
+// Create a related model
+final newPost = await user.posts().create({
+  'title': 'My New Post',
+  'content': 'Hello World!',
+});
+// The foreign key (user_id) is automatically set
 ```
 
 ### BelongsTo (Inverse of HasOne/HasMany)
@@ -724,7 +868,7 @@ final tags = await post.tags().get();
 To avoid the N+1 problem, load relationships in advance:
 
 > [!WARNING]  
-> Only one level of nested posts is allowed.
+> Only one level of nested relations is allowed.
 
 ```dart
 final users = await User().query()
@@ -762,6 +906,24 @@ class User extends Model {
     }
   }
 }
+```
+
+### Relationships and Global Scopes
+
+Relationships automatically respect global scopes defined on the related model. For example, if `Post` uses `HasSoftDeletes`, then `user.posts().get()` will automatically exclude soft-deleted posts:
+
+```dart
+class Post extends Model with HasSoftDeletes {
+  @override
+  String get table => 'posts';
+}
+
+class User extends Model {
+  HasMany<Post> posts() => hasMany(Post.new);
+}
+
+// This query automatically excludes soft-deleted posts
+final activePosts = await user.posts().get();
 ```
 
 ---
@@ -836,6 +998,10 @@ print(status); // UserStatus.active
 final user2 = User({'status': 0});
 final status2 = user2.getEnum('status', UserStatus.values);
 print(status2); // UserStatus.active
+
+// Writing enums
+user.setAttribute('status', UserStatus.pending);
+print(user.attributes['status']); // 'pending' (stored as string name)
 ```
 
 ### Helper Methods
@@ -852,6 +1018,7 @@ double? score = user.doubleNum('score');
 bool? active = user.boolean('is_active');
 DateTime? created = user.date('created_at');
 Map<String, dynamic>? settings = user.json('settings');
+T? status = user.enumeration('status', UserStatus.values);
 
 // Bracket notation
 user['name'] = 'Mario';
@@ -948,6 +1115,8 @@ await doc.save();
 
 print(doc.id); // "550e8400-e29b-41d4-a716-446655440000"
 ```
+
+The `HasUuids` mixin also sets `incrementing` to `false`, indicating the primary key is not auto-incremented.
 
 ### Global Scopes
 
@@ -1417,14 +1586,131 @@ try {
 
 ### Catching all ORM exceptions
 
-All exceptions extend `ActiveSyncException`:
+All exceptions extend `BavardException`:
 
 ```dart
 try {
   // Any ORM operation
-} on ActiveSyncException catch (e) {
+} on BavardException catch (e) {
   print('ORM error: ${e.message}');
 }
+```
+
+---
+
+## Testing
+
+Bavard provides a `MockDatabaseSpy` for testing your models without a real database connection.
+
+### Setup
+
+Import the testing utilities:
+
+```dart
+import 'package:bavard/testing.dart';
+```
+
+### Basic Usage
+
+```dart
+void main() {
+  late MockDatabaseSpy dbSpy;
+
+  setUp(() {
+    dbSpy = MockDatabaseSpy();
+    DatabaseManager().setDatabase(dbSpy);
+  });
+
+  test('creates a user', () async {
+    final user = User({'name': 'David'});
+    await user.save();
+
+    // Verify the INSERT was executed
+    expect(dbSpy.history.any((sql) => sql.contains('INSERT INTO users')), isTrue);
+  });
+}
+```
+
+### Configuring Mock Responses
+
+You can configure responses based on SQL patterns:
+
+```dart
+final dbSpy = MockDatabaseSpy(
+  // Default data returned for unmatched queries
+  [{'id': 1, 'name': 'Default'}],
+  // Smart responses based on SQL substrings
+  {
+    'FROM users': [
+      {'id': 1, 'name': 'David'},
+      {'id': 2, 'name': 'Mario'},
+    ],
+    'FROM posts': [
+      {'id': 1, 'title': 'Hello World', 'user_id': 1},
+    ],
+  },
+);
+DatabaseManager().setDatabase(dbSpy);
+```
+
+### Inspecting Queries
+
+```dart
+test('queries with correct parameters', () async {
+  await User().query().where('active', 1).get();
+
+  expect(dbSpy.lastSql, contains('WHERE active = ?'));
+  expect(dbSpy.lastArgs, [1]);
+  
+  // Full history of all queries
+  print(dbSpy.history);
+});
+```
+
+### Testing Transactions
+
+```dart
+test('transaction commits on success', () async {
+  await DatabaseManager().transaction((txn) async {
+    final user = User({'name': 'David'});
+    await user.save();
+    return user;
+  });
+
+  expect(dbSpy.history, contains('BEGIN TRANSACTION'));
+  expect(dbSpy.history, contains('COMMIT'));
+  expect(dbSpy.history, isNot(contains('ROLLBACK')));
+});
+
+test('transaction rolls back on failure', () async {
+  dbSpy.shouldFailTransaction = true;
+
+  try {
+    await DatabaseManager().transaction((txn) async {
+      await User({'name': 'David'}).save();
+    });
+  } catch (e) {
+    // Expected
+  }
+
+  expect(dbSpy.history, contains('BEGIN TRANSACTION'));
+  expect(dbSpy.history, contains('ROLLBACK'));
+});
+```
+
+### Updating Mock Data at Runtime
+
+```dart
+test('updates mock responses', () async {
+  dbSpy.setMockData({
+    'FROM users WHERE id = ?': [
+      {'id': 1, 'name': 'Updated Name'},
+    ],
+  });
+
+  final user = await User().query().find(1);
+  expect(user?.attributes['name'], 'Updated Name');
+});
 ```
 
 ---
@@ -1457,11 +1743,11 @@ class MyAdapter implements DatabaseAdapter {
   }
   
   @override
-  Future<void> execute(
+  Future<int> execute(
     String sql, [
     List<dynamic>? arguments,
   ]) async {
-    await _connection.execute(sql, arguments);
+    return await _connection.execute(sql, arguments);
   }
   
   @override
@@ -1530,11 +1816,11 @@ class MyTransactionContext implements TransactionContext {
   }
   
   @override
-  Future<void> execute(
+  Future<int> execute(
     String sql, [
     List<dynamic>? arguments,
   ]) async {
-    await _connection.execute(sql, arguments);
+    return await _connection.execute(sql, arguments);
   }
   
   @override
@@ -1561,9 +1847,11 @@ class MyTransactionContext implements TransactionContext {
 8. **Handle exceptions** — Catch specific exceptions for better error handling
 9. **Leverage lifecycle hooks** — For validation, caching, and side effects
 10. **Use soft deletes** — When you need to preserve data history
+11. **Write tests** — Use `MockDatabaseSpy` to verify your queries and model behavior
 
 ---
 
 ## License
 
 Bavard is released under the MIT License. See the LICENSE file for details.
+```
