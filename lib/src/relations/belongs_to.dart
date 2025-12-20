@@ -31,7 +31,7 @@ class BelongsTo<R extends Model> extends Relation<R> {
     final ids = getKeys(models, foreignKey).where((id) => id != null).toList();
 
     final results = await creator({}).newQuery()
-        .whereIn(foreignKey, ids)
+        .whereIn(ownerKey, ids)
         .get();
 
     // Map results by owner ID for O(1) assignment back to child models.

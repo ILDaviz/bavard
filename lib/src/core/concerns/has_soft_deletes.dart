@@ -9,18 +9,6 @@ import '../query_builder.dart';
 mixin HasSoftDeletes on Model {
   bool get trashed => attributes['deleted_at'] != null;
 
-  /// Intercepts the default query builder to inject a global `whereNull('deleted_at')` scope.
-  ///
-  /// This ensures all standard queries exclude soft-deleted records by default.
-  @override
-  QueryBuilder<Model> newQuery() {
-    final builder = super.newQuery();
-    builder.withGlobalScope('soft_delete', (b) {
-      b.whereNull('deleted_at');
-    });
-    return builder;
-  }
-
   @override
   void registerGlobalScopes(QueryBuilder<Model> builder) {
     super.registerGlobalScopes(builder);

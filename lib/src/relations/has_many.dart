@@ -22,6 +22,14 @@ class HasMany<R extends Model> extends Relation<R> {
     where(foreignKey, parent.attributes[localKey]);
   }
 
+  Future<R> create(Map<String, dynamic> values) async {
+    values[foreignKey] = parent.attributes[localKey];
+
+    final instance = creator(values);
+    await instance.save();
+    return instance;
+  }
+
   /// Eagerly loads related models for a list of parents to prevent N+1 performance issues.
   ///
   /// Fetches all related children in a single `WHERE IN` query and distributes them
