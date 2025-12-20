@@ -54,54 +54,40 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
 
   /// Eagerly loads relationships for a list of parents to avoid N+1 queries.
   ///
-  /// Strategy:
-  /// 1. Query the intermediate table (raw SQL) to map Intermediate IDs to Parent IDs.
-  /// 2. Batch fetch all Target models belonging to those Intermediate IDs.
-  /// 3. Reassemble the `Parent -> [Intermediate] -> Target` chain in-memory.
   @override
   Future<void> match(List<Model> models, String relationName) async {
     final parentIds = getKeys(models, parent.primaryKey);
-    final db = DatabaseManager().db;
 
-    // Fetch intermediate mapping (id -> parent_key)
-    final intermediateSql =
-        'SELECT id, $_firstKey FROM $_intermediateTable WHERE $_firstKey IN (${parentIds.map((_) => '?').join(',')})';
-    final intermediateRows = await db.getAll(intermediateSql, parentIds);
 
-    final intermediateModels = await intermediateCreator({}).newQuery()
+    final intermediateResults = await intermediateCreator({}).newQuery()
         .select(['id', _firstKey])
         .whereIn(_firstKey, parentIds)
         .get();
 
     final intermediateMap = {
-      for (var m in intermediateModels)
-        normKey(m.id): normKey(m.attributes[_firstKey]),
+      for (var r in intermediateResults)
+        normKey(r.id): normKey(r.attributes[_firstKey]),
     };
 
     final intermediateIds = intermediateMap.keys.whereType<String>().toList();
     if (intermediateIds.isEmpty) return;
 
-    final targets = await creator({}).newQuery()
+    final targets = (await creator({}).newQuery()
         .whereIn(_secondKey, intermediateIds)
-        .get();
+        .get()).cast<R>();
 
     for (var model in models) {
       final myParentId = normKey(model.id);
 
-      // Find intermediate IDs belonging to this specific parent
       final relevantIntermediateIds = intermediateMap.entries
           .where((e) => e.value == myParentId)
           .map((e) => e.key)
-          .whereType<String>()
           .toSet();
 
-      // Filter targets linked to those intermediate IDs
       model.relations[relationName] = targets
-          .where(
-            (t) => relevantIntermediateIds.contains(
-              normKey(t.attributes[_secondKey]),
-            ),
-          )
+          .where((t) => relevantIntermediateIds.contains(
+          normKey(t.attributes[_secondKey])
+      ))
           .toList();
     }
   }

@@ -30,9 +30,9 @@ class HasMany<R extends Model> extends Relation<R> {
   Future<void> match(List<Model> models, String relationName) async {
     final ids = getKeys(models, localKey);
 
-    final results = await creator({}).newQuery()
+    final results = (await creator({}).newQuery()
         .whereIn(foreignKey, ids)
-        .get();
+        .get()).cast<R>();
 
     for (var model in models) {
       final myKey = normKey(model.attributes[localKey]);
@@ -40,6 +40,7 @@ class HasMany<R extends Model> extends Relation<R> {
       final children = results
           .where((r) => normKey(r.attributes[foreignKey]) == myKey)
           .toList();
+
       model.relations[relationName] = children;
     }
   }
