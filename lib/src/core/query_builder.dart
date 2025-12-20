@@ -81,7 +81,7 @@ class QueryBuilder<T extends Model> {
     '<=',
   };
 
-  static String _op(String op) => op.trim().toUpperCase();
+  static String _operator(String op) => op.trim().toUpperCase();
 
   /// Security Check: Ensures identifiers (tables, columns) match a strict regex.
   ///
@@ -96,6 +96,47 @@ class QueryBuilder<T extends Model> {
     if (!ok) {
       throw InvalidQueryException('Invalid $what: $v');
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // DEBUGGING TOOLS
+  // ---------------------------------------------------------------------------
+
+  String toRawSql() {
+    String sql = _compileSql();
+    final allBindings = [..._bindings, ..._havingBindings];
+
+    int index = 0;
+    return sql.replaceAllMapped('?', (match) {
+      if (index >= allBindings.length) return '?';
+
+      final value = allBindings[index++];
+      return _formatValueForDebug(value);
+    });
+  }
+
+  String _formatValueForDebug(dynamic value) {
+    if (value == null) return 'NULL';
+    if (value is num) return value.toString();
+    if (value is bool) return value ? '1' : '0';
+    if (value is DateTime) return "'${value.toIso8601String()}'";
+    return "'${value.toString().replaceAll("'", "''")}'";
+  }
+
+  QueryBuilder<T> printRawSql() {
+    print('\x1B[35m[RAW SQL]\x1B[0m ${toRawSql()}');
+    return this;
+  }
+
+  QueryBuilder<T> printQueryAndBindings() {
+    print('\x1B[34m[QUERY]\x1B[0m ${_compileSql()}');
+    print('\x1B[33m[BINDINGS]\x1B[0m ${[..._bindings, ..._havingBindings]}');
+    return this;
+  }
+
+  void printAndDieRawSql() {
+    printRawSql();
+    throw Exception('🛑 DIE DUMP RAW SQL EXECUTED');
   }
 
   // ---------------------------------------------------------------------------
@@ -141,17 +182,17 @@ class QueryBuilder<T extends Model> {
     _assertIdent(column, dotted: true, what: 'column name');
 
     if (value == null &&
-        (_op(operator) == '=' ||
-            _op(operator) == '<>' ||
-            _op(operator) == '!=')) {
-      if (_op(operator) == '=') {
+        (_operator(operator) == '=' ||
+            _operator(operator) == '<>' ||
+            _operator(operator) == '!=')) {
+      if (_operator(operator) == '=') {
         return whereNull(column, boolean: boolean);
       } else {
         return whereNotNull(column, boolean: boolean);
       }
     }
 
-    final op = _op(operator);
+    final op = _operator(operator);
     if (!_allowedWhereOps.contains(op)) {
       throw InvalidQueryException('Invalid operator for where: $operator');
     }
@@ -351,7 +392,7 @@ class QueryBuilder<T extends Model> {
     String operator = '=',
     String boolean = 'AND',
   }) {
-    final op = _op(operator);
+    final op = _operator(operator);
     if (!_allowedHavingOps.contains(op)) {
       throw InvalidQueryException('Invalid operator for having: $operator');
     }
@@ -553,7 +594,7 @@ class QueryBuilder<T extends Model> {
     _assertIdent(one, dotted: true, what: 'join lhs');
     _assertIdent(two, dotted: true, what: 'join rhs');
 
-    final op = _op(operator);
+    final op = _operator(operator);
     if (!_allowedJoinOps.contains(op)) {
       throw InvalidQueryException('Invalid operator for join: $operator');
     }
@@ -573,7 +614,7 @@ class QueryBuilder<T extends Model> {
     _assertIdent(one, dotted: true, what: 'join lhs');
     _assertIdent(two, dotted: true, what: 'join rhs');
 
-    final op = _op(operator);
+    final op = _operator(operator);
     if (!_allowedJoinOps.contains(op)) {
       throw InvalidQueryException('Invalid operator for join: $operator');
     }
@@ -593,7 +634,7 @@ class QueryBuilder<T extends Model> {
     _assertIdent(one, dotted: true, what: 'join lhs');
     _assertIdent(two, dotted: true, what: 'join rhs');
 
-    final op = _op(operator);
+    final op = _operator(operator);
     if (!_allowedJoinOps.contains(op)) {
       throw InvalidQueryException('Invalid operator for join: $operator');
     }
@@ -830,6 +871,17 @@ class QueryBuilder<T extends Model> {
     }
 
     return await DatabaseManager().execute(sql, _bindings);
+  }
+
+  /// Executes a raw INSERT into the database.
+  ///
+  /// WARNING: Bypasses the Model lifecycle (no events, automatic timestamps, or casts).
+  /// Returns the ID of the inserted record (if supported by the driver, e.g., autoincrement).
+  Future<int> insert(Map<String, dynamic> values) async {
+    if (values.isEmpty) throw const InvalidQueryException('Insert values cannot be empty');
+    values.keys.forEach((k) => _assertIdent(k, dotted: false, what: 'column name'));
+
+    return await DatabaseManager().insert(table, values);
   }
 
   /// Returns a reactive stream that emits updated results when the table changes.
