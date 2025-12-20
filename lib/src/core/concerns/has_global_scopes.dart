@@ -15,8 +15,8 @@ mixin HasGlobalScopes on Model {
 
     for (final scope in globalScopes) {
       builder.withGlobalScope(
-          scope.runtimeType.toString(),
-              (b) => scope.apply(b, this)
+        scope.runtimeType.toString(),
+        (b) => scope.apply(b, this),
       );
     }
   }

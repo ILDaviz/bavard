@@ -81,7 +81,11 @@ abstract class Model
   /// Binds the [fromMap] factory to the builder to ensure results are hydrated
   /// into concrete Model instances rather than raw Maps.
   QueryBuilder<Model> newQuery() {
-    final builder = QueryBuilder(table, fromMap, instanceFactory: () => newInstance());
+    final builder = QueryBuilder(
+      table,
+      fromMap,
+      instanceFactory: () => newInstance(),
+    );
     registerGlobalScopes(builder);
     return builder;
   }

@@ -32,26 +32,44 @@ void main() {
   });
 
   group('Relations vs Global Scopes', () {
-    test('hasMany should respect Soft Deletes (Global Scope) of related model', () async {
-      dbSpy.setMockData({
-        'SELECT * FROM posts WHERE user_id = ? AND deleted_at IS NULL': [
-          {'id': 10, 'user_id': 1, 'title': 'Active Post', 'deleted_at': null},
-        ],
-        'SELECT * FROM posts WHERE user_id = ?': [
-          {'id': 10, 'user_id': 1, 'title': 'Active Post', 'deleted_at': null},
-          {'id': 11, 'user_id': 1, 'title': 'Deleted Post', 'deleted_at': '2023-01-01'},
-        ]
-      });
+    test(
+      'hasMany should respect Soft Deletes (Global Scope) of related model',
+      () async {
+        dbSpy.setMockData({
+          'SELECT * FROM posts WHERE user_id = ? AND deleted_at IS NULL': [
+            {
+              'id': 10,
+              'user_id': 1,
+              'title': 'Active Post',
+              'deleted_at': null,
+            },
+          ],
+          'SELECT * FROM posts WHERE user_id = ?': [
+            {
+              'id': 10,
+              'user_id': 1,
+              'title': 'Active Post',
+              'deleted_at': null,
+            },
+            {
+              'id': 11,
+              'user_id': 1,
+              'title': 'Deleted Post',
+              'deleted_at': '2023-01-01',
+            },
+          ],
+        });
 
-      final user = User({'id': 1});
+        final user = User({'id': 1});
 
-      await user.posts().get();
+        await user.posts().get();
 
-      expect(
-        dbSpy.lastSql,
-        contains('deleted_at IS NULL'),
-        reason: 'La relazione ha ignorato il Soft Delete del modello figlio!',
-      );
-    });
+        expect(
+          dbSpy.lastSql,
+          contains('deleted_at IS NULL'),
+          reason: 'La relazione ha ignorato il Soft Delete del modello figlio!',
+        );
+      },
+    );
   });
 }

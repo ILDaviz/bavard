@@ -56,11 +56,9 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
   Future<void> match(List<Model> models, String relationName) async {
     final parentIds = getKeys(models, parent.primaryKey);
 
-
-    final intermediateResults = await intermediateCreator({}).newQuery()
-        .select(['id', _firstKey])
-        .whereIn(_firstKey, parentIds)
-        .get();
+    final intermediateResults = await intermediateCreator(
+      {},
+    ).newQuery().select(['id', _firstKey]).whereIn(_firstKey, parentIds).get();
 
     final intermediateMap = {
       for (var r in intermediateResults)
@@ -70,9 +68,9 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
     final intermediateIds = intermediateMap.keys.whereType<String>().toList();
     if (intermediateIds.isEmpty) return;
 
-    final targets = (await creator({}).newQuery()
-        .whereIn(_secondKey, intermediateIds)
-        .get()).cast<R>();
+    final targets = (await creator(
+      {},
+    ).newQuery().whereIn(_secondKey, intermediateIds).get()).cast<R>();
 
     for (var model in models) {
       final myParentId = normKey(model.id);
@@ -83,9 +81,11 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
           .toSet();
 
       model.relations[relationName] = targets
-          .where((t) => relevantIntermediateIds.contains(
-          normKey(t.attributes[_secondKey])
-      ))
+          .where(
+            (t) => relevantIntermediateIds.contains(
+              normKey(t.attributes[_secondKey]),
+            ),
+          )
           .toList();
     }
   }

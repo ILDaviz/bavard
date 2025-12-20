@@ -149,14 +149,8 @@ void main() {
           const QueryException(sql: '', message: ''),
           isA<BavardException>(),
         );
-        expect(
-          const TransactionException(message: ''),
-          isA<BavardException>(),
-        );
-        expect(
-          const DatabaseNotInitializedException(),
-          isA<BavardException>(),
-        );
+        expect(const TransactionException(message: ''), isA<BavardException>());
+        expect(const DatabaseNotInitializedException(), isA<BavardException>());
         expect(const InvalidQueryException(''), isA<BavardException>());
         expect(
           const MassAssignmentException(attribute: '', model: ''),

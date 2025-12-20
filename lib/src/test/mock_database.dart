@@ -43,9 +43,9 @@ class MockDatabaseSpy implements DatabaseAdapter {
   /// defined in [_smartResponses]; otherwise returns [_defaultData].
   @override
   Future<List<Map<String, dynamic>>> getAll(
-      String sql, [
-        List<dynamic>? arguments,
-      ]) async {
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     lastSql = sql;
     lastArgs = arguments;
     history.add(sql);
@@ -66,9 +66,9 @@ class MockDatabaseSpy implements DatabaseAdapter {
 
   @override
   Future<Map<String, dynamic>> get(
-      String sql, [
-        List<dynamic>? arguments,
-      ]) async {
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     final results = await getAll(sql, arguments);
     return results.isNotEmpty ? results.first : {};
   }
@@ -96,9 +96,9 @@ class MockDatabaseSpy implements DatabaseAdapter {
   /// Does not simulate actual database updates or reactive stream behavior.
   @override
   Stream<List<Map<String, dynamic>>> watch(
-      String sql, {
-        List<dynamic>? parameters,
-      }) {
+    String sql, {
+    List<dynamic>? parameters,
+  }) {
     return Stream.value(_defaultData);
   }
 
@@ -140,8 +140,8 @@ class MockDatabaseSpy implements DatabaseAdapter {
   /// to [history] to verify transaction boundaries.
   @override
   Future<T> transaction<T>(
-      Future<T> Function(TransactionContext txn) callback,
-      ) async {
+    Future<T> Function(TransactionContext txn) callback,
+  ) async {
     _inTransaction = true;
     transactionHistory.clear();
     history.add('BEGIN TRANSACTION');
@@ -170,9 +170,9 @@ class MockTransactionContext implements TransactionContext {
 
   @override
   Future<List<Map<String, dynamic>>> getAll(
-      String sql, [
-        List<dynamic>? arguments,
-      ]) {
+    String sql, [
+    List<dynamic>? arguments,
+  ]) {
     return _db.getAll(sql, arguments);
   }
 

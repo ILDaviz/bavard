@@ -38,10 +38,13 @@ class MorphMany<R extends Model> extends Relation<R> {
   Future<void> match(List<Model> models, String relationName) async {
     final ids = getKeys(models, parent.primaryKey);
 
-    final results = (await creator({}).newQuery()
-        .where('${name}_type', type)
-        .whereIn('${name}_id', ids)
-        .get()).cast<R>();
+    final results =
+        (await creator({})
+                .newQuery()
+                .where('${name}_type', type)
+                .whereIn('${name}_id', ids)
+                .get())
+            .cast<R>();
 
     for (var model in models) {
       final myId = normKey(model.id);

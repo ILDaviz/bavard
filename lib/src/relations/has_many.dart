@@ -37,9 +37,9 @@ class HasMany<R extends Model> extends Relation<R> {
   Future<void> match(List<Model> models, String relationName) async {
     final ids = getKeys(models, localKey);
 
-    final results = (await creator({}).newQuery()
-        .whereIn(foreignKey, ids)
-        .get()).cast<R>();
+    final results = (await creator(
+      {},
+    ).newQuery().whereIn(foreignKey, ids).get()).cast<R>();
 
     for (var model in models) {
       final myKey = normKey(model.attributes[localKey]);

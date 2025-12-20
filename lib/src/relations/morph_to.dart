@@ -39,7 +39,8 @@ class MorphTo<R extends Model> extends Relation<R> {
 
     final dummy = creator(const {});
 
-    return dummy.newQuery()
+    return dummy
+        .newQuery()
         .where(dummy.primaryKey, id)
         .first()
         .then((value) => value as R?);
@@ -98,7 +99,8 @@ class MorphTo<R extends Model> extends Relation<R> {
       final ids = mapByType[type]!;
       final dummyModel = creator(const {});
 
-      final results = await dummyModel.newQuery()
+      final results = await dummyModel
+          .newQuery()
           .whereIn(dummyModel.primaryKey, ids)
           .get();
 
