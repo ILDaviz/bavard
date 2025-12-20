@@ -1,7 +1,7 @@
 import 'package:bavard/src/core/concerns/has_guards_attributes.dart';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
-import '../../mocks/moke_database.dart';
+import '../../mocks/mock_database.dart';
 
 class FillableUser extends Model {
   @override

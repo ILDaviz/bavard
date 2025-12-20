@@ -2,7 +2,7 @@ import 'package:bavard/src/core/concerns/has_global_scopes.dart';
 import 'package:bavard/src/core/scope.dart';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
-import '../../mocks/moke_database.dart';
+import '../../mocks/mock_database.dart';
 
 class AgeScope implements Scope {
   @override

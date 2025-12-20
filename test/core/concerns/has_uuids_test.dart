@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
-import '../../mocks/moke_database.dart';
+import '../../mocks/mock_database.dart';
 import 'package:bavard/src/core/concerns/has_uuids.dart';
 
 class UuidUser extends Model with HasUuids {

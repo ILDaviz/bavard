@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
-import '../mocks/moke_database.dart';
+import '../mocks/mock_database.dart';
 
 class Country extends Model {
   @override
