@@ -10,17 +10,15 @@ mixin HasGlobalScopes on Model {
   List<Scope> get globalScopes => [];
 
   @override
-  QueryBuilder<Model> newQuery() {
-    final builder = super.newQuery();
+  void registerGlobalScopes(QueryBuilder<Model> builder) {
+    super.registerGlobalScopes(builder);
 
     for (final scope in globalScopes) {
       builder.withGlobalScope(
-        scope.runtimeType.toString(),
-        (b) => scope.apply(b, this),
+          scope.runtimeType.toString(),
+              (b) => scope.apply(b, this)
       );
     }
-
-    return builder;
   }
 
   QueryBuilder<Model> withoutGlobalScopes() {

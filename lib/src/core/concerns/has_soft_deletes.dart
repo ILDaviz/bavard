@@ -21,6 +21,15 @@ mixin HasSoftDeletes on Model {
     return builder;
   }
 
+  @override
+  void registerGlobalScopes(QueryBuilder<Model> builder) {
+    super.registerGlobalScopes(builder);
+
+    builder.withGlobalScope('soft_delete', (b) {
+      b.whereNull('deleted_at');
+    });
+  }
+
   /// Bypasses the default soft-delete scope to retrieve all records (active + deleted).
   QueryBuilder<Model> withTrashed() {
     return newQuery().withoutGlobalScope('soft_delete');

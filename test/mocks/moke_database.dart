@@ -8,21 +8,23 @@ class MockDatabaseSpy implements DatabaseAdapter {
   List<String> history = [];
 
   final List<Map<String, dynamic>> _defaultData;
-  final Map<String, List<Map<String, dynamic>>> _smartResponses;
+  Map<String, List<Map<String, dynamic>>> _smartResponses;
 
-  /// Tracks whether we're currently in a transaction
   bool _inTransaction = false;
 
-  /// Tracks transaction operations for verification
   List<String> transactionHistory = [];
 
-  /// Whether to simulate transaction failure
   bool shouldFailTransaction = false;
 
   MockDatabaseSpy([
     this._defaultData = const [],
-    this._smartResponses = const {},
-  ]);
+    Map<String, List<Map<String, dynamic>>> smartResponses = const {},
+  ]) : _smartResponses = Map.from(smartResponses);
+
+  void setMockData(Map<String, List<Map<String, dynamic>>> data) {
+    _smartResponses.clear();
+    _smartResponses.addAll(data);
+  }
 
   @override
   Future<List<Map<String, dynamic>>> getAll(

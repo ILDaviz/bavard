@@ -46,6 +46,8 @@ abstract class Model
   /// Used to calculate diffs for efficient UPDATE queries.
   Map<String, dynamic> original = {};
 
+  void registerGlobalScopes(QueryBuilder<Model> builder) {}
+
   dynamic _deepCopy(dynamic value) {
     if (value is Map) {
       return value.map<String, dynamic>(
@@ -78,8 +80,11 @@ abstract class Model
   ///
   /// Binds the [fromMap] factory to the builder to ensure results are hydrated
   /// into concrete Model instances rather than raw Maps.
-  QueryBuilder<Model> newQuery() =>
-      QueryBuilder(table, fromMap, instanceFactory: () => newInstance());
+  QueryBuilder<Model> newQuery() {
+    final builder = QueryBuilder(table, fromMap, instanceFactory: () => newInstance());
+    registerGlobalScopes(builder);
+    return builder;
+  }
 
   QueryBuilder<Model> where(String column, dynamic value) =>
       newQuery().where(column, value);
