@@ -136,7 +136,7 @@ class QueryBuilder<T extends Model> {
 
   void printAndDieRawSql() {
     printRawSql();
-    throw Exception('🛑 DIE DUMP RAW SQL EXECUTED');
+    throw Exception('🛑 DIE PRINT RAW SQL EXECUTED');
   }
 
   // ---------------------------------------------------------------------------
