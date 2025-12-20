@@ -21,7 +21,7 @@ void main() {
 
   setUp(() {
     dbSpy = MockDatabaseSpy([], {
-      'SELECT * FROM users WHERE id = ?': [
+      'SELECT users.* FROM users WHERE id = ? LIMIT 1': [
         {'id': 1, 'name': 'David', 'deleted_at': '2023-01-01'},
       ],
     });
@@ -65,7 +65,7 @@ void main() {
 
     test('restore() resets deleted_at to NULL', () async {
       final restoreMock = MockDatabaseSpy([], {
-        'SELECT * FROM users WHERE id = ?': [
+        'SELECT users.* FROM users WHERE id = ? LIMIT 1': [
           {'id': 1, 'name': 'David', 'deleted_at': null},
         ],
       });

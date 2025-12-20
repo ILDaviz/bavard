@@ -14,20 +14,23 @@ mixin HasSoftDeletes on Model {
   /// This ensures all standard queries exclude soft-deleted records by default.
   @override
   QueryBuilder<Model> newQuery() {
-    final query = super.newQuery();
-
-    return query.whereNull('deleted_at');
+    final builder = super.newQuery();
+    builder.withGlobalScope('soft_delete', (b) {
+      b.whereNull('deleted_at');
+    });
+    return builder;
   }
 
   /// Bypasses the default soft-delete scope to retrieve all records (active + deleted).
   QueryBuilder<Model> withTrashed() {
-    // Calls super directly to avoid the 'whereNull' injection in our override of newQuery().
-    return super.newQuery();
+    return newQuery().withoutGlobalScope('soft_delete');
   }
 
   /// Scopes the query to retrieve **only** soft-deleted records.
   QueryBuilder<Model> onlyTrashed() {
-    return super.newQuery().whereNotNull('deleted_at');
+    return newQuery()
+        .withoutGlobalScope('soft_delete')
+        .whereNotNull('deleted_at');
   }
 
   /// Overrides physical deletion to perform an `UPDATE` operation.

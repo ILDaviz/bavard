@@ -131,7 +131,10 @@ abstract class Model
 
   Future<void> refresh() async {
     if (id == null) return;
-    final freshInstance = await newQuery().findOrFail(id);
+    // Reset with withoutGlobalScopes to avoid eager-loading issues
+    final freshInstance = await newQuery()
+        .withoutGlobalScopes()
+        .findOrFail(id);
     attributes = freshInstance.attributes;
     syncOriginal();
   }
