@@ -1,5 +1,3 @@
-// --- FILE: test/relations/morph_to_extended_test.dart ---
-
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import '../mocks/moke_database.dart';
