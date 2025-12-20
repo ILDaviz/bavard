@@ -39,11 +39,11 @@ class MorphTo<R extends Model> extends Relation<R> {
     if (creator == null) return null;
 
     final dummy = creator(const {});
-    return QueryBuilder<R>(
-      dummy.table,
-      creator,
-      instanceFactory: () => dummy.newInstance() as R,
-    ).where(dummy.primaryKey, id).first();
+
+    return dummy.newQuery()
+        .where(dummy.primaryKey, id)
+        .first()
+        .then((value) => value as R?);
   }
 
   @override

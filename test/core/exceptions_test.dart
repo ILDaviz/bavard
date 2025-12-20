@@ -143,35 +143,35 @@ void main() {
       test('all exceptions extend ActiveSyncException', () {
         expect(
           const ModelNotFoundException(model: 'User'),
-          isA<ActiveSyncException>(),
+          isA<BavardException>(),
         );
         expect(
           const QueryException(sql: '', message: ''),
-          isA<ActiveSyncException>(),
+          isA<BavardException>(),
         );
         expect(
           const TransactionException(message: ''),
-          isA<ActiveSyncException>(),
+          isA<BavardException>(),
         );
         expect(
           const DatabaseNotInitializedException(),
-          isA<ActiveSyncException>(),
+          isA<BavardException>(),
         );
-        expect(const InvalidQueryException(''), isA<ActiveSyncException>());
+        expect(const InvalidQueryException(''), isA<BavardException>());
         expect(
           const MassAssignmentException(attribute: '', model: ''),
-          isA<ActiveSyncException>(),
+          isA<BavardException>(),
         );
         expect(
           const RelationNotFoundException(relation: '', model: ''),
-          isA<ActiveSyncException>(),
+          isA<BavardException>(),
         );
       });
 
       test('can catch all ORM exceptions with base type', () {
         try {
           throw const ModelNotFoundException(model: 'User');
-        } on ActiveSyncException catch (e) {
+        } on BavardException catch (e) {
           expect(e, isNotNull);
         }
       });

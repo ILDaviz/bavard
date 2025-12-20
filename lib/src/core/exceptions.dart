@@ -2,11 +2,11 @@
 ///
 /// Provides a common ancestor for catching any Bavard exception
 /// while allowing specific handling via subclasses.
-abstract class ActiveSyncException implements Exception {
+abstract class BavardException implements Exception {
   final String message;
   final dynamic originalError;
 
-  const ActiveSyncException(this.message, [this.originalError]);
+  const BavardException(this.message, [this.originalError]);
 
   @override
   String toString() => 'ActiveSyncException: $message';
@@ -16,7 +16,7 @@ abstract class ActiveSyncException implements Exception {
 ///
 /// Typically raised by `findOrFail()` or `firstOrFail()` when no matching
 /// record exists.
-class ModelNotFoundException extends ActiveSyncException {
+class ModelNotFoundException extends BavardException {
   final String model;
   final dynamic id;
 
@@ -34,7 +34,7 @@ class ModelNotFoundException extends ActiveSyncException {
 ///
 /// Wraps the underlying driver exception with additional context
 /// about the failing SQL statement.
-class QueryException extends ActiveSyncException {
+class QueryException extends BavardException {
   final String sql;
   final List<dynamic>? bindings;
 
@@ -54,7 +54,7 @@ class QueryException extends ActiveSyncException {
 ///
 /// Contains information about whether the transaction was rolled back
 /// and the original cause of failure.
-class TransactionException extends ActiveSyncException {
+class TransactionException extends BavardException {
   final bool wasRolledBack;
 
   const TransactionException({
@@ -71,7 +71,7 @@ class TransactionException extends ActiveSyncException {
 /// Thrown when attempting to use the database before initialization.
 ///
 /// Signals that `DatabaseManager().setDatabase()` was not called.
-class DatabaseNotInitializedException extends ActiveSyncException {
+class DatabaseNotInitializedException extends BavardException {
   const DatabaseNotInitializedException()
     : super(
         'Database driver not initialized. '
@@ -85,7 +85,7 @@ class DatabaseNotInitializedException extends ActiveSyncException {
 /// Thrown when mass assignment protection blocks an attribute.
 ///
 /// Useful for debugging when `fill()` silently ignores fields.
-class MassAssignmentException extends ActiveSyncException {
+class MassAssignmentException extends BavardException {
   final String attribute;
   final String model;
 
@@ -99,7 +99,7 @@ class MassAssignmentException extends ActiveSyncException {
 /// Thrown when an invalid query structure is detected.
 ///
 /// Examples: Invalid operator, malformed identifier, or conflicting clauses.
-class InvalidQueryException extends ActiveSyncException {
+class InvalidQueryException extends BavardException {
   const InvalidQueryException(String message) : super(message);
 
   @override
@@ -110,7 +110,7 @@ class InvalidQueryException extends ActiveSyncException {
 ///
 /// May occur due to missing foreign keys, invalid type maps (MorphTo),
 /// or undefined relation methods.
-class RelationNotFoundException extends ActiveSyncException {
+class RelationNotFoundException extends BavardException {
   final String relation;
   final String model;
 
