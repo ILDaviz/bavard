@@ -1849,4 +1849,3 @@ class MyTransactionContext implements TransactionContext {
 ## License
 
 Bavard is released under the MIT License. See the LICENSE file for details.
-```
