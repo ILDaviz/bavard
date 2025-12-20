@@ -30,10 +30,9 @@ class BelongsTo<R extends Model> extends Relation<R> {
   Future<void> match(List<Model> models, String relationName) async {
     final ids = getKeys(models, foreignKey).where((id) => id != null).toList();
 
-    final results = await QueryBuilder<R>(
-      table,
-      creator,
-    ).whereIn(ownerKey, ids).get();
+    final results = await creator({}).newQuery()
+        .whereIn(foreignKey, ids)
+        .get();
 
     // Map results by owner ID for O(1) assignment back to child models.
     final dictionary = {

@@ -66,10 +66,9 @@ class BelongsToMany<R extends Model> extends Relation<R> {
         .toList();
 
     final pk = creator({}).primaryKey;
-    final relatedModels = await QueryBuilder<R>(
-      table,
-      creator,
-    ).whereIn(pk, relatedIds).get();
+    final relatedModels = (await creator({}).newQuery()
+        .whereIn(pk, relatedIds)
+        .get()).cast<R>();
 
     // Map for O(1) lookup: related_id -> model instance
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};

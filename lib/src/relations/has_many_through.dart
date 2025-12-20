@@ -68,17 +68,22 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
         'SELECT id, $_firstKey FROM $_intermediateTable WHERE $_firstKey IN (${parentIds.map((_) => '?').join(',')})';
     final intermediateRows = await db.getAll(intermediateSql, parentIds);
 
+    final intermediateModels = await intermediateCreator({}).newQuery()
+        .select(['id', _firstKey])
+        .whereIn(_firstKey, parentIds)
+        .get();
+
     final intermediateMap = {
-      for (var r in intermediateRows) normKey(r['id']): normKey(r[_firstKey]),
+      for (var m in intermediateModels)
+        normKey(m.id): normKey(m.attributes[_firstKey]),
     };
 
     final intermediateIds = intermediateMap.keys.whereType<String>().toList();
     if (intermediateIds.isEmpty) return;
 
-    final targets = await QueryBuilder<R>(
-      table,
-      creator,
-    ).whereIn(_secondKey, intermediateIds).get();
+    final targets = await creator({}).newQuery()
+        .whereIn(_secondKey, intermediateIds)
+        .get();
 
     for (var model in models) {
       final myParentId = normKey(model.id);
