@@ -1,4 +1,3 @@
-import '../core/query_builder.dart';
 import 'relation.dart';
 import '../core/model.dart';
 

@@ -1,7 +1,6 @@
 import 'relation.dart';
 import '../core/model.dart';
 import '../core/database_manager.dart';
-import '../core/query_builder.dart';
 
 /// Manages many-to-many relationships via an intermediate pivot table.
 ///

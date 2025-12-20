@@ -1,7 +1,6 @@
 import 'relation.dart';
 import '../core/model.dart';
 import '../core/database_manager.dart';
-import '../core/query_builder.dart';
 import '../core/utils.dart';
 
 /// Defines a polymorphic many-to-many relationship.

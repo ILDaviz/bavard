@@ -1,8 +1,6 @@
 import 'relation.dart';
 import '../core/utils.dart';
 import '../core/model.dart';
-import '../core/query_builder.dart';
-import '../core/database_manager.dart';
 
 /// Defines a distant one-to-many relationship linking a Parent to a Target via an Intermediate model.
 ///

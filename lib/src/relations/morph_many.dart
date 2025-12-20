@@ -1,6 +1,5 @@
 import 'relation.dart';
 import '../core/model.dart';
-import '../core/query_builder.dart';
 
 /// Defines a polymorphic one-to-many relationship.
 ///

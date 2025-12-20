@@ -1,6 +1,5 @@
 import 'relation.dart';
 import '../core/model.dart';
-import '../core/query_builder.dart';
 
 /// Represents the inverse side of a polymorphic relationship (the child holding the keys).
 ///
