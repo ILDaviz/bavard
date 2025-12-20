@@ -47,8 +47,6 @@ void main() {
 
       await user.posts().get();
 
-      print('SQL Generato: ${dbSpy.lastSql}');
-
       expect(
         dbSpy.lastSql,
         contains('deleted_at IS NULL'),
