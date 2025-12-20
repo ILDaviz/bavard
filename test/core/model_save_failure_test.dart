@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
-import '../mocks/mock_database.dart';
+import 'package:bavard/testing.dart';
 
 class FailingMockDatabase extends MockDatabaseSpy {
   bool shouldFailInsert = false;

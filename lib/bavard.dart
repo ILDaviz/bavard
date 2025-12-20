@@ -2,7 +2,6 @@
 ///
 /// Exposes the core [Model], [QueryBuilder], [DatabaseManager], and relationship classes
 /// required to interact with the database using the Active Record pattern.
-library bavard;
 
 /// Annotations for code generation and type casting definitions.
 export 'src/generators/annotations.dart';

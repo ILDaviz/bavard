@@ -1,7 +1,7 @@
 import 'package:bavard/src/core/scope.dart';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
-import '../../mocks/mock_database.dart';
+import 'package:bavard/testing.dart';
 
 class TenantScope implements Scope {
   final int tenantId;
