@@ -256,10 +256,7 @@ void main() {
         .select(['name', 'role'])
         .join('roles', 'users.role_id', '=', 'roles.id')
         .where('active', 1)
-        .whereRaw(
-      'age > ?',
-      bindings: [21],
-    )
+        .whereRaw('age > ?', bindings: [21])
         .orderBy('created_at', direction: 'DESC')
         .limit(10)
         .offset(5);

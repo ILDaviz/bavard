@@ -878,8 +878,11 @@ class QueryBuilder<T extends Model> {
   /// WARNING: Bypasses the Model lifecycle (no events, automatic timestamps, or casts).
   /// Returns the ID of the inserted record (if supported by the driver, e.g., autoincrement).
   Future<int> insert(Map<String, dynamic> values) async {
-    if (values.isEmpty) throw const InvalidQueryException('Insert values cannot be empty');
-    values.keys.forEach((k) => _assertIdent(k, dotted: false, what: 'column name'));
+    if (values.isEmpty)
+      throw const InvalidQueryException('Insert values cannot be empty');
+    values.keys.forEach(
+      (k) => _assertIdent(k, dotted: false, what: 'column name'),
+    );
 
     return await DatabaseManager().insert(table, values);
   }
