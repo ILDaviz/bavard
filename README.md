@@ -13,4 +13,4 @@ Bavard is an Eloquent-like ORM for Flutter/Dart, designed to work with SQLite, P
 - **Advanced features:** Already includes Soft Deletes, automatic Timestamps, Global Scopes, and Polymorphic Relationships.
 
 ### Documentation
-See [Documentation pre alpha](https://github.com/ILDaviz/bavard/blob/main/DOC.md "Documentation pre alpha")
+See [Official Documentation](https://ildaviz.github.io/bavard/)
