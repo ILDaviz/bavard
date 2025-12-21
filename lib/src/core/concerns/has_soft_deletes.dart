@@ -1,5 +1,4 @@
 import '../model.dart';
-import '../database_manager.dart';
 import '../query_builder.dart';
 
 /// Implements the "Soft Delete" pattern using a `deleted_at` timestamp.
