@@ -29,3 +29,6 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+
+# Custom
+ai.v[0-9]*.[0-9]*.[0-9]*.txt
