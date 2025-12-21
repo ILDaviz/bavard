@@ -8,5 +8,9 @@
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "@vue/server-renderer": "^3.5.26",
+    "vue": "^3.5.26"
   }
 }

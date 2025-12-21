@@ -939,7 +939,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue/server-renderer@npm:3.5.26":
+"@vue/server-renderer@npm:3.5.26, @vue/server-renderer@npm:^3.5.26":
   version: 3.5.26
   resolution: "@vue/server-renderer@npm:3.5.26"
   dependencies:
@@ -1180,7 +1180,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "docs@workspace:."
   dependencies:
+    "@vue/server-renderer": "npm:^3.5.26"
     vitepress: "npm:^1.6.4"
+    vue: "npm:^3.5.26"
   languageName: unknown
   linkType: soft
 
@@ -2264,7 +2266,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue@npm:^3.5.13":
+"vue@npm:^3.5.13, vue@npm:^3.5.26":
   version: 3.5.26
   resolution: "vue@npm:3.5.26"
   dependencies:
