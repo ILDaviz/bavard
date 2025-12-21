@@ -5,6 +5,7 @@ export default defineConfig({
   title: "Bavard",
   description: "A reactive, Eloquent-inspired ORM for Dart & Flutter",
   lang: 'en-US',
+  base: '/bavard/',
   cleanUrls: true,
   lastUpdated: true,
 
