@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:bavard/schema.dart';
 
+import '../../bavard.dart';
 import 'database_manager.dart';
+import 'grammar.dart';
 import 'model.dart';
 import 'exceptions.dart';
 
@@ -18,14 +20,14 @@ class QueryBuilder<T extends Model> {
   /// Internal factory for empty instances (used during generic casting or hydration).
   final T Function() _instanceFactory;
 
-  final List<Map<String, String>> _wheres = [];
+  final List<Map<String, dynamic>> _wheres = [];
   final List<dynamic> _bindings = [];
   final List<String> _joins = [];
   final List<String> _with = [];
-  List<String> _columns = ['*'];
+  List<dynamic> _columns = ['*'];
 
   final List<String> _groupBy = [];
-  final List<Map<String, String>> _havings = [];
+  final List<Map<String, dynamic>> _havings = [];
   final List<dynamic> _havingBindings = [];
 
   final Map<String, ScopeCallback> _globalScopes = {};
@@ -41,6 +43,19 @@ class QueryBuilder<T extends Model> {
           instanceFactory ?? (() => creator(const {}).newInstance() as T) {
     _assertIdent(table, dotted: false, what: 'table name');
   }
+
+  /// Helper to access the current database grammar.
+  Grammar get _grammar => DatabaseManager().db.grammar;
+
+  // Public getters for Grammar access
+  List<Map<String, dynamic>> get wheres => _wheres;
+  List<dynamic> get columns => _columns;
+  List<String> get joins => _joins;
+  List<String> get groups => _groupBy;
+  List<Map<String, dynamic>> get havings => _havings;
+  String? get orders => _orderBy;
+  int? get limitValue => _limit;
+  int? get offsetValue => _offset;
 
   /// Returns the raw SQL string compiled from current state.
   String toSql() => _compileSql();
@@ -106,7 +121,7 @@ class QueryBuilder<T extends Model> {
 
   String toRawSql() {
     String sql = _compileSql();
-    final allBindings = [..._bindings, ..._havingBindings];
+    final allBindings = _grammar.prepareBindings([..._bindings, ..._havingBindings]);
 
     int index = 0;
     return sql.replaceAllMapped('?', (match) {
@@ -219,6 +234,7 @@ class QueryBuilder<T extends Model> {
     }
 
     String sqlString;
+    // We use _grammar.wrap for columns and _grammar.parameter for values
 
     if (finalOp == 'IN' || finalOp == 'NOT IN') {
       if (targetValue is! List) {
@@ -231,8 +247,8 @@ class QueryBuilder<T extends Model> {
       if (targetValue.isEmpty) {
         sqlString = '1 = 0';
       } else {
-        final placeholders = List.filled(targetValue.length, '?').join(', ');
-        sqlString = '$targetColumn $finalOp ($placeholders)';
+        final placeholders = List.filled(targetValue.length, _grammar.parameter(null)).join(', ');
+        sqlString = '${_grammar.wrap(targetColumn)} $finalOp ($placeholders)';
         _bindings.addAll(targetValue);
       }
     }
@@ -243,7 +259,7 @@ class QueryBuilder<T extends Model> {
             'QueryBuilder Error: L\'operatore "BETWEEN" richiede una List di esattamente 2 elementi [min, max].'
         );
       }
-      sqlString = '$targetColumn $finalOp ? AND ?';
+      sqlString = '${_grammar.wrap(targetColumn)} $finalOp ${_grammar.parameter(targetValue[0])} AND ${_grammar.parameter(targetValue[1])}';
       _bindings.addAll(targetValue);
     }
 
@@ -255,7 +271,7 @@ class QueryBuilder<T extends Model> {
         );
       }
 
-      sqlString = '$targetColumn $finalOp ?';
+      sqlString = '${_grammar.wrap(targetColumn)} $finalOp ${_grammar.parameter(targetValue)}';
       _bindings.add(targetValue);
     }
 
@@ -307,10 +323,11 @@ class QueryBuilder<T extends Model> {
 
     callback(nestedBuilder);
 
-    final nestedClause = nestedBuilder._buildWhereClause();
+    final nestedClause = _grammar.compileWheres(nestedBuilder);
 
     if (nestedClause.isNotEmpty) {
-      final sqlInside = nestedClause.substring(7);
+      // Remove 'WHERE ' from the compiled string
+      final sqlInside = nestedClause.substring(6);
 
       _wheres.add({'type': boolean, 'sql': '($sqlInside)'});
 
@@ -322,7 +339,7 @@ class QueryBuilder<T extends Model> {
 
   QueryBuilder<T> whereNull(String column, {String boolean = 'AND'}) {
     _assertIdent(column, dotted: true, what: 'column name');
-    _wheres.add({'type': boolean, 'sql': '$column IS NULL'});
+    _wheres.add({'type': boolean, 'sql': '${_grammar.wrap(column)} IS NULL'});
     return this;
   }
 
@@ -332,7 +349,7 @@ class QueryBuilder<T extends Model> {
 
   QueryBuilder<T> whereNotNull(String column, {String boolean = 'AND'}) {
     _assertIdent(column, dotted: true, what: 'column name');
-    _wheres.add({'type': boolean, 'sql': '$column IS NOT NULL'});
+    _wheres.add({'type': boolean, 'sql': '${_grammar.wrap(column)} IS NOT NULL'});
     return this;
   }
 
@@ -354,8 +371,8 @@ class QueryBuilder<T extends Model> {
       return this;
     }
 
-    final placeholders = List.filled(values.length, '?').join(', ');
-    _wheres.add({'type': boolean, 'sql': '$column IN ($placeholders)'});
+    final placeholders = List.filled(values.length, _grammar.parameter(null)).join(', ');
+    _wheres.add({'type': boolean, 'sql': '${_grammar.wrap(column)} IN ($placeholders)'});
     _bindings.addAll(values);
     return this;
   }
@@ -429,7 +446,7 @@ class QueryBuilder<T extends Model> {
   QueryBuilder<T> groupBy(List<String> columns) {
     for (final column in columns) {
       _assertIdent(column, dotted: true, what: 'groupBy column');
-      _groupBy.add(column);
+      _groupBy.add(column); // Grammar wraps these in compileGroups
     }
     return this;
   }
@@ -463,7 +480,8 @@ class QueryBuilder<T extends Model> {
       throw InvalidQueryException('Invalid operator for having: $operator');
     }
 
-    _havings.add({'type': boolean, 'sql': '$column $op ?'});
+    final sqlCol = column.contains('(') ? column : _grammar.wrap(column);
+    _havings.add({'type': boolean, 'sql': '$sqlCol $op ${_grammar.parameter(value)}'});
     _havingBindings.add(value);
     return this;
   }
@@ -506,13 +524,17 @@ class QueryBuilder<T extends Model> {
 
   /// Adds a HAVING clause that checks for NULL.
   QueryBuilder<T> havingNull(String column, {String boolean = 'AND'}) {
-    _havings.add({'type': boolean, 'sql': '$column IS NULL'});
+    final sqlCol = column.contains('(') ? column : _grammar.wrap(column);
+
+    _havings.add({'type': boolean, 'sql': '$sqlCol IS NULL'});
     return this;
   }
 
   /// Adds a HAVING clause that checks for NOT NULL.
   QueryBuilder<T> havingNotNull(String column, {String boolean = 'AND'}) {
-    _havings.add({'type': boolean, 'sql': '$column IS NOT NULL'});
+    final sqlCol = column.contains('(') ? column : _grammar.wrap(column);
+
+    _havings.add({'type': boolean, 'sql': '$sqlCol IS NOT NULL'});
     return this;
   }
 
@@ -525,7 +547,11 @@ class QueryBuilder<T extends Model> {
     dynamic max, {
     String boolean = 'AND',
   }) {
-    _havings.add({'type': boolean, 'sql': '$column BETWEEN ? AND ?'});
+    final sqlCol = column.contains('(') ? column : _grammar.wrap(column);
+    _havings.add({
+      'type': boolean,
+      'sql': '$sqlCol BETWEEN ${_grammar.parameter(min)} AND ${_grammar.parameter(max)}'
+    });
     _havingBindings.addAll([min, max]);
     return this;
   }
@@ -535,7 +561,7 @@ class QueryBuilder<T extends Model> {
   // ---------------------------------------------------------------------------
 
   QueryBuilder<T> select(List<String> columns) {
-    _columns = columns;
+    _columns = List<dynamic>.from(columns);
     return this;
   }
 
@@ -544,9 +570,9 @@ class QueryBuilder<T extends Model> {
   /// Convenience method for adding COUNT, SUM, etc. to the query.
   QueryBuilder<T> selectRaw(String expression) {
     if (_columns.length == 1 && _columns.first == '*') {
-      _columns = [expression];
+      _columns = [RawExpression(expression)];
     } else {
-      _columns.add(expression);
+      _columns.add(RawExpression(expression));
     }
     return this;
   }
@@ -571,7 +597,7 @@ class QueryBuilder<T extends Model> {
     if (_groupBy.isNotEmpty || _havings.isNotEmpty) {
       final dbManager = DatabaseManager();
       final subQuery = _compileSql();
-      final bindings = [..._bindings, ..._havingBindings];
+      final bindings = _grammar.prepareBindings([..._bindings, ..._havingBindings]);
       final wrapperSql =
           'SELECT COUNT(*) as aggregate FROM ($subQuery) as temp_table';
       try {
@@ -665,7 +691,7 @@ class QueryBuilder<T extends Model> {
       throw InvalidQueryException('Invalid operator for join: $operator');
     }
 
-    _joins.add('JOIN $table ON $one $op $two');
+    _joins.add('JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(one)} $op ${_grammar.wrap(two)}');
     return this;
   }
 
@@ -685,7 +711,7 @@ class QueryBuilder<T extends Model> {
       throw InvalidQueryException('Invalid operator for join: $operator');
     }
 
-    _joins.add('LEFT JOIN $table ON $one $op $two');
+    _joins.add('LEFT JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(one)} $op ${_grammar.wrap(two)}');
     return this;
   }
 
@@ -705,7 +731,7 @@ class QueryBuilder<T extends Model> {
       throw InvalidQueryException('Invalid operator for join: $operator');
     }
 
-    _joins.add('RIGHT JOIN $table ON $one $op $two');
+    _joins.add('RIGHT JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(one)} $op ${_grammar.wrap(two)}');
     return this;
   }
 
@@ -729,7 +755,7 @@ class QueryBuilder<T extends Model> {
       throw InvalidQueryException('Invalid direction for orderBy: $direction');
     }
 
-    _orderBy = '$column $dirUpper';
+    _orderBy = '${_grammar.wrap(column)} $dirUpper';
     return this;
   }
 
@@ -782,56 +808,7 @@ class QueryBuilder<T extends Model> {
   ///
   /// Note: [bindings] remain separate to be passed to the driver's prepared statement.
   String _compileSql() {
-    final List<String> finalColumns = [];
-    final needsPrefixing = _joins.isNotEmpty;
-
-    for (final c in _columns) {
-      if (c == '*') {
-        finalColumns.add('$table.*');
-      } else if (needsPrefixing && !c.contains('.') && !c.contains('(')) {
-        // Prefix simple column names (no dots or aggregates/functions)
-        // with the main table name to avoid ambiguity in JOINs.
-        finalColumns.add('$table.$c');
-      } else {
-        finalColumns.add(c);
-      }
-    }
-
-    final cols = finalColumns.join(', ');
-
-    var sql = 'SELECT $cols FROM $table';
-
-    if (_joins.isNotEmpty) sql += ' ${_joins.join(' ')}';
-
-    if (_wheres.isNotEmpty) {
-      sql += _buildWhereClause();
-    }
-
-    if (_groupBy.isNotEmpty) {
-      sql += ' GROUP BY ${_groupBy.join(', ')}';
-    }
-
-    if (_havings.isNotEmpty) {
-      sql += _buildHavingClause();
-    }
-
-    if (_orderBy != null) sql += ' ORDER BY $_orderBy';
-    if (_limit != null) sql += ' LIMIT $_limit';
-    if (_offset != null) sql += ' OFFSET $_offset';
-    return sql;
-  }
-
-  /// Builds the HAVING clause from accumulated conditions.
-  String _buildHavingClause() {
-    if (_havings.isEmpty) return '';
-
-    final buffer = StringBuffer();
-    for (var i = 0; i < _havings.length; i++) {
-      final h = _havings[i];
-      if (i > 0) buffer.write(' ${h['type']} ');
-      buffer.write(h['sql']);
-    }
-    return ' HAVING $buffer';
+    return _grammar.compileSelect(this);
   }
 
   /// Resolves eager loads by delegating to the Model's relation definition.
@@ -884,7 +861,7 @@ class QueryBuilder<T extends Model> {
     _applyScopes();
     final dbManager = DatabaseManager();
     final sql = _compileSql();
-    final allBindings = [..._bindings, ..._havingBindings];
+    final allBindings = _grammar.prepareBindings([..._bindings, ..._havingBindings]);
 
     try {
       final resultRows = await dbManager.getAll(sql, allBindings);
@@ -906,37 +883,18 @@ class QueryBuilder<T extends Model> {
       return 0;
     }
 
-    final setClauses = <String>[];
-    final setBindings = <dynamic>[];
-
-    values.forEach((key, value) {
-      _assertIdent(key, what: 'column name', dotted: false);
-      setClauses.add('$key = ?');
-      setBindings.add(value);
-    });
-
-    final setSql = setClauses.join(', ');
-
-    var sql = 'UPDATE $table SET $setSql';
-
-    if (_wheres.isNotEmpty) {
-      sql += _buildWhereClause();
-    }
-
-    final allBindings = [...setBindings, ..._bindings];
+    final sql = _grammar.compileUpdate(this, values);
+    final allBindings = _grammar.prepareBindings([...values.values, ..._bindings]);
 
     return await DatabaseManager().execute(sql, allBindings);
   }
 
   Future<int> delete() async {
     _applyScopes();
-    var sql = 'DELETE FROM $table';
+    final sql = _grammar.compileDelete(this);
+    final bindings = _grammar.prepareBindings(_bindings);
 
-    if (_wheres.isNotEmpty) {
-      sql += _buildWhereClause();
-    }
-
-    return await DatabaseManager().execute(sql, _bindings);
+    return await DatabaseManager().execute(sql, bindings);
   }
 
   /// Executes a raw INSERT into the database.
@@ -961,7 +919,7 @@ class QueryBuilder<T extends Model> {
     _applyScopes();
     final db = DatabaseManager().db;
     final sql = _compileSql();
-    final allBindings = [..._bindings, ..._havingBindings];
+    final allBindings = _grammar.prepareBindings([..._bindings, ..._havingBindings]);
 
     return db.watch(sql, parameters: allBindings).asyncMap(_hydrate);
   }
@@ -973,23 +931,20 @@ class QueryBuilder<T extends Model> {
     _applyScopes();
     final dbManager = DatabaseManager();
 
-    var sql = 'SELECT $expression as aggregate FROM $table';
+    // Use a temporary modification of columns to compile the scalar query
+    final originalColumns = _columns;
+    _columns = [RawExpression('$expression as aggregate')];
+    
+    // We can't just set _columns and call _compileSql because other parts of the grammar 
+    // might look at columns, but generally compileSelect uses query.columns.
+    // However, to be safe and use the Strategy, we rely on _compileSql which uses Grammar.
+    // But wait, _scalar constructs SQL manually in the old version.
+    // We should use the grammar.
+    
+    final sql = _compileSql();
+    _columns = originalColumns; // Restore
 
-    if (_joins.isNotEmpty) sql += ' ${_joins.join(' ')}';
-
-    if (_wheres.isNotEmpty) {
-      sql += _buildWhereClause();
-    }
-
-    if (_groupBy.isNotEmpty) {
-      sql += ' GROUP BY ${_groupBy.join(', ')}';
-    }
-
-    if (_havings.isNotEmpty) {
-      sql += _buildHavingClause();
-    }
-
-    final allBindings = [..._bindings, ..._havingBindings];
+    final allBindings = _grammar.prepareBindings([..._bindings, ..._havingBindings]);
 
     try {
       final row = await dbManager.get(sql, allBindings);
@@ -1019,14 +974,6 @@ class QueryBuilder<T extends Model> {
   }
 
   String _buildWhereClause() {
-    if (_wheres.isEmpty) return '';
-
-    final buffer = StringBuffer();
-    for (var i = 0; i < _wheres.length; i++) {
-      final w = _wheres[i];
-      if (i > 0) buffer.write(' ${w['type']} ');
-      buffer.write(w['sql']);
-    }
-    return ' WHERE $buffer';
+    return _grammar.compileWheres(this);
   }
 }

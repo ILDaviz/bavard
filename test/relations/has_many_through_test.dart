@@ -40,9 +40,9 @@ void main() {
 
       await country.posts().get();
 
-      expect(dbSpy.lastSql, contains('SELECT posts.* FROM posts'));
-      expect(dbSpy.lastSql, contains('JOIN users ON users.id = posts.user_id'));
-      expect(dbSpy.lastSql, contains('WHERE users.country_id = ?'));
+      expect(dbSpy.lastSql, contains('SELECT "posts".* FROM "posts"'));
+      expect(dbSpy.lastSql, contains('JOIN "users" ON "users"."id" = "posts"."user_id"'));
+      expect(dbSpy.lastSql, contains('WHERE "users"."country_id" = ?'));
       expect(dbSpy.lastArgs, [1]);
     });
 

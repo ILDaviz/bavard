@@ -24,13 +24,13 @@ void main() {
     test('where() with null value generates IS NULL', () async {
       await TestUser().query().where('deleted_at', null).get();
 
-      expect(dbSpy.lastSql, contains('deleted_at IS NULL'));
+      expect(dbSpy.lastSql, contains('"deleted_at" IS NULL'));
     });
 
     test('where() with empty string', () async {
       await TestUser().query().where('name', '').get();
 
-      expect(dbSpy.lastSql, contains('name = ?'));
+      expect(dbSpy.lastSql, contains('"name" = ?'));
       expect(dbSpy.lastArgs, contains(''));
     });
 
@@ -44,14 +44,14 @@ void main() {
     test('whereIn() with single item', () async {
       await TestUser().query().whereIn('id', [42]).get();
 
-      expect(dbSpy.lastSql, contains('id IN (?)'));
+      expect(dbSpy.lastSql, contains('"id" IN (?)'));
       expect(dbSpy.lastArgs, equals([42]));
     });
 
     test('whereIn() with duplicate values', () async {
       await TestUser().query().whereIn('id', [1, 1, 2, 2, 3]).get();
 
-      expect(dbSpy.lastSql, contains('id IN (?, ?, ?, ?, ?)'));
+      expect(dbSpy.lastSql, contains('"id" IN (?, ?, ?, ?, ?)'));
       expect(dbSpy.lastArgs, equals([1, 1, 2, 2, 3]));
     });
 
@@ -62,7 +62,7 @@ void main() {
           .orWhereNull('deleted_at')
           .get();
 
-      expect(dbSpy.lastSql, contains('WHERE active = ? OR deleted_at IS NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "active" = ? OR "deleted_at" IS NULL'));
     });
 
     test('orWhereNotNull() generates correct SQL', () async {
@@ -74,14 +74,14 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('WHERE active = ? OR verified_at IS NOT NULL'),
+        contains('WHERE "active" = ? OR "verified_at" IS NOT NULL'),
       );
     });
 
     test('where with LIKE operator and wildcards', () async {
       await TestUser().query().where('name', '%David%', 'LIKE').get();
 
-      expect(dbSpy.lastSql, contains('name LIKE ?'));
+      expect(dbSpy.lastSql, contains('"name" LIKE ?'));
       expect(dbSpy.lastArgs, contains('%David%'));
     });
 
@@ -91,7 +91,7 @@ void main() {
           .where('email', '%spam%', 'NOT LIKE')
           .get();
 
-      expect(dbSpy.lastSql, contains('email NOT LIKE ?'));
+      expect(dbSpy.lastSql, contains('"email" NOT LIKE ?'));
       expect(dbSpy.lastArgs, contains('%spam%'));
     });
 
@@ -106,7 +106,7 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('WHERE age >= ? AND age <= ? AND status = ? OR role = ?'),
+        contains('WHERE "age" >= ? AND "age" <= ? AND "status" = ? OR "role" = ?'),
       );
       expect(dbSpy.lastArgs, equals([18, 65, 'active', 'admin']));
     });
@@ -118,7 +118,7 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains("WHERE status = ? AND (role = ? OR role = ?)"),
+        contains('WHERE "status" = ? AND ("role" = ? OR "role" = ?)'),
       );
       expect(dbSpy.lastArgs, ['active', 'admin', 'editor']);
     });
@@ -134,7 +134,7 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains("WHERE age > ? OR (status = ? AND created_at > ?)"),
+        contains('WHERE "age" > ? OR ("status" = ? AND "created_at" > ?)'),
       );
       expect(dbSpy.lastArgs, [18, 'pending', '2023-01-01']);
     });
@@ -148,7 +148,7 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains("WHERE a = ? AND (b = ? OR (c = ? AND d = ?))"),
+        contains('WHERE "a" = ? AND ("b" = ? OR ("c" = ? AND "d" = ?))'),
       );
       expect(dbSpy.lastArgs, [1, 2, 3, 4]);
     });
@@ -180,7 +180,7 @@ void main() {
       final count = await TestUser().query().where('active', 1).count();
 
       expect(count, 10);
-      expect(countMock.lastSql, contains('WHERE active = ?'));
+      expect(countMock.lastSql, contains('WHERE "active" = ?'));
     });
 
     test('sum() returns 0 for empty result', () async {
@@ -365,9 +365,9 @@ void main() {
           .offset(5)
           .toSql();
 
-      expect(sql, contains('SELECT id, name FROM users'));
-      expect(sql, contains('WHERE active = ?'));
-      expect(sql, contains('ORDER BY name ASC'));
+      expect(sql, contains('SELECT "id", "name" FROM "users"'));
+      expect(sql, contains('WHERE "active" = ?'));
+      expect(sql, contains('ORDER BY "name" ASC'));
       expect(sql, contains('LIMIT 10'));
       expect(sql, contains('OFFSET 5'));
     });
@@ -375,7 +375,7 @@ void main() {
     test('select() with table prefix (users.name)', () async {
       await TestUser().query().select(['users.id', 'users.name']).get();
 
-      expect(dbSpy.lastSql, contains('SELECT users.id, users.name'));
+      expect(dbSpy.lastSql, contains('SELECT "users"."id", "users"."name"'));
     });
 
     test('select() with alias (name AS user_name)', () async {
@@ -387,7 +387,7 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('SELECT id, name AS user_name, email AS contact'),
+        contains('SELECT "id", "name" AS "user_name", "email" AS "contact"'),
       );
     });
   });
@@ -402,9 +402,9 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('JOIN profiles ON users.id = profiles.user_id'),
+        contains('JOIN "profiles" ON "users"."id" = "profiles"."user_id"'),
       );
-      expect(dbSpy.lastSql, contains('JOIN roles ON users.role_id = roles.id'));
+      expect(dbSpy.lastSql, contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'));
     });
 
     test('join with different operators (>, <, !=)', () async {
@@ -415,7 +415,7 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('JOIN scores ON users.min_score < scores.value'),
+        contains('JOIN "scores" ON "users"."min_score" < "scores"."value"'),
       );
     });
 
@@ -427,7 +427,7 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('LEFT JOIN profiles ON users.id = profiles.user_id'),
+        contains('LEFT JOIN "profiles" ON "users"."id" = "profiles"."user_id"'),
       );
     });
 
@@ -439,7 +439,7 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('RIGHT JOIN profiles ON users.id = profiles.user_id'),
+        contains('RIGHT JOIN "profiles" ON "users"."id" = "profiles"."user_id"'),
       );
     });
   });

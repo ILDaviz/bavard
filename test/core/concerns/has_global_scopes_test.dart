@@ -42,8 +42,8 @@ void main() {
     test('It applies registered scopes automatically', () async {
       await ScopedUser().query().get();
 
-      expect(dbSpy.lastSql, contains('age >= ?'));
-      expect(dbSpy.lastSql, contains('is_active = ?'));
+      expect(dbSpy.lastSql, contains('"age" >= ?'));
+      expect(dbSpy.lastSql, contains('"is_active" = ?'));
       expect(dbSpy.lastArgs, contains(18));
       expect(dbSpy.lastArgs, contains(1));
     });
@@ -51,15 +51,15 @@ void main() {
     test('withoutGlobalScopes() ignores all scopes', () async {
       await ScopedUser().withoutGlobalScopes().get();
 
-      expect(dbSpy.lastSql, isNot(contains('age >=')));
-      expect(dbSpy.lastSql, isNot(contains('is_active =')));
+      expect(dbSpy.lastSql, isNot(contains('"age" >=')));
+      expect(dbSpy.lastSql, isNot(contains('"is_active" =')));
     });
 
     test('withoutGlobalScope<T>() ignores only specific scope', () async {
       await ScopedUser().withoutGlobalScope<AgeScope>().get();
 
-      expect(dbSpy.lastSql, isNot(contains('age >=')));
-      expect(dbSpy.lastSql, contains('is_active = ?'));
+      expect(dbSpy.lastSql, isNot(contains('"age" >=')));
+      expect(dbSpy.lastSql, contains('"is_active" = ?'));
     });
   });
 }

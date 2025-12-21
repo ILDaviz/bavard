@@ -59,7 +59,7 @@ void main() {
       final query = WatchUser().query().where('active', 1);
       final sql = query.toSql();
 
-      expect(sql, contains('WHERE active = ?'));
+      expect(sql, contains('WHERE "active" = ?'));
     });
 
     test('watch() hydrates models correctly', () async {

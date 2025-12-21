@@ -66,7 +66,7 @@ void main() {
 
         expect(
           dbSpy.lastSql,
-          contains('deleted_at IS NULL'),
+          contains('"deleted_at" IS NULL'),
           reason: 'La relazione ha ignorato il Soft Delete del modello figlio!',
         );
       },

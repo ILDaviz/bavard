@@ -38,10 +38,9 @@ void main() {
 
         await post.comments().get();
 
-        expect(dbSpy.lastSql, contains('FROM comments'));
-
-        expect(dbSpy.lastSql, contains("commentable_type = ?"));
-        expect(dbSpy.lastSql, contains("commentable_id = ?"));
+        expect(dbSpy.lastSql, contains('FROM "comments"'));
+        expect(dbSpy.lastSql, contains('WHERE "commentable_type" = ?'));
+        expect(dbSpy.lastSql, contains('AND "commentable_id" = ?'));
 
         expect(dbSpy.lastArgs, contains('posts'));
         expect(dbSpy.lastArgs, contains('1'));

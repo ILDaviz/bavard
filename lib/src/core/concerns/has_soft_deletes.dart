@@ -56,10 +56,7 @@ mixin HasSoftDeletes on Model {
   /// Still triggers standard [onDeleting] and [onDeleted] hooks for consistency.
   Future<void> forceDelete() async {
     if (id != null && await onDeleting()) {
-      await DatabaseManager().db.execute(
-        'DELETE FROM $table WHERE $primaryKey = ?',
-        [id],
-      );
+      await newQuery().withoutGlobalScopes().where(primaryKey, id).delete();
       await onDeleted();
     }
   }

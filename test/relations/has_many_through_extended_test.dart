@@ -106,7 +106,7 @@ void main() {
       // Using default keys
       await country.posts().get();
 
-      expect(dbSpy.lastSql, contains('users.country_id = ?'));
+      expect(dbSpy.lastSql, contains('"users"."country_id" = ?'));
     });
 
     test('custom second key', () async {
@@ -114,7 +114,7 @@ void main() {
 
       await country.posts().get();
 
-      expect(dbSpy.lastSql, contains('posts.user_id'));
+      expect(dbSpy.lastSql, contains('"posts"."user_id"'));
     });
   });
 }

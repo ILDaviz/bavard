@@ -98,11 +98,11 @@ void main() {
       await user.save();
 
       final updateSql = dbSpy.history.firstWhere(
-        (sql) => sql.contains('UPDATE users'),
+        (sql) => sql.contains('UPDATE "users"'),
       );
 
-      expect(updateSql, contains('updated_at = ?'));
-      expect(updateSql, isNot(contains('created_at = ?')));
+      expect(updateSql, contains('"updated_at" = ?'));
+      expect(updateSql, isNot(contains('"created_at" = ?')));
     });
 
     test('updated_at changes on every save', () async {
@@ -150,11 +150,11 @@ void main() {
       await user.save();
 
       final updateSql = dbSpy.history.firstWhere(
-        (sql) => sql.contains('UPDATE users'),
+        (sql) => sql.contains('UPDATE "users"'),
       );
 
-      expect(updateSql, isNot(contains('created_at')));
-      expect(updateSql, contains('updated_at'));
+      expect(updateSql, isNot(contains('"created_at"')));
+      expect(updateSql, contains('"updated_at"'));
     });
   });
 

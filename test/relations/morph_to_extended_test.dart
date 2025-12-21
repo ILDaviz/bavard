@@ -126,10 +126,10 @@ void main() {
 
       // Should have made 2 queries (one per type), not 3
       final fromPostsCount = mockDb.history
-          .where((s) => s.contains('FROM posts'))
+          .where((s) => s.contains('FROM "posts"'))
           .length;
       final fromVideosCount = mockDb.history
-          .where((s) => s.contains('FROM videos'))
+          .where((s) => s.contains('FROM "videos"'))
           .length;
 
       expect(fromPostsCount, 1);

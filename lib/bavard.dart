@@ -27,6 +27,9 @@ export 'src/core/database_adapter.dart';
 
 /// Fluent SQL query builder implementation.
 export 'src/core/query_builder.dart';
+export 'src/core/grammar.dart';
+export 'src/grammars/sqlite_grammar.dart';
+export 'src/grammars/postgres_grammar.dart';
 
 /// Relationship definitions (One-to-One, One-to-Many, Many-to-Many, and Polymorphic).
 export 'src/relations/relation.dart';
