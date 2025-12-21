@@ -1,4 +1,3 @@
-import 'package:bavard/src/core/scope.dart';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';

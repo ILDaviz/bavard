@@ -17,9 +17,12 @@ export 'src/core/exceptions.dart';
 
 /// Reusable model behaviors (Mixins) for UUIDs, timestamps, soft deletes, and global scopes.
 export 'src/core/concerns/has_global_scopes.dart';
+export 'src/core/scope.dart';
 export 'src/core/concerns/has_uuids.dart';
 export 'src/core/concerns/has_soft_deletes.dart';
 export 'src/core/concerns/has_timestamps.dart';
+export 'src/core/concerns/has_guards_attributes.dart';
+
 
 /// Database connection management singleton and driver interface definitions.
 export 'src/core/database_manager.dart';

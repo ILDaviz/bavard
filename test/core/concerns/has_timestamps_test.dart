@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
-import 'package:bavard/src/core/concerns/has_timestamps.dart';
 
 class TimestampUser extends Model with HasTimestamps {
   @override

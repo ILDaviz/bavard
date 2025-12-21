@@ -1,5 +1,4 @@
 import 'package:bavard/bavard.dart';
-import 'package:bavard/src/core/concerns/has_soft_deletes.dart';
 import 'package:test/test.dart';
 import 'package:bavard/testing.dart';
 

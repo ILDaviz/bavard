@@ -1,11 +1,6 @@
 import 'dart:async';
 import 'package:bavard/schema.dart';
-
 import '../../bavard.dart';
-import 'database_manager.dart';
-import 'grammar.dart';
-import 'model.dart';
-import 'exceptions.dart';
 
 typedef ScopeCallback = void Function(QueryBuilder builder);
 
@@ -971,9 +966,5 @@ class QueryBuilder<T extends Model> {
         originalError: e,
       );
     }
-  }
-
-  String _buildWhereClause() {
-    return _grammar.compileWheres(this);
   }
 }
