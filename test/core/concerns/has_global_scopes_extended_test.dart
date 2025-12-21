@@ -23,7 +23,7 @@ class ActiveScope implements Scope {
 class AgeScope implements Scope {
   @override
   void apply(QueryBuilder builder, Model model) {
-    builder.where('age', 18, operator: '>=');
+    builder.where('age', 18, '>=');
   }
 }
 

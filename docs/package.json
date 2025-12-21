@@ -1,0 +1,16 @@
+{
+  "name": "docs",
+  "packageManager": "yarn@4.7.0",
+  "dependencies": {
+    "vitepress": "^1.6.4"
+  },
+  "scripts": {
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "@vue/server-renderer": "^3.5.26",
+    "vue": "^3.5.26"
+  }
+}

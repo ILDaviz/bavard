@@ -1,0 +1,44 @@
+:root {
+  /* Brand Colors - Indigo/Electric Blue vibe */
+  --vp-c-brand-1: #6366f1;
+  --vp-c-brand-2: #818cf8;
+  --vp-c-brand-3: #a5b4fc;
+  --vp-c-brand-soft: rgba(99, 102, 241, 0.14);
+
+  /* Background nuances */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #6366f1 30%, #4f46e5);
+}
+
+/* Dark mode adjustments */
+.dark {
+  --vp-c-brand-1: #818cf8;
+  --vp-c-brand-2: #6366f1;
+  --vp-c-brand-3: #4f46e5;
+}
+
+/* Custom Table Styles - More readable for Schema tables */
+table {
+  display: table;
+  width: 100%;
+  margin: 20px 0;
+}
+
+th {
+  background-color: var(--vp-c-bg-soft);
+  font-weight: 600;
+}
+
+/* Hero Section Tweaks */
+.VPHomeHero .name {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: var(--vp-home-hero-name-color);
+  background-image: var(--vp-home-hero-name-background);
+}
+
+/* Code Block Tweaks */
+.vp-doc [class*='language-'] {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+}

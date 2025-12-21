@@ -19,7 +19,7 @@ class SoftUser extends Model with HasSoftDeletes {
 class AgeScope implements Scope {
   @override
   void apply(QueryBuilder builder, Model model) {
-    builder.where('age', 18, operator: '>=');
+    builder.where('age', 18, '>=');
   }
 }
 

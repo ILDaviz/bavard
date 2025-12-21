@@ -79,7 +79,7 @@ void main() {
     });
 
     test('where with LIKE operator and wildcards', () async {
-      await TestUser().query().where('name', '%David%', operator: 'LIKE').get();
+      await TestUser().query().where('name', '%David%', 'LIKE').get();
 
       expect(dbSpy.lastSql, contains('name LIKE ?'));
       expect(dbSpy.lastArgs, contains('%David%'));
@@ -88,7 +88,7 @@ void main() {
     test('where with NOT LIKE operator', () async {
       await TestUser()
           .query()
-          .where('email', '%spam%', operator: 'NOT LIKE')
+          .where('email', '%spam%', 'NOT LIKE')
           .get();
 
       expect(dbSpy.lastSql, contains('email NOT LIKE ?'));
@@ -98,8 +98,8 @@ void main() {
     test('multiple chained where clauses with mixed operators', () async {
       await TestUser()
           .query()
-          .where('age', 18, operator: '>=')
-          .where('age', 65, operator: '<=')
+          .where('age', 18, '>=')
+          .where('age', 65, '<=')
           .where('status', 'active')
           .orWhere('role', 'admin')
           .get();
@@ -124,12 +124,12 @@ void main() {
     });
 
     test('It handles nested OR groups with correct binding order', () async {
-      await TestUser().query().where('age', 18, operator: '>').orWhereGroup((
+      await TestUser().query().where('age', 18, '>').orWhereGroup((
         q,
       ) {
         q
             .where('status', 'pending')
-            .where('created_at', '2023-01-01', operator: '>');
+            .where('created_at', '2023-01-01', '>');
       }).get();
 
       expect(

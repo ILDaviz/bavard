@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:bavard/schema.dart';
+
 import 'database_manager.dart';
 import 'model.dart';
 import 'exceptions.dart';
@@ -174,40 +176,104 @@ class QueryBuilder<T extends Model> {
   ///
   /// Validates [operator] against a whitelist to prevent logic injection.
   QueryBuilder<T> where(
-    String column,
-    dynamic value, {
-    String operator = '=',
-    String boolean = 'AND',
-  }) {
-    _assertIdent(column, dotted: true, what: 'column name');
+      dynamic column, [
+        dynamic value,
+        String operator = '=',
+        String boolean = 'AND',
+      ]) {
 
-    if (value == null &&
-        (_operator(operator) == '=' ||
-            _operator(operator) == '<>' ||
-            _operator(operator) == '!=')) {
-      if (_operator(operator) == '=') {
-        return whereNull(column, boolean: boolean);
+    String targetColumn;
+    String targetOperator;
+    dynamic targetValue;
+    String targetBoolean = boolean;
+
+    if (column is WhereCondition) {
+      targetColumn = column.column;
+      targetOperator = column.operator;
+      targetValue = column.value;
+      targetBoolean = column.boolean;
+    } else {
+      if (column is Column) {
+        targetColumn = column.name!;
       } else {
-        return whereNotNull(column, boolean: boolean);
+        targetColumn = column.toString();
+      }
+      targetOperator = operator;
+      targetValue = value;
+    }
+
+    _assertIdent(targetColumn, dotted: true, what: 'column name');
+
+    if (targetValue == null) {
+      final checkOp = _operator(targetOperator);
+      if (checkOp == '=') {
+        return whereNull(targetColumn, boolean: targetBoolean);
+      } else if (checkOp == '<>' || checkOp == '!=') {
+        return whereNotNull(targetColumn, boolean: targetBoolean);
       }
     }
 
-    final op = _operator(operator);
-    if (!_allowedWhereOps.contains(op)) {
-      throw InvalidQueryException('Invalid operator for where: $operator');
+    final finalOp = _operator(targetOperator);
+    if (!_allowedWhereOps.contains(finalOp)) {
+      throw InvalidQueryException('Invalid operator for where: $targetOperator');
     }
 
-    _wheres.add({'type': boolean, 'sql': '$column $op ?'});
-    _bindings.add(value);
+    String sqlString;
+
+    if (finalOp == 'IN' || finalOp == 'NOT IN') {
+      if (targetValue is! List) {
+        throw ArgumentError(
+            'QueryBuilder Error: L\'operatore "$finalOp" richiede una List come valore. '
+                'Ricevuto: ${targetValue.runtimeType}'
+        );
+      }
+
+      if (targetValue.isEmpty) {
+        sqlString = '1 = 0';
+      } else {
+        final placeholders = List.filled(targetValue.length, '?').join(', ');
+        sqlString = '$targetColumn $finalOp ($placeholders)';
+        _bindings.addAll(targetValue);
+      }
+    }
+
+    else if (finalOp == 'BETWEEN') {
+      if (targetValue is! List || targetValue.length != 2) {
+        throw ArgumentError(
+            'QueryBuilder Error: L\'operatore "BETWEEN" richiede una List di esattamente 2 elementi [min, max].'
+        );
+      }
+      sqlString = '$targetColumn $finalOp ? AND ?';
+      _bindings.addAll(targetValue);
+    }
+
+    else {
+      if (targetValue is List) {
+        throw ArgumentError(
+            'QueryBuilder Error: Non puoi usare una List con l\'operatore "$finalOp". '
+                'Usa IN, NOT IN o BETWEEN.'
+        );
+      }
+
+      sqlString = '$targetColumn $finalOp ?';
+      _bindings.add(targetValue);
+    }
+
+    _wheres.add({
+      'type': targetBoolean,
+      'sql': sqlString,
+    });
+
     return this;
   }
 
   QueryBuilder<T> orWhere(
-    String column,
-    dynamic value, {
-    String operator = '=',
-  }) {
-    return where(column, value, operator: operator, boolean: 'OR');
+      dynamic column, [
+        dynamic value,
+        String operator = '=',
+      ]) {
+
+    return where(column, value, operator, 'OR');
   }
 
   /// Adds a nested WHERE group wrapped in parentheses: AND (...).
