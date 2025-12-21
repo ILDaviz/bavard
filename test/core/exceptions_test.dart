@@ -74,7 +74,7 @@ void main() {
 
       test('thrown for invalid operators', () {
         expect(
-          () => User().query().where('id', 1, operator: 'INVALID'),
+          () => User().query().where('id', 1, 'INVALID'),
           throwsA(isA<InvalidQueryException>()),
         );
       });

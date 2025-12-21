@@ -209,7 +209,7 @@ void main() {
             .query()
             .select(['customer_id', 'COUNT(*) as count'])
             .where('status', 'active')
-            .where('created_at', '2024-01-01', operator: '>')
+            .where('created_at', '2024-01-01', '>')
             .groupBy(['customer_id'])
             .having('COUNT(*)', 5, operator: '>=')
             .having('SUM(total)', 1000, operator: '>')

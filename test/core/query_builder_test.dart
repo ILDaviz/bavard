@@ -44,10 +44,10 @@ void main() {
     await TestUser()
         .query()
         .where('role', 'admin')
-        .where('age', 18, operator: '>')
+        .where('age', 18, '>')
         .get();
 
-    final q = TestUser().where('role', 'admin').where('age', 18, operator: '>');
+    final q = TestUser().where('role', 'admin').where('age', 18, '>');
     await q.get();
 
     expect(dbSpy.lastSql, contains('WHERE role = ? AND age > ?'));

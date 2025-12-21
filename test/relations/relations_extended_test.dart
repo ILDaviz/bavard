@@ -223,7 +223,7 @@ void main() {
       await user
           .posts()
           .where('status', 'published')
-          .where('views', 100, operator: '>')
+          .where('views', 100, '>')
           .get();
 
       expect(dbSpy.lastSql, contains('user_id = ?'));
