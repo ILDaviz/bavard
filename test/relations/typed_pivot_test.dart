@@ -87,13 +87,13 @@ void main() {
 
       final user = users.first;
       expect(user.rolesList, isNotEmpty);
-      
+
       final role = user.rolesList.first;
       expect(role.id, 100);
-      
+
       expect(role.pivot, isNotNull);
       expect(role.pivot, isA<UserRole>());
-      
+
       final pivot = role.getPivot<UserRole>()!;
       expect(pivot.createdAt, isNotNull);
       expect(pivot.createdAt!.toIso8601String(), now.toIso8601String());

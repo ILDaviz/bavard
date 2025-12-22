@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 import 'annotations.dart';
@@ -9,75 +10,110 @@ Builder pivotGenerator(BuilderOptions options) =>
 
 class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
   @override
-  String generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) {
+  Future<String> generateForAnnotatedElement(
+      Element element, ConstantReader annotation, BuildStep buildStep) async {
     if (element is! ClassElement) {
       throw InvalidGenerationSourceError('@BavardPivot works only on classes.');
     }
 
     final className = element.name;
     final buffer = StringBuffer();
-    final columns = <String>[];
+    final columnsData = <_ColumnInfo>[];
 
-    buffer.writeln('mixin _\$${className} on Pivot {');
+    final schemaField = element.getField('schema');
 
-    for (final field in element.fields) {
-      if (field.isStatic) {
-        final dartType = _getColumnGenericType(field.type);
-        if (dartType != null) {
-          final colName = field.name;
-          final propName = _derivePropName(colName);
-          
-          // Getter
-          buffer.writeln('  $dartType? get $propName => get($className.$colName);');
+    if (schemaField != null && schemaField.isStatic) {
+      AstNode? astNode;
 
-          // Setter
-          buffer.writeln(
-              '  set $propName($dartType? value) => set($className.$colName, value);');
+      final resolver = buildStep.resolver as dynamic;
+      final fragment = (schemaField as dynamic).firstFragment;
+      astNode = await resolver.astNodeFor(fragment, resolve: true);
 
-          columns.add(colName);
+      if (astNode is VariableDeclaration) {
+        final initializer = astNode.initializer;
+
+        if (initializer is RecordLiteral) {
+          for (var field in initializer.fields) {
+            if (field is NamedExpression) {
+              final propertyName = field.name.label.name;
+              final expression = field.expression;
+
+              if (expression is InstanceCreationExpression) {
+                final typeName = expression.staticType?.element?.name;
+                
+                // Determine Dart type
+                String? baseType;
+                switch (typeName) {
+                  case 'TextColumn':
+                    baseType = 'String';
+                    break;
+                  case 'IntColumn':
+                  case 'IntegerColumn':
+                    baseType = 'int';
+                    break;
+                  case 'DoubleColumn':
+                    baseType = 'double';
+                    break;
+                  case 'BoolColumn':
+                  case 'BooleanColumn':
+                    baseType = 'bool';
+                    break;
+                  case 'DateTimeColumn':
+                    baseType = 'DateTime';
+                    break;
+                  case 'JsonColumn':
+                    baseType = 'dynamic';
+                    break;
+                  case 'ArrayColumn':
+                    baseType = 'List<dynamic>';
+                    break;
+                  case 'ObjectColumn':
+                    baseType = 'Map<String, dynamic>';
+                    break;
+                }
+
+                if (baseType != null) {
+                   final dartType = (baseType != 'dynamic') ? '$baseType?' : baseType;
+                   
+                   columnsData.add(_ColumnInfo(
+                     propertyName: propertyName,
+                     dartType: dartType,
+                   ));
+                }
+              }
+            }
+          }
         }
       }
     }
 
-    // Static Schema
-    buffer.writeln(
-        '  static List<Column> get schema => [${columns.join(', ')}];');
+    buffer.writeln('mixin _\$${className} on Pivot {');
+
+    for (final col in columnsData) {
+      // Getter
+      buffer.writeln('  ${col.dartType} get ${col.propertyName} => get($className.schema.${col.propertyName});');
+
+      // Setter
+      buffer.writeln(
+          '  set ${col.propertyName}(${col.dartType} value) => set($className.schema.${col.propertyName}, value);');
+    }
+
+    // Static Schema List
+    // We generate 'columns' instead of 'schema' to avoid conflict with the static Record 'schema'.
+    final colList = columnsData.map((c) => '$className.schema.${c.propertyName}').join(', ');
+    buffer.writeln('  static List<Column> get columns => [$colList];');
 
     buffer.writeln('}');
     return buffer.toString();
   }
+}
 
-  /// Returns the generic type T of Column<T> string representation if the type is a Column, else null.
-  String? _getColumnGenericType(DartType type) {
-    if (type is InterfaceType) {
-       // Check if this type or any supertype is 'Column'
-       // We iterate supertypes to find Column<T>
-       
-       // First check if the type itself is Column (unlikely for usage like IntColumn, but possible if Column<int> used directly)
-       if (type.element.name == 'Column' && type.typeArguments.isNotEmpty) {
-         return type.typeArguments.first.getDisplayString(withNullability: false);
-       }
-       
-       for (final supertype in type.allSupertypes) {
-         if (supertype.element.name == 'Column' && supertype.typeArguments.isNotEmpty) {
-           return supertype.typeArguments.first.getDisplayString(withNullability: false);
-         }
-       }
-    }
-    return null;
-  }
+class _ColumnInfo {
+  final String propertyName;
+  final String dartType;
 
-  String _derivePropName(String fieldName) {
-    if (fieldName.endsWith('Col')) {
-      return fieldName.substring(0, fieldName.length - 3);
-    }
-    if (fieldName.endsWith('Column')) {
-      return fieldName.substring(0, fieldName.length - 6);
-    }
-    if (fieldName.endsWith('Field')) {
-      return fieldName.substring(0, fieldName.length - 5);
-    }
-    return fieldName;
-  }
+  _ColumnInfo({
+    required this.propertyName,
+    required this.dartType,
+  });
 }

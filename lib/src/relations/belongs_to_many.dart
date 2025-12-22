@@ -197,16 +197,21 @@ class BelongsToMany<R extends Model> extends Relation<R> {
 
     final placeholders = List.filled(parentIds.length, '?').join(',');
     
-    // Select specific columns if requested, otherwise *
     String selectClause = '*';
+
     if (_pivotColumns.isNotEmpty) {
-      // We need foreign keys for matching!
       final requiredKeys = {foreignPivotKey, relatedPivotKey, ..._pivotColumns.map((c) => c.name).whereType<String>()};
-      selectClause = requiredKeys.join(', ');
+      final requiredKeyWithWrap = requiredKeys.map((e) => db.grammar.wrap(e)).toList();
+      selectClause = requiredKeyWithWrap.join(', ');
     }
 
+    final selectClauseWrap = db.grammar.wrap(selectClause);
+    final pivotTableWrap = db.grammar.wrap(pivotTable);
+    final foreignPivotKeyWrap = db.grammar.wrap(foreignPivotKey);
+
     final pivotSql =
-        'SELECT $selectClause FROM $pivotTable WHERE $foreignPivotKey IN ($placeholders)';
+        'SELECT $selectClauseWrap FROM $pivotTableWrap WHERE $foreignPivotKeyWrap IN ($placeholders)';
+
     final pivotRows = await db.getAll(pivotSql, parentIds);
 
     if (pivotRows.isEmpty) return;
@@ -221,7 +226,6 @@ class BelongsToMany<R extends Model> extends Relation<R> {
             .whereIn(pk, relatedIds)
             .get()).cast<R>();
 
-    // Map for O(1) lookup: related_id -> model instance
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};
 
     for (var model in models) {
