@@ -50,7 +50,11 @@ class MorphToMany<R extends Model> extends Relation<R> {
   /// 2. Batch fetch the related models using the IDs extracted from the pivot results.
   /// 3. Reconstruct the many-to-many mappings in-memory.
   @override
-  Future<void> match(List<Model> models, String relationName) async {
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  }) async {
     final parentIds = getKeys(models, parent.primaryKey);
     final db = DatabaseManager().db;
 
@@ -73,9 +77,12 @@ class MorphToMany<R extends Model> extends Relation<R> {
     // Dynamically resolve the primary key of the related model (do not assume 'id').
     final relatedPk = creator({}).primaryKey;
 
-    final relatedModels = (await creator(
-      {},
-    ).newQuery().whereIn(relatedPk, relatedIds).get()).cast<R>();
+    final relatedModels =
+        (await creator({})
+            .newQuery()
+            .withRelations(nested)
+            .whereIn(relatedPk, relatedIds)
+            .get()).cast<R>();
 
     // Map: related_id -> model instance
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};

@@ -25,7 +25,11 @@ abstract class Relation<R extends Model> extends QueryBuilder<R> {
 
   /// Eager loading contract: fetches related records for a batch of [models]
   /// in a single query (solving N+1) and injects them into the `relations` map.
-  Future<void> match(List<Model> models, String relationName);
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  });
 
   /// Extracts unique attribute values from a list of models, used to build
   /// `WHERE IN` clauses for batch fetching.

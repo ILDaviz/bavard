@@ -813,12 +813,34 @@ class QueryBuilder<T extends Model> {
   Future<void> _eagerLoad(List<T> models) async {
     if (_with.isEmpty || models.isEmpty) return;
 
+    // Parse nested relations:
+    // ['posts', 'posts.comments'] -> {'posts': ['comments']}
+    final nestedRelations = <String, List<String>>{};
+
+    for (final relation in _with) {
+      final parts = relation.split('.');
+      final root = parts[0];
+      final nested = parts.length > 1 ? parts.sublist(1).join('.') : null;
+
+      if (!nestedRelations.containsKey(root)) {
+        nestedRelations[root] = [];
+      }
+
+      if (nested != null) {
+        nestedRelations[root]!.add(nested);
+      }
+    }
+
     // Eager load related models parallel
     await Future.wait(
-      _with.map((relationName) async {
+      nestedRelations.keys.map((relationName) async {
         final relation = models.first.getRelation(relationName);
         if (relation != null) {
-          await relation.match(models, relationName);
+          await relation.match(
+            models,
+            relationName,
+            nested: nestedRelations[relationName] ?? [],
+          );
         }
       }),
     );

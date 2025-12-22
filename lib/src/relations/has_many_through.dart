@@ -53,7 +53,11 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
   /// Eagerly loads relationships for a list of parents to avoid N+1 queries.
   ///
   @override
-  Future<void> match(List<Model> models, String relationName) async {
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  }) async {
     final parentIds = getKeys(models, parent.primaryKey);
 
     final intermediateResults = await intermediateCreator(
@@ -68,9 +72,12 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
     final intermediateIds = intermediateMap.keys.whereType<String>().toList();
     if (intermediateIds.isEmpty) return;
 
-    final targets = (await creator(
-      {},
-    ).newQuery().whereIn(_secondKey, intermediateIds).get()).cast<R>();
+    final targets =
+        (await creator({})
+            .newQuery()
+            .withRelations(nested)
+            .whereIn(_secondKey, intermediateIds)
+            .get()).cast<R>();
 
     for (var model in models) {
       final myParentId = normKey(model.id);

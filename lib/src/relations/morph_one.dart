@@ -11,15 +11,18 @@ class MorphOne<R extends Model> extends MorphMany<R> {
   /// Eagerly loads the relationship by delegating batch fetching to [MorphMany.match],
   /// then unwraps the resulting list into a single instance (or null).
   @override
-  Future<void> match(List<Model> models, String relationName) async {
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  }) async {
     // Reuse MorphMany to fetch and group data into lists efficiently.
-    await super.match(models, relationName);
+    await super.match(models, relationName, nested: nested);
 
     for (var model in models) {
       final list = model.relations[relationName] as List?;
-      model.relations[relationName] = (list != null && list.isNotEmpty)
-          ? list.first
-          : null;
+      model.relations[relationName] =
+          (list != null && list.isNotEmpty) ? list.first : null;
     }
   }
 }

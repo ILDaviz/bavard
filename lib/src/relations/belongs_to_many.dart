@@ -46,7 +46,11 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   /// 2. Fetch related models in a single batch.
   /// 3. Stitch results back to parents in-memory.
   @override
-  Future<void> match(List<Model> models, String relationName) async {
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  }) async {
     final parentIds = getKeys(models, parent.primaryKey);
     if (parentIds.isEmpty) return;
 
@@ -59,15 +63,15 @@ class BelongsToMany<R extends Model> extends Relation<R> {
 
     if (pivotRows.isEmpty) return;
 
-    final relatedIds = pivotRows
-        .map((r) => r[relatedPivotKey])
-        .toSet()
-        .toList();
+    final relatedIds = pivotRows.map((r) => r[relatedPivotKey]).toSet().toList();
 
     final pk = creator({}).primaryKey;
-    final relatedModels = (await creator(
-      {},
-    ).newQuery().whereIn(pk, relatedIds).get()).cast<R>();
+    final relatedModels =
+        (await creator({})
+            .newQuery()
+            .withRelations(nested)
+            .whereIn(pk, relatedIds)
+            .get()).cast<R>();
 
     // Map for O(1) lookup: related_id -> model instance
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};

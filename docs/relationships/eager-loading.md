@@ -60,4 +60,21 @@ for (final user in users) {
 }
 ```
 
-> **Warning:** Currently, only one level of nested eager loading is supported directly.
+## Nested Eager Loading
+
+You can load nested relationships using "dot" syntax. For example, to load all of the book's authors and all of the author's personal contacts in one go:
+
+```dart
+final books = await Book().query()
+    .withRelations(['author.contacts'])
+    .get();
+```
+
+This works recursively. If you want to load the `posts`, and for each post load the `comments`, and for each comment load the `author`:
+
+```dart
+final users = await User().query()
+    .withRelations(['posts', 'posts.comments.author'])
+    .get();
+```
+

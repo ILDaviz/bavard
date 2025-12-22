@@ -26,10 +26,15 @@ class BelongsTo<R extends Model> extends Relation<R> {
   ///
   /// Matches the fetched owners back to the [models] list via an in-memory dictionary lookup.
   @override
-  Future<void> match(List<Model> models, String relationName) async {
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  }) async {
     final ids = getKeys(models, foreignKey).where((id) => id != null).toList();
 
-    final results = await creator({}).newQuery().whereIn(ownerKey, ids).get();
+    final results =
+        await creator({}).newQuery().withRelations(nested).whereIn(ownerKey, ids).get();
 
     // Map results by owner ID for O(1) assignment back to child models.
     final dictionary = {

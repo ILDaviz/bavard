@@ -35,16 +35,20 @@ class MorphMany<R extends Model> extends Relation<R> {
   /// Queries the child table for records matching the specific parent [type]
   /// and the list of parent IDs, then distributes them in-memory.
   @override
-  Future<void> match(List<Model> models, String relationName) async {
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  }) async {
     final ids = getKeys(models, parent.primaryKey);
 
     final results =
         (await creator({})
-                .newQuery()
-                .where('${name}_type', type)
-                .whereIn('${name}_id', ids)
-                .get())
-            .cast<R>();
+            .newQuery()
+            .withRelations(nested)
+            .where('${name}_type', type)
+            .whereIn('${name}_id', ids)
+            .get()).cast<R>();
 
     for (var model in models) {
       final myId = normKey(model.id);
