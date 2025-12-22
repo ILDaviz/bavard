@@ -101,9 +101,9 @@ void main() {
 
       await user.posts().where('published', true).orderBy('created_at').get();
 
-      expect(dbSpy.lastSql, contains('user_id = ?'));
-      expect(dbSpy.lastSql, contains('published = ?'));
-      expect(dbSpy.lastSql, contains('ORDER BY created_at'));
+      expect(dbSpy.lastSql, contains('"user_id" = ?'));
+      expect(dbSpy.lastSql, contains('"published" = ?'));
+      expect(dbSpy.lastSql, contains('ORDER BY "created_at"'));
     });
 
     test('relation with custom primary key', () async {
@@ -111,7 +111,7 @@ void main() {
 
       await user.posts().get();
 
-      expect(dbSpy.lastSql, contains('author_uuid = ?'));
+      expect(dbSpy.lastSql, contains('"author_uuid" = ?'));
       expect(dbSpy.lastArgs, contains('abc-123'));
     });
   });
@@ -178,7 +178,7 @@ void main() {
 
       await customRelation.get();
 
-      expect(dbSpy.lastSql, contains('custom_user_id = ?'));
+      expect(dbSpy.lastSql, contains('"custom_user_id" = ?'));
     });
   });
 
@@ -226,9 +226,9 @@ void main() {
           .where('views', 100, '>')
           .get();
 
-      expect(dbSpy.lastSql, contains('user_id = ?'));
-      expect(dbSpy.lastSql, contains('status = ?'));
-      expect(dbSpy.lastSql, contains('views > ?'));
+      expect(dbSpy.lastSql, contains('"user_id" = ?'));
+      expect(dbSpy.lastSql, contains('"status" = ?'));
+      expect(dbSpy.lastSql, contains('"views" > ?'));
     });
 
     test('orderBy on relation query', () async {
@@ -236,7 +236,7 @@ void main() {
 
       await user.posts().orderBy('created_at', direction: 'DESC').get();
 
-      expect(dbSpy.lastSql, contains('ORDER BY created_at DESC'));
+      expect(dbSpy.lastSql, contains('ORDER BY "created_at" DESC'));
     });
 
     test('limit on relation query', () async {

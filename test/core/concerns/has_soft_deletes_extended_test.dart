@@ -1,4 +1,3 @@
-import 'package:bavard/src/core/concerns/has_soft_deletes.dart';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
@@ -110,8 +109,8 @@ void main() {
 
       await user.forceDelete();
 
-      expect(dbSpy.lastSql, contains('DELETE FROM users'));
-      expect(dbSpy.lastSql, contains('WHERE id = ?'));
+      expect(dbSpy.lastSql, contains('DELETE FROM "users"'));
+      expect(dbSpy.lastSql, contains('WHERE "id" = ?'));
     });
 
     test('forceDelete() triggers onDeleting/onDeleted hooks', () async {
@@ -127,21 +126,21 @@ void main() {
     test('withTrashed() combined with where clauses', () async {
       await SoftUser().withTrashed().where('name', 'David').get();
 
-      expect(dbSpy.lastSql, contains('WHERE name = ?'));
-      expect(dbSpy.lastSql, isNot(contains('deleted_at IS NULL')));
+      expect(dbSpy.lastSql, contains('WHERE "name" = ?'));
+      expect(dbSpy.lastSql, isNot(contains('"deleted_at" IS NULL')));
     });
 
     test('onlyTrashed() combined with where clauses', () async {
       await SoftUser().onlyTrashed().where('role', 'admin').get();
 
-      expect(dbSpy.lastSql, contains('WHERE deleted_at IS NOT NULL'));
-      expect(dbSpy.lastSql, contains('AND role = ?'));
+      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NOT NULL'));
+      expect(dbSpy.lastSql, contains('AND "role" = ?'));
     });
 
     test('standard query excludes soft deleted records', () async {
       await SoftUser().query().get();
 
-      expect(dbSpy.lastSql, contains('WHERE deleted_at IS NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NULL'));
     });
   });
 }

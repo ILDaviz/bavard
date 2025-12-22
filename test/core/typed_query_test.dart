@@ -46,14 +46,14 @@ void main() {
       await TypedUser().query().get();
 
       // SoftDeletes should add WHERE deleted_at IS NULL
-      expect(dbSpy.lastSql, contains('deleted_at IS NULL'));
+      expect(dbSpy.lastSql, contains('"deleted_at" IS NULL'));
     });
 
     test('query() with SoftDeletes applies scope', () async {
       await TypedUser().query().where('name', 'David').get();
 
-      expect(dbSpy.lastSql, contains('deleted_at IS NULL'));
-      expect(dbSpy.lastSql, contains('name = ?'));
+      expect(dbSpy.lastSql, contains('"deleted_at" IS NULL'));
+      expect(dbSpy.lastSql, contains('"name" = ?'));
     });
 
     test('get() returns List<T> with correct type', () async {

@@ -1,4 +1,3 @@
-import 'package:bavard/src/core/concerns/has_soft_deletes.dart';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
@@ -21,7 +20,7 @@ void main() {
 
   setUp(() {
     dbSpy = MockDatabaseSpy([], {
-      'SELECT users.* FROM users WHERE id = ? LIMIT 1': [
+      'SELECT "users".* FROM "users" WHERE "id" = ? LIMIT 1': [
         {'id': 1, 'name': 'David', 'deleted_at': '2023-01-01'},
       ],
     });
@@ -36,8 +35,8 @@ void main() {
 
       await user.delete();
 
-      expect(dbSpy.history, contains(contains('UPDATE users SET')));
-      expect(dbSpy.history, contains(contains('deleted_at = ?')));
+      expect(dbSpy.history, contains(contains('UPDATE "users" SET')));
+      expect(dbSpy.history, contains(contains('"deleted_at" = ?')));
 
       final hasDelete = dbSpy.history.any((sql) => sql.contains('DELETE FROM'));
       expect(hasDelete, isFalse);
@@ -49,23 +48,23 @@ void main() {
       'Standard query automatically excludes soft deleted records',
       () async {
         await User().query().get();
-        expect(dbSpy.lastSql, contains('WHERE deleted_at IS NULL'));
+        expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NULL'));
       },
     );
 
     test('withTrashed() includes soft deleted records', () async {
       await User().withTrashed().get();
-      expect(dbSpy.lastSql, isNot(contains('deleted_at IS NULL')));
+      expect(dbSpy.lastSql, isNot(contains('"deleted_at" IS NULL')));
     });
 
     test('onlyTrashed() fetches ONLY soft deleted records', () async {
       await User().onlyTrashed().get();
-      expect(dbSpy.lastSql, contains('WHERE deleted_at IS NOT NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NOT NULL'));
     });
 
     test('restore() resets deleted_at to NULL', () async {
       final restoreMock = MockDatabaseSpy([], {
-        'SELECT users.* FROM users WHERE id = ? LIMIT 1': [
+        'SELECT "users".* FROM "users" WHERE "id" = ? LIMIT 1': [
           {'id': 1, 'name': 'David', 'deleted_at': null},
         ],
       });
@@ -77,7 +76,7 @@ void main() {
 
       await user.restore();
 
-      expect(restoreMock.history, contains(contains('UPDATE users SET')));
+      expect(restoreMock.history, contains(contains('UPDATE "users" SET')));
 
       expect(user.trashed, isFalse);
       expect(user.attributes['deleted_at'], isNull);
@@ -89,8 +88,8 @@ void main() {
 
       await user.forceDelete();
 
-      expect(dbSpy.lastSql, contains('DELETE FROM users'));
-      expect(dbSpy.lastSql, contains('WHERE id = ?'));
+      expect(dbSpy.lastSql, contains('DELETE FROM "users"'));
+      expect(dbSpy.lastSql, contains('WHERE "id" = ?'));
     });
   });
 }

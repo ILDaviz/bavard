@@ -1,5 +1,4 @@
 import 'package:bavard/bavard.dart';
-import 'package:bavard/src/core/concerns/has_soft_deletes.dart';
 import 'package:test/test.dart';
 import 'package:bavard/testing.dart';
 
@@ -66,7 +65,7 @@ void main() {
 
         expect(
           dbSpy.lastSql,
-          contains('deleted_at IS NULL'),
+          contains('"deleted_at" IS NULL'),
           reason: 'La relazione ha ignorato il Soft Delete del modello figlio!',
         );
       },

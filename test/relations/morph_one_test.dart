@@ -32,11 +32,11 @@ void main() {
 
       await post.image().get();
 
-      expect(dbSpy.lastSql, contains('FROM images'));
+      expect(dbSpy.lastSql, contains('FROM "images"'));
 
-      expect(dbSpy.lastSql, contains('imageable_type = ?'));
+      expect(dbSpy.lastSql, contains('"imageable_type" = ?'));
 
-      expect(dbSpy.lastSql, contains('imageable_id = ?'));
+      expect(dbSpy.lastSql, contains('"imageable_id" = ?'));
 
       expect(dbSpy.lastArgs, contains('posts'));
       expect(dbSpy.lastArgs, contains('1'));

@@ -38,7 +38,7 @@ void main() {
           .groupBy(['customer_id'])
           .get();
 
-      expect(dbSpy.lastSql, contains('GROUP BY customer_id'));
+      expect(dbSpy.lastSql, contains('GROUP BY "customer_id"'));
     });
 
     test('groupBy() accepts multiple columns', () async {
@@ -48,7 +48,7 @@ void main() {
           .groupBy(['customer_id', 'status'])
           .get();
 
-      expect(dbSpy.lastSql, contains('GROUP BY customer_id, status'));
+      expect(dbSpy.lastSql, contains('GROUP BY "customer_id", "status"'));
     });
 
     test('groupByColumn() is convenience for single column', () async {
@@ -58,7 +58,7 @@ void main() {
           .groupByColumn('status')
           .get();
 
-      expect(dbSpy.lastSql, contains('GROUP BY status'));
+      expect(dbSpy.lastSql, contains('GROUP BY "status"'));
     });
 
     test('groupBy() validates column identifiers', () async {
@@ -75,7 +75,7 @@ void main() {
           .groupBy(['orders.customer_id'])
           .get();
 
-      expect(dbSpy.lastSql, contains('GROUP BY orders.customer_id'));
+      expect(dbSpy.lastSql, contains('GROUP BY "orders"."customer_id"'));
     });
   });
 
@@ -88,7 +88,7 @@ void main() {
           .having('SUM(total)', 1000, operator: '>')
           .get();
 
-      expect(dbSpy.lastSql, contains('GROUP BY customer_id'));
+      expect(dbSpy.lastSql, contains('GROUP BY "customer_id"'));
       expect(dbSpy.lastSql, contains('HAVING SUM(total) > ?'));
       expect(dbSpy.lastArgs, contains(1000));
     });
@@ -188,10 +188,10 @@ void main() {
 
       final sql = dbSpy.lastSql;
 
-      expect(sql, contains('WHERE status = ?'));
-      expect(sql, contains('GROUP BY customer_id'));
+      expect(sql, contains('WHERE "status" = ?'));
+      expect(sql, contains('GROUP BY "customer_id"'));
       expect(sql, contains('HAVING COUNT(*) >= ?'));
-      expect(sql, contains('ORDER BY total_spent DESC'));
+      expect(sql, contains('ORDER BY "total_spent" DESC'));
       expect(sql, contains('LIMIT 10'));
 
       // Verify WHERE comes before GROUP BY
@@ -229,7 +229,7 @@ void main() {
       final casted = original.cast<Order>(Order.new);
       await casted.get();
 
-      expect(dbSpy.lastSql, contains('GROUP BY customer_id'));
+      expect(dbSpy.lastSql, contains('GROUP BY "customer_id"'));
       expect(dbSpy.lastSql, contains('HAVING COUNT(*) >= ?'));
     });
   });
@@ -249,8 +249,8 @@ void main() {
 
       final sql = countMock.lastSql;
       expect(sql, startsWith('SELECT COUNT(*) as aggregate FROM ('));
-      expect(sql, contains('SELECT orders.* FROM orders'));
-      expect(sql, contains('GROUP BY status'));
+      expect(sql, contains('SELECT "orders".* FROM "orders"'));
+      expect(sql, contains('GROUP BY "status"'));
       expect(sql, endsWith(') as temp_table'));
     });
 

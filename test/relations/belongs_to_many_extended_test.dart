@@ -96,14 +96,14 @@ void main() {
       final user = User({'id': 1});
       await user.roles().get();
 
-      expect(dbSpy.lastSql, contains('JOIN role_user ON'));
+      expect(dbSpy.lastSql, contains('JOIN "role_user" ON'));
     });
 
     test('custom pivot keys', () async {
       final user = User({'id': 1});
       await user.roles().get();
 
-      expect(dbSpy.lastSql, contains('role_user.user_id = ?'));
+      expect(dbSpy.lastSql, contains('"role_user"."user_id" = ?'));
     });
   });
 }

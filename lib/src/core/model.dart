@@ -1,6 +1,5 @@
+import '../../bavard.dart';
 import 'concerns/has_guards_attributes.dart';
-import 'query_builder.dart';
-import 'database_manager.dart';
 import './concerns/has_casts.dart';
 import './concerns/has_events.dart';
 import './concerns/has_relationships.dart';
@@ -126,13 +125,7 @@ abstract class Model
         return;
       }
 
-      final updates = dirtyAttributes.keys.map((k) => '$k = ?').join(', ');
-      final values = dirtyAttributes.values.toList()..add(id);
-
-      await dbManager.execute(
-        'UPDATE $table SET $updates WHERE $primaryKey = ?',
-        values,
-      );
+      await query().where(primaryKey, id).update(dirtyAttributes);
     }
     await refresh();
     await onSaved();

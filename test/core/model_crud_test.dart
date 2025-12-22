@@ -117,9 +117,9 @@ void main() {
         (s) => s.contains('UPDATE'),
         orElse: () => '',
       );
-      expect(updateSql, contains('email = ?'));
-      expect(updateSql, isNot(contains('name = ?')));
-      expect(updateSql, isNot(contains('age = ?')));
+      expect(updateSql, contains('"email" = ?'));
+      expect(updateSql, isNot(contains('"name" = ?')));
+      expect(updateSql, isNot(contains('"age" = ?')));
     });
 
     test(
@@ -158,7 +158,7 @@ void main() {
         (s) => s.contains('UPDATE'),
         orElse: () => '',
       );
-      expect(updateSql, contains('email = ?'));
+      expect(updateSql, contains('"email" = ?'));
     });
 
     test('save() detects changes correctly with different types', () async {
@@ -174,8 +174,8 @@ void main() {
         (s) => s.contains('UPDATE'),
         orElse: () => '',
       );
-      expect(updateSql, contains('count = ?'));
-      expect(updateSql, contains('active = ?'));
+      expect(updateSql, contains('"count" = ?'));
+      expect(updateSql, contains('"active" = ?'));
     });
   });
 
@@ -192,8 +192,8 @@ void main() {
 
       await user.delete();
 
-      expect(dbSpy.lastSql, contains('DELETE FROM users'));
-      expect(dbSpy.lastSql, contains('WHERE id = ?'));
+      expect(dbSpy.lastSql, contains('DELETE FROM "users"'));
+      expect(dbSpy.lastSql, contains('WHERE "id" = ?'));
       expect(dbSpy.lastArgs, [50]);
     });
   });

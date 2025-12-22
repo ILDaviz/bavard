@@ -1,8 +1,13 @@
+import 'grammar.dart';
+
 /// Protocol for database drivers.
 ///
 /// Abstraction layer that decouples the ORM from specific SQL dialects (SQLite, Postgres)
 /// or underlying packages (sqflite, drift).
 abstract class DatabaseAdapter {
+  /// Returns the query grammar used by this adapter.
+  Grammar get grammar;
+
   /// Executes a SELECT query.
   ///
   /// Implementations MUST support variable binding in [arguments] to prevent SQL injection.

@@ -7,12 +7,18 @@ class MockDatabaseAdapter implements DatabaseAdapter {
 
   MockDatabaseAdapter(this._mockData);
 
+  // Default grammar
+  final Grammar _grammar = SQLiteGrammar();
+
+  @override
+  Grammar get grammar => _grammar;
+
   @override
   Future<List<Map<String, dynamic>>> getAll(
     String sql, [
     List<dynamic>? arguments,
   ]) async {
-    if (sql.contains('FROM users')) {
+    if (sql.contains('FROM "users"')) {
       return _mockData;
     }
     return [];

@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
-import 'package:bavard/src/core/concerns/has_uuids.dart';
 
 class UuidUser extends Model with HasUuids {
   @override

@@ -30,13 +30,13 @@ void main() {
 
   test('It generates basic SELECT *', () async {
     await TestUser().query().get();
-    expect(dbSpy.lastSql, 'SELECT users.* FROM users');
+    expect(dbSpy.lastSql, 'SELECT "users".* FROM "users"');
   });
 
   test('It generates WHERE clauses with bindings', () async {
     await TestUser().where('email', 'david@test.com').get();
 
-    expect(dbSpy.lastSql, contains('WHERE email = ?'));
+    expect(dbSpy.lastSql, contains('WHERE "email" = ?'));
     expect(dbSpy.lastArgs, ['david@test.com']);
   });
 
@@ -50,7 +50,7 @@ void main() {
     final q = TestUser().where('role', 'admin').where('age', 18, '>');
     await q.get();
 
-    expect(dbSpy.lastSql, contains('WHERE role = ? AND age > ?'));
+    expect(dbSpy.lastSql, contains('WHERE "role" = ? AND "age" > ?'));
     expect(dbSpy.lastArgs, ['admin', 18]);
   });
 
@@ -61,14 +61,14 @@ void main() {
         .limit(5)
         .get();
 
-    expect(dbSpy.lastSql, contains('ORDER BY created_at DESC'));
+    expect(dbSpy.lastSql, contains('ORDER BY "created_at" DESC'));
     expect(dbSpy.lastSql, contains('LIMIT 5'));
   });
 
   test('It handles WHERE IN', () async {
     await TestUser().query().whereIn('id', [1, 2, 3]).get();
 
-    expect(dbSpy.lastSql, contains('id IN (?, ?, ?)'));
+    expect(dbSpy.lastSql, contains('"id" IN (?, ?, ?)'));
     expect(dbSpy.lastArgs, [1, 2, 3]);
   });
 
@@ -78,7 +78,7 @@ void main() {
         .orderBy('users.created_at', direction: 'DESC')
         .get();
 
-    expect(dbSpy.lastSql, contains('ORDER BY users.created_at DESC'));
+    expect(dbSpy.lastSql, contains('ORDER BY "users"."created_at" DESC'));
   });
 
   test('orderBy accepts dotted identifiers (table.column)', () async {
@@ -87,7 +87,7 @@ void main() {
         .orderBy('users.created_at', direction: 'DESC')
         .get();
 
-    expect(dbSpy.lastSql, contains('ORDER BY users.created_at DESC'));
+    expect(dbSpy.lastSql, contains('ORDER BY "users"."created_at" DESC'));
   });
 
   test('orderBy rejects injection attempts in identifier', () async {
@@ -107,7 +107,7 @@ void main() {
         .orWhere('email', 'admin@test.com')
         .get();
 
-    expect(dbSpy.lastSql, contains('WHERE id = ? OR email = ?'));
+    expect(dbSpy.lastSql, contains('WHERE "id" = ? OR "email" = ?'));
     expect(dbSpy.lastArgs, [1, 'admin@test.com']);
   });
 
@@ -120,7 +120,7 @@ void main() {
 
     expect(
       dbSpy.lastSql,
-      contains('WHERE deleted_at IS NULL OR posted_at IS NOT NULL'),
+      contains('WHERE "deleted_at" IS NULL OR "posted_at" IS NOT NULL'),
     );
     expect(dbSpy.lastArgs, isEmpty);
   });
@@ -135,7 +135,7 @@ void main() {
   test('It handles orWhereRaw with bindings', () async {
     await TestUser().query().where('id', 1).orWhereRaw('age < ?', [10]).get();
 
-    expect(dbSpy.lastSql, contains('WHERE id = ? OR age < ?'));
+    expect(dbSpy.lastSql, contains('WHERE "id" = ? OR age < ?'));
     expect(dbSpy.lastArgs, [1, 10]);
   });
 
@@ -150,7 +150,7 @@ void main() {
     expect(
       dbSpy.lastSql,
       contains(
-        'WHERE EXISTS (SELECT 1 FROM posts WHERE user_id = users.id AND active = ?)',
+        'WHERE EXISTS (SELECT "1" FROM "posts" WHERE user_id = users.id AND "active" = ?)',
       ),
     );
 
@@ -165,7 +165,7 @@ void main() {
 
     await TestUser().query().whereNotExists(subQuery).get();
 
-    expect(dbSpy.lastSql, contains('WHERE NOT EXISTS (SELECT 1 FROM posts)'));
+    expect(dbSpy.lastSql, contains('WHERE NOT EXISTS (SELECT "1" FROM "posts")'));
   });
 
   test('It handles orWhereIn', () async {
@@ -174,14 +174,14 @@ void main() {
       'editor',
     ]).get();
 
-    expect(dbSpy.lastSql, contains('WHERE id = ? OR role IN (?, ?)'));
+    expect(dbSpy.lastSql, contains('WHERE "id" = ? OR "role" IN (?, ?)'));
     expect(dbSpy.lastArgs, [1, 'admin', 'editor']);
   });
 
   test('It handles select() projection', () async {
     await TestUser().query().select(['name', 'email']).get();
 
-    expect(dbSpy.lastSql, startsWith('SELECT name, email FROM users'));
+    expect(dbSpy.lastSql, startsWith('SELECT "name", "email" FROM "users"'));
   });
 
   test('It handles offset()', () async {
@@ -216,9 +216,9 @@ void main() {
     expect(count, 42);
     expect(
       countMock.lastSql,
-      contains('SELECT COUNT(*) as aggregate FROM users'),
+      contains('SELECT COUNT(*) as aggregate FROM "users"'),
     );
-    expect(countMock.lastSql, contains('WHERE active = ?'));
+    expect(countMock.lastSql, contains('WHERE "active" = ?'));
 
     final sumMock = MockDatabaseSpy([], {
       'SELECT SUM(price) as aggregate': [
@@ -245,7 +245,7 @@ void main() {
 
   test('cast() preserves ALL query state and bindings', () async {
     final dbSpy = MockDatabaseSpy([], {
-      'FROM users': [
+      'FROM "users"': [
         {'id': 1, 'name': 'SuperAdmin', 'role': 'admin'},
       ],
     });
@@ -270,10 +270,10 @@ void main() {
 
     final sql = dbSpy.lastSql;
 
-    expect(sql, startsWith('SELECT users.name, users.role FROM users'));
-    expect(sql, contains('JOIN roles ON users.role_id = roles.id'));
-    expect(sql, contains('WHERE active = ? AND age > ?'));
-    expect(sql, contains('ORDER BY created_at DESC'));
+    expect(sql, startsWith('SELECT "users"."name", "users"."role" FROM "users"'));
+    expect(sql, contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'));
+    expect(sql, contains('WHERE "active" = ? AND age > ?'));
+    expect(sql, contains('ORDER BY "created_at" DESC'));
     expect(sql, contains('LIMIT 10'));
     expect(sql, contains('OFFSET 5'));
     expect(dbSpy.lastArgs, equals([1, 21]));

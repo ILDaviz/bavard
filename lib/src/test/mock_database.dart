@@ -18,6 +18,12 @@ class MockDatabaseSpy implements DatabaseAdapter {
   Map<String, List<Map<String, dynamic>>> _smartResponses;
 
   bool _inTransaction = false;
+  
+  // Default grammar for testing
+  final Grammar _grammar = SQLiteGrammar();
+
+  @override
+  Grammar get grammar => _grammar;
 
   /// Captures SQL statements executed specifically within the current transaction scope.
   List<String> transactionHistory = [];
@@ -39,6 +45,8 @@ class MockDatabaseSpy implements DatabaseAdapter {
     _smartResponses.addAll(data);
   }
 
+  String _normalize(String sql) => sql.replaceAll('"', '');
+
   /// Logs the query and returns pre-configured data if [sql] contains a key
   /// defined in [_smartResponses]; otherwise returns [_defaultData].
   @override
@@ -55,8 +63,17 @@ class MockDatabaseSpy implements DatabaseAdapter {
     }
 
     // Simple substring matching to find the correct mock response.
+    // Check raw SQL first
     for (var key in _smartResponses.keys) {
       if (sql.contains(key)) {
+        return _smartResponses[key]!;
+      }
+    }
+    
+    // Check normalized (unquoted) SQL for backward compatibility with tests
+    final normalized = _normalize(sql);
+    for (var key in _smartResponses.keys) {
+      if (normalized.contains(key)) {
         return _smartResponses[key]!;
       }
     }

@@ -1,4 +1,3 @@
-import 'package:bavard/src/core/scope.dart';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
@@ -51,7 +50,7 @@ void main() {
 
       await SoftUser().query().get();
 
-      expect(dbSpy.lastSql, contains('WHERE deleted_at IS NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NULL'));
     });
 
     test('HasGlobalScopes are applied also via typed query()', () async {
@@ -60,8 +59,8 @@ void main() {
 
       await ScopedUser().query().get();
 
-      expect(dbSpy.lastSql, contains('age >= ?'));
-      expect(dbSpy.lastSql, contains('is_active = ?'));
+      expect(dbSpy.lastSql, contains('"age" >= ?'));
+      expect(dbSpy.lastSql, contains('"is_active" = ?'));
 
       expect(dbSpy.lastArgs, isNotNull);
       expect(dbSpy.lastArgs, contains(18));

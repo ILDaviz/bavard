@@ -43,8 +43,8 @@ void main() {
       final user = User({'id': 1});
       await user.posts().get();
 
-      expect(dbSpy.lastSql, contains('SELECT posts.* FROM posts'));
-      expect(dbSpy.lastSql, contains('WHERE user_id = ?'));
+      expect(dbSpy.lastSql, contains('SELECT "posts".* FROM "posts"'));
+      expect(dbSpy.lastSql, contains('WHERE "user_id" = ?'));
       expect(dbSpy.lastArgs, [1]);
     });
 
@@ -58,7 +58,7 @@ void main() {
 
       await relation.match(users, 'posts');
 
-      expect(dbSpy.lastSql, contains('WHERE user_id IN (?, ?)'));
+      expect(dbSpy.lastSql, contains('WHERE "user_id" IN (?, ?)'));
 
       expect(users.first.relations['posts'], hasLength(2));
       expect(users.last.relations['posts'], hasLength(1));

@@ -34,12 +34,12 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('JOIN taggables ON tags.id = taggables.tag_id'),
+        contains('JOIN "taggables" ON "tags"."id" = "taggables"."tag_id"'),
       );
 
-      expect(dbSpy.lastSql, contains("taggables.taggable_type = ?"));
+      expect(dbSpy.lastSql, contains('"taggables"."taggable_type" = ?'));
 
-      expect(dbSpy.lastSql, contains("taggables.taggable_id = ?"));
+      expect(dbSpy.lastSql, contains('"taggables"."taggable_id" = ?'));
 
       expect(dbSpy.lastArgs, contains('posts'));
       expect(dbSpy.lastArgs, contains(1));

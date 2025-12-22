@@ -1,4 +1,3 @@
-import 'package:bavard/src/core/scope.dart';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
@@ -66,9 +65,9 @@ void main() {
       await MultiScopeUser().query().get();
 
       // All three scopes should be applied
-      expect(dbSpy.lastSql, contains('tenant_id = ?'));
-      expect(dbSpy.lastSql, contains('is_active = ?'));
-      expect(dbSpy.lastSql, contains('age >= ?'));
+      expect(dbSpy.lastSql, contains('"tenant_id" = ?'));
+      expect(dbSpy.lastSql, contains('"is_active" = ?'));
+      expect(dbSpy.lastSql, contains('"age" >= ?'));
 
       // Bindings should be in order
       expect(dbSpy.lastArgs, equals([42, 1, 18]));
@@ -103,8 +102,8 @@ void main() {
       expect(dbSpy.lastSql, isNot(contains('tenant_id')));
 
       // Other scopes should still be applied
-      expect(dbSpy.lastSql, contains('is_active = ?'));
-      expect(dbSpy.lastSql, contains('age >= ?'));
+      expect(dbSpy.lastSql, contains('"is_active" = ?'));
+      expect(dbSpy.lastSql, contains('"age" >= ?'));
     });
 
     test('withoutGlobalScopes() ignores all scopes', () async {
@@ -119,8 +118,8 @@ void main() {
       await MultiScopeUser().query().where('name', 'David').get();
 
       // Scopes + manual where
-      expect(dbSpy.lastSql, contains('tenant_id = ?'));
-      expect(dbSpy.lastSql, contains('name = ?'));
+      expect(dbSpy.lastSql, contains('"tenant_id" = ?'));
+      expect(dbSpy.lastSql, contains('"name" = ?'));
     });
   });
 }
