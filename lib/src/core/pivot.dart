@@ -14,25 +14,35 @@ abstract class Pivot {
   ///
   /// Example: `pivot.get(UserRole.createdAtCol)`
   T get<T>(Column<T> column) {
-    if (column.name == null) return null as T;
+    final name = column.name;
+    if (name == null) return null as T;
 
-    final value = attributes[column.name];
+    final value = attributes[name];
 
     if (value == null) return null as T;
 
-    if (T == DateTime && value is String) {
+    final bool isDateTime = _isType<T, DateTime>();
+    final bool isBool = _isType<T, bool>();
+    final bool isInt = _isType<T, int>();
+    final bool isDouble = _isType<T, double>();
+
+    if (isDateTime && value is String) {
       return DateTime.parse(value) as T;
     }
 
-    if (T == bool && value is int) {
+    if (isDateTime && value is DateTime) {
+      return value as T;
+    }
+
+    if (isBool && value is int) {
       return (value == 1) as T;
     }
 
-    if (T == int && value is num) {
+    if (isInt && value is num) {
       return value.toInt() as T;
     }
 
-    if (T == double && value is num) {
+    if (isDouble && value is num) {
       return value.toDouble() as T;
     }
 
@@ -47,3 +57,7 @@ abstract class Pivot {
     attributes[column.name!] = value;
   }
 }
+
+// This is utility method.
+bool _isType<T, Target>() => T == Target || T == _typeOf<Target?>();
+Type _typeOf<T>() => T;

@@ -29,13 +29,13 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   /// Configures the relationship to return strongly-typed [Pivot] instances.
   ///
   /// [factory]: Constructor/Factory for the Pivot class (e.g. `UserRole.new`).
-  /// [schema]: List of columns to retrieve from the pivot table (e.g. `UserRole.schema`).
+  /// [columns]: List of columns to retrieve from the pivot table (e.g. `UserRole.columns`).
   BelongsToMany<R> using<P extends Pivot>(
     P Function(Map<String, dynamic>) factory,
-    List<Column> schema,
+    List<Column> columns,
   ) {
     _pivotCreator = factory;
-    _pivotColumns = schema;
+    _pivotColumns = columns;
     return this;
   }
 

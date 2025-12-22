@@ -6,13 +6,20 @@ import 'package:bavard/testing.dart';
 class UserRole extends Pivot {
   UserRole(super.attributes);
 
-  static const createdAtCol = DateTimeColumn('created_at');
-  static const isActiveCol = BoolColumn('is_active');
+  static const schema = (
+    createdAt: DateTimeColumn('created_at', isNullable: true),
+    isActive: BoolColumn('is_active', isNullable: true)
+  );
 
-  DateTime? get createdAt => get(createdAtCol);
-  bool? get isActive => get(isActiveCol);
+  DateTime? get createdAt => get(UserRole.schema.createdAt);
+  set createdAt(DateTime? value) => set(UserRole.schema.createdAt, value);
+  bool? get isActive => get(UserRole.schema.isActive);
+  set isActive(bool? value) => set(UserRole.schema.isActive, value);
 
-  static List<Column> get schema => [createdAtCol, isActiveCol];
+  static List<Column> get columns => [
+    UserRole.schema.createdAt,
+    UserRole.schema.isActive
+  ];
 }
 
 class TypedRole extends Model {
@@ -38,7 +45,7 @@ class TypedUserWithPivot extends Model {
       'user_roles',
       foreignPivotKey: 'user_id',
       relatedPivotKey: 'role_id',
-    ).using(UserRole.new, UserRole.schema);
+    ).using(UserRole.new, UserRole.columns);
   }
   
   @override
@@ -116,7 +123,7 @@ void main() {
 
        await TypedUserWithPivot().roles()
          .wherePivot('is_active', true)
-         .wherePivotCondition(UserRole.createdAtCol.after(DateTime(2023)))
+         .wherePivotCondition(UserRole.schema.createdAt.after(DateTime(2023)))
          .get();
 
        final sql = dbSpy.lastSql;
