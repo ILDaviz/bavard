@@ -13,14 +13,13 @@ abstract class Pivot {
   /// Strongly-typed getter for pivot attributes using Column metadata.
   ///
   /// Example: `pivot.get(UserRole.createdAtCol)`
-  T? get<T>(Column<T> column) {
-    if (column.name == null) return null;
+  T get<T>(Column<T> column) {
+    if (column.name == null) return null as T;
+
     final value = attributes[column.name];
 
-    if (value == null) return null;
-    if (value is T) return value;
+    if (value == null) return null as T;
 
-    // Type conversion logic for common DB types
     if (T == DateTime && value is String) {
       return DateTime.parse(value) as T;
     }
@@ -37,13 +36,13 @@ abstract class Pivot {
       return value.toDouble() as T;
     }
 
-    return value as T?;
+    return value as T;
   }
 
   /// Strongly-typed setter for pivot attributes.
   ///
   /// Example: `pivot.set(UserRole.createdAtCol, DateTime.now())`
-  void set<T>(Column<T> column, T? value) {
+  void set<T>(Column<T> column, T value) {
     if (column.name == null) return;
     attributes[column.name!] = value;
   }

@@ -102,7 +102,7 @@ final roles = await user?.roles().get();
 Working with pivot tables often involves accessing extra data stored on the intermediate table. Bavard allows you to retrieve this data in a strongly-typed way using a custom `Pivot` class.
 
 **1. Define the Pivot Class**
-Create a class that extends `Pivot` and defines your intermediate table columns using static `Column` definitions. Annotate it with `@BavardPivot`.
+Create a class that extends `Pivot` and defines your intermediate table columns using static `Column` definitions. Annotate it with `@bavardPivot`.
 
 ```dart
 // user_role.dart
@@ -111,7 +111,7 @@ import 'package:bavard/schema.dart';
 
 part 'user_role.pivot.g.dart';
 
-@BavardPivot()
+@bavardPivot
 class UserRole extends Pivot with _$UserRole {
   UserRole(super.attributes);
 
