@@ -9,9 +9,33 @@ For complex logical conditions mixing `AND` and `OR`, you can group constraints 
 await User().query()
     .where('name', 'Mario')
     .orWhereGroup((query) {
-        query.where('votes', 100, operator: '>')
-             .where('title', 'Admin', operator: '<>');
+        query.where('votes', 100, '>')
+             .where('title', 'Admin', '<>');
     })
+    .get();
+```
+
+## Where Exists Clauses
+
+The `whereExists` method allows you to write `WHERE EXISTS` SQL clauses. The `whereExists` method accepts a query builder instance, which allows you to define the query that should be placed inside the "exists" clause:
+
+```dart
+// SELECT * FROM users
+// WHERE EXISTS (SELECT 1 FROM orders WHERE orders.user_id = users.id)
+await User().query()
+    .whereExists(
+        Order().query().whereRaw('orders.user_id = users.id')
+    )
+    .get();
+```
+
+You can also use `whereNotExists`, `orWhereExists`, and `orWhereNotExists`:
+
+```dart
+await User().query()
+    .whereNotExists(
+        Order().query().whereRaw('orders.user_id = users.id')
+    )
     .get();
 ```
 
@@ -46,6 +70,14 @@ await User().query()
     .get();
 ```
 
+To group by a single column, you can use the convenience method `groupByColumn`:
+
+```dart
+await User().query()
+    .groupByColumn('account_id')
+    .get();
+```
+
 ### Having
 
 The `having` method works similarly to `where` but filters the results after grouping.
@@ -54,6 +86,7 @@ The `having` method works similarly to `where` but filters the results after gro
 await User().query()
     .groupBy(['account_id'])
     .having('account_id', 100, operator: '>')
+    .orHaving('status', 'active')
     .get();
 ```
 
@@ -65,6 +98,20 @@ For complex expressions in the `HAVING` clause:
 await User().query()
     .groupBy(['account_id'])
     .havingRaw('SUM(price) > ?', bindings: [2500])
+    .orHavingRaw('COUNT(*) > ?', [10])
+    .get();
+```
+
+### Additional Having Clauses
+
+The query builder also supports `havingNull`, `havingNotNull`, and `havingBetween`:
+
+```dart
+await User().query()
+    .groupBy(['account_id'])
+    .havingNull('deleted_at')
+    .havingNotNull('activated_at')
+    .havingBetween('votes', 1, 100)
     .get();
 ```
 
@@ -93,4 +140,7 @@ final rawSql = User().query().where('id', 1).toRawSql();
 
 // Print SQL to console
 User().query().where('id', 1).printQueryAndBindings();
+
+// Print RAW SQL to console (with bindings substituted)
+User().query().where('id', 1).printRawSql();
 ```

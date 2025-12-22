@@ -20,6 +20,34 @@ The `first` method executes the query and returns the first result as a model in
 final user = await User().query().where('email', 'test@example.com').first();
 ```
 
+### find()
+
+Retrieve a model by its primary key (usually `id`):
+
+```dart
+final user = await User().query().find(1);
+```
+
+### findOrFail()
+
+Retrieve a model by its primary key or throw a `ModelNotFoundException` if not found:
+
+```dart
+try {
+  final user = await User().query().findOrFail(1);
+} catch (e) {
+  // Handle not found
+}
+```
+
+### firstOrFail()
+
+Execute the query and return the first result or throw a `ModelNotFoundException` if no results are found:
+
+```dart
+final user = await User().query().where('email', 'test@example.com').firstOrFail();
+```
+
 ## Selects
 
 By default, the query selects all columns (`*`). You can specify specific columns using `select`:
@@ -50,11 +78,11 @@ The `where` method accepts three arguments: the column, the value, and an option
 .where('votes', 100)
 
 // Comparison
-.where('votes', 100, operator: '>=')
-.where('name', 'Mario', operator: '!=')
+.where('votes', 100, '>=')
+.where('name', 'Mario', '!=')
 
 // LIKE
-.where('name', 'Mar%', operator: 'LIKE')
+.where('name', 'Mar%', 'LIKE')
 ```
 
 ### Type-Safe Where (Recommended)
@@ -86,6 +114,7 @@ To join clauses with an `OR` operator, use `orWhere`:
 
 ```dart
 .whereIn('id', [1, 2, 3])
+.orWhereIn('id', [10, 11])
 .whereNotIn('id', [4, 5, 6])
 ```
 
@@ -93,7 +122,9 @@ To join clauses with an `OR` operator, use `orWhere`:
 
 ```dart
 .whereNull('updated_at')
+.orWhereNull('deleted_at')
 .whereNotNull('created_at')
+.orWhereNotNull('posted_at')
 ```
 
 ## Ordering
@@ -135,3 +166,18 @@ if (await User().query().where('email', 'foo@bar.com').notExist()) {
   // ...
 }
 ```
+
+## Reactive Streams
+
+For applications that need to react to database changes (like Flutter apps), you can use the `watch` method. It returns a `Stream<List<T>>` that emits a new list of models whenever the underlying table is modified.
+
+```dart
+StreamBuilder<List<User>>(
+  stream: User().query().where('active', 1).watch(),
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) return CircularProgressIndicator();
+    return ListView(children: snapshot.data!.map((u) => Text(u.name)).toList());
+  },
+)
+```
+

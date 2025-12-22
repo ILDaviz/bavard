@@ -103,7 +103,7 @@ final rowsAffected = await User()
 ```dart
 final deletedCount = await User()
     .query()
-    .where('last_login', '2020-01-01', operator: '<')
+    .where('last_login', '2020-01-01', '<')
     .delete();
 ```
 
