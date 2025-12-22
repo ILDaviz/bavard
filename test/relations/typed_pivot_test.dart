@@ -22,6 +22,11 @@ class UserRole extends Pivot {
   ];
 }
 
+// A dummy pivot class for testing type mismatches
+class AnotherPivot extends Pivot {
+  AnotherPivot(super.attributes);
+}
+
 class TypedRole extends Model {
   @override
   String get table => 'roles';
@@ -46,6 +51,49 @@ class TypedUserWithPivot extends Model {
       foreignPivotKey: 'user_id',
       relatedPivotKey: 'role_id',
     ).using(UserRole.new, UserRole.columns);
+  }
+  
+  @override
+  Relation? getRelation(String name) {
+    if (name == 'roles') return roles();
+    return super.getRelation(name);
+  }
+  
+  List<TypedRole> get rolesList => getRelationList<TypedRole>('roles');
+}
+
+class StrictUserRole extends Pivot {
+  StrictUserRole(super.attributes);
+
+  static const schema = (
+    createdAt: DateTimeColumn('created_at'),
+    isActive: BoolColumn('is_active')
+  );
+
+  DateTime get createdAt => get(StrictUserRole.schema.createdAt);
+  bool get isActive => get(StrictUserRole.schema.isActive);
+
+  static List<Column> get columns => [
+    StrictUserRole.schema.createdAt,
+    StrictUserRole.schema.isActive
+  ];
+}
+
+class StrictUserWithPivot extends Model {
+  @override
+  String get table => 'users';
+
+  StrictUserWithPivot([super.attributes]);
+  @override
+  StrictUserWithPivot fromMap(Map<String, dynamic> map) => StrictUserWithPivot(map);
+
+  BelongsToMany<TypedRole> roles() {
+    return belongsToMany(
+      TypedRole.new,
+      'user_roles',
+      foreignPivotKey: 'user_id',
+      relatedPivotKey: 'role_id',
+    ).using(StrictUserRole.new, StrictUserRole.columns);
   }
   
   @override
@@ -105,6 +153,103 @@ void main() {
       expect(pivot.createdAt, isNotNull);
       expect(pivot.createdAt!.toIso8601String(), now.toIso8601String());
       expect(pivot.isActive, isTrue);
+    });
+
+    test('It handles NULL values in pivot columns gracefully', () async {
+      final mockDb = MockDatabaseSpy([], {
+        'FROM "users"': [{'id': 1, 'name': 'David'}],
+        'FROM "user_roles"': [
+          {
+            'user_id': 1, 
+            'role_id': 100, 
+            'created_at': null,
+            'is_active': null
+          },
+        ],
+        'FROM "roles"': [{'id': 100, 'name': 'Admin'}],
+      });
+      DatabaseManager().setDatabase(mockDb);
+
+      final users = await TypedUserWithPivot().query().withRelations(['roles']).get();
+      final pivot = users.first.rolesList.first.getPivot<UserRole>()!;
+
+      expect(pivot.createdAt, isNull);
+      expect(pivot.isActive, isNull);
+    });
+
+    test('It throws TypeError if non-nullable columns receive NULL from DB', () async {
+      final mockDb = MockDatabaseSpy([], {
+        'FROM "users"': [{'id': 1, 'name': 'David'}],
+        'FROM "user_roles"': [
+          {
+            'user_id': 1, 
+            'role_id': 100, 
+            'created_at': null,
+            'is_active': null
+          },
+        ],
+        'FROM "roles"': [{'id': 100, 'name': 'Admin'}],
+      });
+      DatabaseManager().setDatabase(mockDb);
+
+      final users = await StrictUserWithPivot().query().withRelations(['roles']).get();
+      final pivot = users.first.rolesList.first.getPivot<StrictUserRole>()!;
+
+      // Trying to access non-nullable getters when data is null should throw TypeError
+      expect(() => pivot.createdAt, throwsA(isA<TypeError>()));
+      expect(() => pivot.isActive, throwsA(isA<TypeError>()));
+    });
+
+    test('It throws FormatException if DateTime data is malformed', () async {
+      final mockDb = MockDatabaseSpy([], {
+        'FROM "users"': [{'id': 1, 'name': 'David'}],
+        'FROM "user_roles"': [
+          {
+            'user_id': 1, 
+            'role_id': 100, 
+            'created_at': 'not-a-valid-date', 
+            'is_active': 1
+          },
+        ],
+        'FROM "roles"': [{'id': 100, 'name': 'Admin'}],
+      });
+      DatabaseManager().setDatabase(mockDb);
+
+      final users = await TypedUserWithPivot().query().withRelations(['roles']).get();
+      final pivot = users.first.rolesList.first.getPivot<UserRole>()!;
+
+      expect(() => pivot.createdAt, throwsFormatException);
+    });
+
+    test('It updates underlying attributes when using setters', () {
+      final pivot = UserRole({});
+      
+      expect(pivot.isActive, isNull);
+      
+      pivot.isActive = true;
+      
+      expect(pivot.attributes['is_active'], true);
+      expect(pivot.isActive, isTrue);
+
+      final now = DateTime.now();
+      pivot.createdAt = now;
+      expect(pivot.attributes['created_at'], now);
+    });
+
+    test('getPivot returns null if requested type does not match actual pivot type', () async {
+      final mockDb = MockDatabaseSpy([], {
+        'FROM "users"': [{'id': 1, 'name': 'David'}],
+        'FROM "user_roles"': [{'user_id': 1, 'role_id': 100}],
+        'FROM "roles"': [{'id': 100, 'name': 'Admin'}],
+      });
+      DatabaseManager().setDatabase(mockDb);
+
+      final users = await TypedUserWithPivot().query().withRelations(['roles']).get();
+      final role = users.first.rolesList.first;
+
+      expect(role.getPivot<UserRole>(), isNotNull);
+      
+      expect(role.getPivot<AnotherPivot>(), isNull);
     });
 
     test('It constructs correct SELECT clause for Lazy Loading (get)', () async {
