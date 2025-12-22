@@ -102,39 +102,41 @@ final roles = await user?.roles().get();
 Working with pivot tables often involves accessing extra data stored on the intermediate table. Bavard allows you to retrieve this data in a strongly-typed way using a custom `Pivot` class.
 
 **1. Define the Pivot Class**
-Create a class that extends `Pivot` and defines your intermediate table columns using static `Column` definitions. Annotate it with `@bavardPivot`.
+Create a class that extends `Pivot` and defines your intermediate table columns using a `static const schema` record. Annotate it with `@bavardPivot`.
 
 ```dart
 // user_role.dart
 import 'package:bavard/bavard.dart';
 import 'package:bavard/schema.dart';
 
-part 'user_role.pivot.g.dart';
+import 'user_role.pivot.g.dart';
 
 @bavardPivot
-class UserRole extends Pivot with _$UserRole {
+class UserRole extends Pivot with $UserRole {
   UserRole(super.attributes);
 
-  // Define pivot columns
-  static const createdAtCol = DateTimeColumn('created_at');
-  static const isActiveCol = BoolColumn('is_active');
+  // Define pivot columns in a schema record
+  static const schema = (
+    createdAt: DateTimeColumn('created_at'),
+    isActive: BoolColumn('is_active'),
+  );
 }
 ```
 
 **2. Run the Code Generator**
-This will generate the `_$UserRole` mixin containing typed accessors and a static `schema` list.
+This will generate the `$UserRole` mixin containing typed accessors (getters and setters).
 ```bash
 dart run build_runner build
 ```
 
 **3. Use `.using()` on the Relationship**
-In your model, chain the `.using()` method to your `belongsToMany` definition, providing the `Pivot` class factory and the generated schema.
+In your model, chain the `.using()` method to your `belongsToMany` definition, providing the `Pivot` class factory and the generated schema columns.
 
 ```dart
 class User extends Model {
   BelongsToMany<Role> roles() {
     return belongsToMany(Role.new, 'user_roles')
-      .using(UserRole.new, UserRole.schema);
+      .using(UserRole.new, UserRole.columns);
   }
 }
 ```
@@ -150,6 +152,9 @@ final pivotData = firstRole.getPivot<UserRole>();
 
 print(pivotData?.createdAt); // Fully typed as DateTime?
 print(pivotData?.isActive);  // Fully typed as bool?
+
+// You can also update pivot attributes
+pivotData?.isActive = false;
 ```
 This works for both eager loading (`withRelations`) and lazy loading (`get()`).
 
@@ -165,7 +170,7 @@ final admins = await user.roles()
 
 // Using WhereCondition (Typed)
 final activeRoles = await user.roles()
-    .wherePivotCondition(UserRole.isActiveCol.isTrue())
+    .wherePivotCondition(UserRole.schema.isActive.isTrue())
     .get();
 ```
 

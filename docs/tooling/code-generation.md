@@ -66,24 +66,26 @@ For Many-to-Many relationships, you can create strongly-typed `Pivot` classes to
 2. Add the `part` directive.
 3. Annotate the class with `@bavardPivot`.
 4. Add the generated mixin.
-5. Define your pivot-specific columns as `static const` fields.
+5. Define your pivot-specific columns in a `static const schema` record.
 
 ```dart
 // user_role.dart
 import 'package:bavard/bavard.dart';
 import 'package:bavard/schema.dart';
 
-part 'user_role.pivot.g.dart';
+import 'user_role.pivot.g.dart';
 
 @bavardPivot
-class UserRole extends Pivot with _$UserRole {
+class UserRole extends Pivot with $UserRole {
   UserRole(super.attributes);
 
-  static const createdAtCol = DateTimeColumn('created_at');
-  static const isActiveCol = BoolColumn('is_active');
+  static const schema = (
+    createdAt: DateTimeColumn('created_at'),
+    isActive: BoolColumn('is_active'),
+  );
 }
 ```
 
 The pivot generator creates:
 1. **Typed Getters/Setters**: `pivot.createdAt`, `pivot.isActive`.
-2. **Static Schema List**: `UserRole.schema`, which can be passed to the `belongsToMany(...).using()` method.
+2. **Static Columns List**: `UserRole.columns`, which can be passed to the `belongsToMany(...).using()` method.

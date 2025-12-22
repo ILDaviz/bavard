@@ -186,6 +186,6 @@ Allows using strongly-typed `WhereCondition` objects (from `Column` definitions)
 
 ```dart
 final newRoles = await user.roles()
-    .wherePivotCondition(UserRole.createdAtCol.after(DateTime(2023)))
+    .wherePivotCondition(UserRole.schema.createdAt.after(DateTime(2023)))
     .get();
 ```
