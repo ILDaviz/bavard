@@ -144,3 +144,48 @@ User().query().where('id', 1).printQueryAndBindings();
 // Print RAW SQL to console (with bindings substituted)
 User().query().where('id', 1).printRawSql();
 ```
+
+## Pivot Table Filtering
+
+When querying `BelongsToMany` relationships, you can filter the results based on columns in the intermediate (pivot) table.
+
+> **Note:** These methods are only available on `BelongsToMany` relation instances (e.g., `user.roles()`).
+
+### `wherePivot` / `orWherePivot`
+
+Adds a basic `WHERE` clause on the pivot table.
+
+```dart
+// Filter roles where the 'is_admin' column on the pivot table is 1
+final admins = await user.roles().wherePivot('is_admin', 1).get();
+```
+
+### `wherePivotIn` / `wherePivotNotIn`
+
+Adds a `WHERE IN` clause on the pivot table.
+
+```dart
+final roles = await user.roles()
+    .wherePivotIn('permission_level', [1, 2, 3])
+    .get();
+```
+
+### `wherePivotNull` / `wherePivotNotNull`
+
+Checks for NULL values on the pivot table.
+
+```dart
+final activeRoles = await user.roles()
+    .wherePivotNull('expired_at')
+    .get();
+```
+
+### `wherePivotCondition`
+
+Allows using strongly-typed `WhereCondition` objects (from `Column` definitions) on the pivot table. This is especially useful when using typed Pivot classes.
+
+```dart
+final newRoles = await user.roles()
+    .wherePivotCondition(UserRole.createdAtCol.after(DateTime(2023)))
+    .get();
+```

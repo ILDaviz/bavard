@@ -8,6 +8,7 @@ export 'src/generators/annotations.dart';
 export 'src/generators/orm_cast_type.dart';
 
 /// Core Active Record implementation and type-safe query extensions.
+export 'src/core/pivot.dart';
 export 'src/core/model.dart';
 export 'src/core/utils.dart';
 export 'src/core/typed_query.dart';

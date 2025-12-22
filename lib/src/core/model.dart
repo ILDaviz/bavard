@@ -1,4 +1,5 @@
 import '../../bavard.dart';
+import 'pivot.dart';
 import 'concerns/has_guards_attributes.dart';
 import './concerns/has_casts.dart';
 import './concerns/has_events.dart';
@@ -33,6 +34,17 @@ abstract class Model
   dynamic get id => attributes[primaryKey];
 
   set id(dynamic value) => attributes[primaryKey] = value;
+
+  /// Holds the intermediate table data for Many-to-Many relationships.
+  Pivot? pivot;
+
+  /// Helper to safely cast the pivot object to a specific type.
+  T? getPivot<T extends Pivot>() {
+    if (pivot is T) {
+      return pivot as T;
+    }
+    return null;
+  }
 
   Model([Map<String, dynamic> attributes = const {}])
     : attributes = Map<String, dynamic>.from(attributes);

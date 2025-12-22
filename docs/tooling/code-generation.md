@@ -53,3 +53,33 @@ The generator creates:
 In the schema definition:
 - `isNullable: true`: The Dart getter will be nullable (e.g., `int?`).
 - `isGuarded: true`: The field will be added to the `guarded` list and excluded from `fillable`.
+
+## Pivot Table Generation (`@BavardPivot`)
+
+For Many-to-Many relationships, you can create strongly-typed `Pivot` classes to access data on the intermediate table.
+
+1. Create a class that extends `Pivot`.
+2. Add the `part` directive.
+3. Annotate the class with `@BavardPivot`.
+4. Add the generated mixin.
+5. Define your pivot-specific columns as `static const` fields.
+
+```dart
+// user_role.dart
+import 'package:bavard/bavard.dart';
+import 'package:bavard/schema.dart';
+
+part 'user_role.pivot.g.dart';
+
+@BavardPivot()
+class UserRole extends Pivot with _$UserRole {
+  UserRole(super.attributes);
+
+  static const createdAtCol = DateTimeColumn('created_at');
+  static const isActiveCol = BoolColumn('is_active');
+}
+```
+
+The pivot generator creates:
+1. **Typed Getters/Setters**: `pivot.createdAt`, `pivot.isActive`.
+2. **Static Schema List**: `UserRole.schema`, which can be passed to the `belongsToMany(...).using()` method.
