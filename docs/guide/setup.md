@@ -25,4 +25,4 @@ void main() {
 
 The adapter must implement the `DatabaseAdapter` interface, which defines the basic methods for queries, inserts, updates, and deletes.
 
-See [Implementing a Database Adapter](../reference/database-adapter.md) for details on how to create a custom adapter.
+See [Implementing a Database Adapter](../reference/adapters.md) for details on how to create a custom adapter.
