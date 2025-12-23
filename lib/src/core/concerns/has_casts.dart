@@ -113,8 +113,6 @@ mixin HasCasts {
           return null;
         }
     }
-
-    return null;
   }
 
   /// Maps a raw value to a specific [Enum] entry.

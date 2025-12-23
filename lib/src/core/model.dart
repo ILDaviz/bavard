@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import '../../bavard.dart';
 import './concerns/has_casts.dart';
 import './concerns/has_events.dart';
