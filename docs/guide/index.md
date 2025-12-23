@@ -16,8 +16,8 @@ The goal is to simplify database interactions with SQLite, PostgreSQL, or PowerS
 ```dart
 import 'package:bavard/bavard.dart';
 import 'package:bavard/schema.dart';
-import 'vehicle.dart';
-import 'trip.dart';
+import 'post.dart';
+import 'image.dart';
 import 'user.fillable.g.dart';
 
 @fillable
