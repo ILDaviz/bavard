@@ -43,16 +43,13 @@ void main() {
     DatabaseManager().setDatabase(MockDatabaseSpy());
   });
 
-  // ===========================================================================
-  // TYPE CASTING - READ
-  // ===========================================================================
   group('getAttribute - Integer', () {
     test('getAttribute int from string', () {
       final user = CastUser({'age': '25'});
       expect(user.getAttribute<int>('age'), 25);
     });
 
-    test('getAttribute int from int (passthrough)', () {
+    test('getAttribute int from int', () {
       final user = CastUser({'age': 30});
       expect(user.getAttribute<int>('age'), 30);
     });
@@ -62,19 +59,10 @@ void main() {
       expect(user.getAttribute<int>('age'), isNull);
     });
 
-    test(
-      'getAttribute int from double string returns null (int.tryParse limitation)',
-      () {
-        final user = CastUser({'age': '25.9'});
-        final result = user.getAttribute<int>('age');
-
-        // int.tryParse('25.9') returns null because it cannot parse decimal strings
-        // This is the expected behavior of the current implementation
-        // Return null
-        // TODO: Change?
-        expect(result, isNull);
-      },
-    );
+    test('getAttribute int from double string returns null', () {
+      final user = CastUser({'age': '25.9'});
+      expect(user.getAttribute<int>('age'), isNull);
+    });
   });
 
   group('getAttribute - Double', () {
@@ -88,7 +76,7 @@ void main() {
       expect(user.getAttribute<double>('score'), 100.0);
     });
 
-    test('getAttribute double from double (passthrough)', () {
+    test('getAttribute double from double', () {
       final user = CastUser({'score': 88.8});
       expect(user.getAttribute<double>('score'), 88.8);
     });
@@ -110,32 +98,32 @@ void main() {
       expect(user.getAttribute<bool>('is_active'), isFalse);
     });
 
-    test('getAttribute bool from string "true"', () {
+    test('getAttribute bool from string true', () {
       final user = CastUser({'is_active': 'true'});
       expect(user.getAttribute<bool>('is_active'), isTrue);
     });
 
-    test('getAttribute bool from string "false"', () {
+    test('getAttribute bool from string false', () {
       final user = CastUser({'is_active': 'false'});
       expect(user.getAttribute<bool>('is_active'), isFalse);
     });
 
-    test('getAttribute bool from string "1"', () {
+    test('getAttribute bool from string 1', () {
       final user = CastUser({'is_active': '1'});
       expect(user.getAttribute<bool>('is_active'), isTrue);
     });
 
-    test('getAttribute bool from string "0"', () {
+    test('getAttribute bool from string 0', () {
       final user = CastUser({'is_active': '0'});
       expect(user.getAttribute<bool>('is_active'), isFalse);
     });
 
-    test('getAttribute bool from bool (passthrough)', () {
+    test('getAttribute bool from bool', () {
       final user = CastUser({'is_active': true});
       expect(user.getAttribute<bool>('is_active'), isTrue);
     });
 
-    test('getAttribute bool from string "TRUE" (case insensitive)', () {
+    test('getAttribute bool from string TRUE case insensitive', () {
       final user = CastUser({'is_active': 'TRUE'});
       expect(user.getAttribute<bool>('is_active'), isTrue);
     });
@@ -152,7 +140,7 @@ void main() {
       expect(dt?.day, 15);
     });
 
-    test('getAttribute datetime from DateTime (passthrough)', () {
+    test('getAttribute datetime from DateTime', () {
       final now = DateTime.now();
       final user = CastUser({'created_at': now});
 
@@ -164,7 +152,7 @@ void main() {
       expect(user.getAttribute<DateTime>('created_at'), isNull);
     });
 
-    test('getAttribute datetime from date-only string', () {
+    test('getAttribute datetime from date only string', () {
       final user = CastUser({'created_at': '2024-01-15'});
       final dt = user.getAttribute<DateTime>('created_at');
 
@@ -174,7 +162,7 @@ void main() {
     });
   });
 
-  group('getAttribute - JSON/Array/Object', () {
+  group('getAttribute - JSON Array Object', () {
     test('getAttribute json from valid JSON string', () {
       final user = CastUser({'settings': '{"theme":"dark","lang":"en"}'});
       final settings = user.getAttribute<Map<String, dynamic>>('settings');
@@ -188,7 +176,7 @@ void main() {
       expect(user.getAttribute('settings'), isNull);
     });
 
-    test('getAttribute json from Map (passthrough)', () {
+    test('getAttribute json from Map', () {
       final user = CastUser({
         'settings': {'theme': 'light'},
       });
@@ -206,7 +194,7 @@ void main() {
       expect(tags?.length, 3);
     });
 
-    test('getAttribute array from List (passthrough)', () {
+    test('getAttribute array from List', () {
       final user = CastUser({
         'tags': ['a', 'b', 'c'],
       });
@@ -241,68 +229,73 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // TYPE CASTING - WRITE
-  // ===========================================================================
   group('setAttribute - JSON Encoding', () {
-    test('setAttribute encodes Map to JSON string', () {
+    test('setAttribute stores Map as Map', () {
       final user = CastUser();
       user.setAttribute('settings', {'theme': 'dark'});
 
-      expect(user.attributes['settings'], isA<String>());
-      expect(user.attributes['settings'], contains('"theme":"dark"'));
+      expect(user.attributes['settings'], isA<Map>());
+      expect(user.attributes['settings'], equals({'theme': 'dark'}));
     });
 
-    test('setAttribute encodes List to JSON string', () {
+    test('setAttribute stores List as List', () {
       final user = CastUser();
       user.setAttribute('tags', ['a', 'b', 'c']);
 
-      expect(user.attributes['tags'], isA<String>());
-      expect(user.attributes['tags'], '["a","b","c"]');
+      expect(user.attributes['tags'], isA<List>());
+      expect(user.attributes['tags'], equals(['a', 'b', 'c']));
     });
 
-    test('setAttribute encodes nested objects to JSON', () {
+    test('setAttribute stores nested objects as Map', () {
       final user = CastUser();
       user.setAttribute('settings', {
         'nested': {'deep': true},
       });
 
-      expect(user.attributes['settings'], contains('"nested"'));
-      expect(user.attributes['settings'], contains('"deep":true'));
+      expect(user.attributes['settings'], isA<Map>());
+      expect(user.attributes['settings']['nested']['deep'], isTrue);
     });
 
-    test('setAttribute calls toJson() on custom objects', () {
+    test('setAttribute stores custom objects as instance', () {
       final user = CastUser();
       final obj = JsonModel('test', 42);
       user.setAttribute('settings', obj);
 
-      expect(user.attributes['settings'], '{"name":"test","value":42}');
+      expect(user.attributes['settings'], isA<JsonModel>());
     });
 
-    test('setAttribute preserves JSON string as-is', () {
+    test('setAttribute decodes JSON string to Map automatically', () {
       final user = CastUser();
       user.setAttribute('settings', '{"already":"json"}');
 
-      expect(user.attributes['settings'], '{"already":"json"}');
+      expect(user.attributes['settings'], isA<Map>());
+      expect(user.attributes['settings'], equals({'already': 'json'}));
+    });
+
+    test('setAttribute keeps invalid JSON string as String', () {
+      final user = CastUser();
+      user.setAttribute('settings', 'invalid-json');
+
+      expect(user.attributes['settings'], 'invalid-json');
     });
   });
 
   group('setAttribute - Primitives', () {
-    test('setAttribute encodes bool true to 1', () {
+    test('setAttribute converts bool true to 1', () {
       final user = CastUser();
       user.setAttribute('is_active', true);
 
       expect(user.attributes['is_active'], 1);
     });
 
-    test('setAttribute encodes bool false to 0', () {
+    test('setAttribute converts bool false to 0', () {
       final user = CastUser();
       user.setAttribute('is_active', false);
 
       expect(user.attributes['is_active'], 0);
     });
 
-    test('setAttribute encodes DateTime to ISO string', () {
+    test('setAttribute converts DateTime to ISO string', () {
       final user = CastUser();
       final dt = DateTime(2024, 6, 15, 10, 30, 0);
       user.setAttribute('created_at', dt);
@@ -334,14 +327,14 @@ void main() {
   });
 
   group('setAttribute - Enum', () {
-    test('setAttribute encodes Enum to name string', () {
+    test('setAttribute converts Enum to name string', () {
       final user = CastUser();
       user.setAttribute('status', UserStatus.active);
 
       expect(user.attributes['status'], 'active');
     });
 
-    test('setAttribute encodes different enum values', () {
+    test('setAttribute converts different enum values', () {
       final user = CastUser();
 
       user.setAttribute('status', Priority.high);
@@ -352,9 +345,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // ENUM HANDLING (getEnum)
-  // ===========================================================================
   group('getEnum', () {
     test('getEnum with valid int index', () {
       final user = CastUser({'status': 0});
@@ -363,7 +353,7 @@ void main() {
       expect(status, UserStatus.active);
     });
 
-    test('getEnum with out-of-bounds index returns null', () {
+    test('getEnum with out of bounds index returns null', () {
       final user = CastUser({'status': 99});
       final status = user.getEnum('status', UserStatus.values);
 

@@ -2,7 +2,11 @@
 
 Bavard includes a code generator to create typed accessors, eliminating the need to work with raw `attributes` maps.
 
-## Setup
+## @fillable
+
+This annotation is used to generate, based on the provided schema, the various elements necessary to make the model typed. By adding the various getters and setters, the map of fillables and protecting the guarded fields.
+
+### Setup
 
 1. Add `build_runner` and `bavard` to your dev dependencies.
 2. In your model file, add the `part` directive.
@@ -34,13 +38,13 @@ class User extends Model with $UserFillable {
 }
 ```
 
-## Running the Builder
+### Running the Builder
 
 ```bash
 dart run build_runner build
 ```
 
-## Generated Features
+### Generated Features
 
 The generator creates:
 1. **Typed Getters/Setters**: `user.name`, `user.age`.
@@ -48,8 +52,40 @@ The generator creates:
 3. **Casts Map**: Automatically derived from the column types.
 4. **Static Schema**: Enables type-safe queries like `User().query().where(User.schema.age.greaterThan(18))`.
 
-## Type Modifiers
+### Type Modifiers
 
 In the schema definition:
 - `isNullable: true`: The Dart getter will be nullable (e.g., `int?`).
 - `isGuarded: true`: The field will be added to the `guarded` list and excluded from `fillable`.
+
+## @bavardPivot
+
+For Many-to-Many relationships, you can create strongly-typed `Pivot` classes to access data on the intermediate table.
+
+1. Create a class that extends `Pivot`.
+2. Add the `part` directive.
+3. Annotate the class with `@bavardPivot`.
+4. Add the generated mixin.
+5. Define your pivot-specific columns in a `static const schema` record.
+
+```dart
+// user_role.dart
+import 'package:bavard/bavard.dart';
+import 'package:bavard/schema.dart';
+
+import 'user_role.pivot.g.dart';
+
+@bavardPivot
+class UserRole extends Pivot with $UserRole {
+  UserRole(super.attributes);
+
+  static const schema = (
+    createdAt: DateTimeColumn('created_at'),
+    isActive: BoolColumn('is_active'),
+  );
+}
+```
+
+The pivot generator creates:
+1. **Typed Getters/Setters**: `pivot.createdAt`, `pivot.isActive`.
+2. **Static Columns List**: `UserRole.columns`, which can be passed to the `belongsToMany(...).using()` method.

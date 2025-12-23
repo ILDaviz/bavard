@@ -23,9 +23,9 @@ This will execute:
 
 Once loaded, you can access the relationships without awaiting a new query.
 
-### Defining `getRelation`
+### Defining `getRelation` (Mandatory)
 
-To enable this access, your model **must** implement the `getRelation` method. This method maps the string names to the relationship definitions.
+To enable eager loading, your model **must** implement the `getRelation` method. This method maps the string names provided to `withRelations` to the actual relationship definitions.
 
 ```dart
 class User extends Model {
@@ -40,7 +40,8 @@ class User extends Model {
       case 'profile':
         return profile();
       default:
-        return null;
+        // Always fall back to super
+        return super.getRelation(name);
     }
   }
 }

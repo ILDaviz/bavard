@@ -1,5 +1,6 @@
+import 'dart:convert';
+
 import '../../bavard.dart';
-import 'concerns/has_guards_attributes.dart';
 import './concerns/has_casts.dart';
 import './concerns/has_events.dart';
 import './concerns/has_relationships.dart';
@@ -34,8 +35,22 @@ abstract class Model
 
   set id(dynamic value) => attributes[primaryKey] = value;
 
-  Model([Map<String, dynamic> attributes = const {}])
-    : attributes = Map<String, dynamic>.from(attributes);
+  /// Holds the intermediate table data for Many-to-Many relationships.
+  Pivot? pivot;
+
+  /// Helper to safely cast the pivot object to a specific type.
+  T? getPivot<T extends Pivot>() {
+    if (pivot is T) {
+      return pivot as T;
+    }
+    return null;
+  }
+
+  Model([Map<String, dynamic> rawAttributes = const {}])
+      : attributes = {}, original = Map.from(rawAttributes)
+  {
+    hydrateAttributes(rawAttributes);
+  }
 
   /// Indicates if the model currently exists in the database (persisted).
   /// This change logic for CREATE or UPDATE
@@ -65,7 +80,7 @@ abstract class Model
   ///
   /// Critical for "Dirty Checking" to ensure only changed fields are sent to the DB.
   void syncOriginal() {
-    original = _deepCopy(attributes) as Map<String, dynamic>;
+    original = _deepCopy(dehydrateAttributes());
   }
 
   /// Container for eager-loaded data (e.g., `user.relations['posts']`).
@@ -108,14 +123,16 @@ abstract class Model
 
     final dbManager = DatabaseManager();
 
+    final dataToSave = dehydrateAttributes();
+
     if (!exists) {
-      final insertId = await dbManager.insert(table, attributes);
+      final insertId = await dbManager.insert(table, dataToSave);
       id ??= insertId;
       exists = true;
     } else {
       // Dirty Checking: identify strictly changed values to optimize the SQL payload.
       final dirtyAttributes = <String, dynamic>{};
-      attributes.forEach((key, value) {
+      dataToSave.forEach((key, value) {
         if (key != primaryKey && value != original[key]) {
           dirtyAttributes[key] = value;
         }
