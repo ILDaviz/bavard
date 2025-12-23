@@ -55,21 +55,14 @@ void main() {
     test('generates correct SQL for hasManyThroughPolymorphic', () async {
       final country = Country({'id': 1});
       
-      // We expect the query to fail execution because of empty mock, 
-      // but we only care about the generated SQL in dbSpy.
       try {
         await country.userComments().get();
       } catch (_) {}
 
       final sql = dbSpy.lastSql;
       
-      // 1. Should join using 'commentable_id' instead of 'user_id'
       expect(sql, contains('"users"."id" = "comments"."commentable_id"'));
-      
-      // 2. Should filter by 'commentable_type'
       expect(sql, contains('"commentable_type" = ?'));
-      
-      // 3. Should filter by parent (Country) ID on intermediate (User) table
       expect(sql, contains('"users"."country_id" = ?'));
     });
 
@@ -82,7 +75,6 @@ void main() {
       ];
       await countries.first.posts().match(countries, 'posts');
 
-      // Usa getRelationList per gestire il caso null
       final posts = countries.first.getRelationList<Post>('posts');
       expect(posts, isEmpty);
     });
