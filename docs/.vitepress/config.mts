@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Bavard",
-  description: "A reactive, Eloquent-inspired ORM for Dart & Flutter",
+  description: "An Eloquent-inspired ORM for Dart/Flutter. Simplify interactions with SQLite, PostgreSQL, PowerSync, or whatever database you prefer. Keep your code clean and readable.",
   lang: 'en-US',
   base: '/bavard/',
   cleanUrls: true,
