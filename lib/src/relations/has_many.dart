@@ -34,12 +34,19 @@ class HasMany<R extends Model> extends Relation<R> {
   /// Fetches all related children in a single `WHERE IN` query and distributes them
   /// to the corresponding parents in-memory.
   @override
-  Future<void> match(List<Model> models, String relationName) async {
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  }) async {
     final ids = getKeys(models, localKey);
 
-    final results = (await creator(
-      {},
-    ).newQuery().whereIn(foreignKey, ids).get()).cast<R>();
+    final results =
+        (await creator({})
+            .newQuery()
+            .withRelations(nested)
+            .whereIn(foreignKey, ids)
+            .get()).cast<R>();
 
     for (var model in models) {
       final myKey = normKey(model.attributes[localKey]);

@@ -75,7 +75,11 @@ class MorphTo<R extends Model> extends Relation<R> {
   /// 2. Executes exactly one query per distinct type found.
   /// 3. Merges results into a lookup dictionary to populate relations in memory.
   @override
-  Future<void> match(List<Model> models, String relationName) async {
+  Future<void> match(
+    List<Model> models,
+    String relationName, {
+    List<String> nested = const [],
+  }) async {
     Map<String, List<dynamic>> mapByType = {};
 
     // 1. Group IDs by type
@@ -99,10 +103,12 @@ class MorphTo<R extends Model> extends Relation<R> {
       final ids = mapByType[type]!;
       final dummyModel = creator(const {});
 
-      final results = await dummyModel
-          .newQuery()
-          .whereIn(dummyModel.primaryKey, ids)
-          .get();
+      final results =
+          await dummyModel
+              .newQuery()
+              .withRelations(nested)
+              .whereIn(dummyModel.primaryKey, ids)
+              .get();
 
       resultsByType[type] = {for (var r in results) normKey(r.id)!: r};
     }
