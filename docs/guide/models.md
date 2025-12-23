@@ -22,6 +22,22 @@ class User extends Model {
 }
 ```
 
+### Relationships & `getRelation`
+
+If your model defines relationships, you **must** override the `getRelation` method. This method maps relationship names (used in eager loading) to their corresponding definition methods.
+
+```dart
+class User extends Model {
+  HasMany<Post> posts() => hasMany(Post.new);
+
+  @override
+  Relation? getRelation(String name) {
+    if (name == 'posts') return posts();
+    return super.getRelation(name);
+  }
+}
+```
+
 ## Accessing Attributes
 
 By default, attributes are stored in a `Map<String, dynamic>`.

@@ -39,6 +39,17 @@ class BelongsToMany<R extends Model> extends Relation<R> {
     return this;
   }
 
+  /// Adds simple columns to be retrieved from the pivot table.
+  ///
+  /// Useful for retrieving extra data without defining a full [Pivot] class.
+  /// The attributes will be available via `model.pivot.attributes`.
+  BelongsToMany<R> withPivot(List<String> columns) {
+    _pivotColumns.addAll(columns.map((name) => TextColumn(name)));
+    // Ensure we have a pivot creator if not set
+    _pivotCreator ??= (map) => GenericPivot(map);
+    return this;
+  }
+
   /// Configures the INNER JOIN between the related table and pivot table,
   /// filtering results to match the current parent's ID.
   @override
@@ -254,9 +265,12 @@ class BelongsToMany<R extends Model> extends Relation<R> {
 
           // Attach Pivot
           if (_pivotCreator != null) {
+            matches.add(clone);
             // In match (separate query), we don't use 'pivot_' prefix aliases.
             // The row comes directly from the pivot table.
-            clone.pivot = _pivotCreator!(pivotRow);
+            clone.pivot = _pivotCreator != null
+                ? _pivotCreator!(pivotRow)
+                : GenericPivot(pivotRow);
           }
 
           matches.add(clone);

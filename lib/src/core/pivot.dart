@@ -61,3 +61,8 @@ abstract class Pivot {
 // This is utility method.
 bool _isType<T, Target>() => T == Target || T == _typeOf<Target?>();
 Type _typeOf<T>() => T;
+
+/// A default concrete implementation of [Pivot] for when no custom class is defined.
+class GenericPivot extends Pivot {
+  GenericPivot(super.attributes);
+}

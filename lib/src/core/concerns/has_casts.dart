@@ -96,6 +96,8 @@ mixin HasCasts {
     return null;
   }
 
+
+
   /// Writes data to [attributes], applying transformations for persistence.
   ///
   /// Key transformations:

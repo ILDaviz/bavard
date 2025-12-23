@@ -2,6 +2,26 @@
 
 Bavard supports all standard database relationships.
 
+> [!IMPORTANT]
+> **The `getRelation` Method**
+> To enable features like **Eager Loading** (`withRelations`), you **MUST** override the `getRelation` method in your Model. This method maps relationship names (strings) to their corresponding definition methods.
+>
+> ```dart
+> class User extends Model {
+>   HasMany<Post> posts() => hasMany(Post.new);
+>   HasOne<Profile> profile() => hasOne(Profile.new);
+>
+>   @override
+>   Relation? getRelation(String name) {
+>     switch (name) {
+>       case 'posts': return posts();
+>       case 'profile': return profile();
+>       default: return super.getRelation(name);
+>     }
+>   }
+> }
+> ```
+
 ## HasOne (One-to-One)
 
 A one-to-one relationship is a very basic relation. For example, a `User` model might be associated with one `Profile`.
