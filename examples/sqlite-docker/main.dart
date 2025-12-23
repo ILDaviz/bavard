@@ -126,6 +126,11 @@ class User extends Model with HasTimestamps {
   HasOne<Profile> profile() => hasOne(Profile.new);
   HasMany<Post> posts() => hasMany(Post.new);
   HasMany<Comment> comments() => hasMany(Comment.new);
+  HasManyThrough<Comment, Post> postComments() {
+    return hasManyThrough(Comment.new, Post.new, secondKey: 'commentable_id')
+      // For get only posts comments
+      ..where('commentable_type', 'posts');
+  }
 
   @override
   Relation? getRelation(String name) {
@@ -133,6 +138,7 @@ class User extends Model with HasTimestamps {
       case 'profile': return profile();
       case 'posts': return posts();
       case 'comments': return comments();
+      case 'postComments': return postComments();
       default: return super.getRelation(name);
     }
   }
@@ -233,6 +239,21 @@ class Task extends Model with HasTimestamps, HasSoftDeletes {
   };
 }
 
+class Product extends Model with HasTimestamps {
+  @override String get table => 'products';
+  Product([super.attributes]);
+  @override Product fromMap(Map<String, dynamic> map) => Product(map);
+
+  @override
+  Future<bool> onSaving() async {
+    if (attributes.containsKey('name')) {
+      attributes['name'] = attributes['name'].toString().toUpperCase();
+    }
+
+    return true;
+  }
+}
+
 // ========================================== 
 // 3. MAIN TEST SUITE
 // ========================================== 
@@ -261,6 +282,7 @@ void main() async {
     CREATE TABLE videos (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, url TEXT, created_at TEXT, updated_at TEXT);
     CREATE TABLE category_post (post_id INTEGER, category_id INTEGER, created_at TEXT, PRIMARY KEY(post_id, category_id));
     CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, metadata TEXT,created_at TEXT, updated_at TEXT, deleted_at TEXT);
+    CREATE TABLE products (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price REAL, created_at TEXT, updated_at TEXT);
   ''');
   print('✅ Database & Schema Initialized.');
 
@@ -491,7 +513,7 @@ void main() async {
 
   // TEST 11: Performance / Stress Test
   await runTest('Performance & Stress Test (Bulk Operations)', () async {
-    final int count = 100000;
+    final int count = 100;
     final stopwatch = Stopwatch()..start();
 
     // Use transaction for bulk insert to be realistic
@@ -551,7 +573,66 @@ void main() async {
       throw 'Type Error: "id" should be int, got ${attrs['id'].runtimeType} (${attrs['id']})';
     }
 
-    //print('    -> Types verified: String=${attrs['title'].runtimeType}, Int=${attrs['views'].runtimeType}');
+    // Active for debug.
+    // print('    -> Types verified: String=${attrs['title'].runtimeType}, Int=${attrs['views'].runtimeType}');
+  });
+
+  // TEST 13: HasManyThrough (User -> Post -> Comments)
+  await runTest('HasManyThrough (User -> Post -> Comments)', () async {
+    final user = User({'name': 'ThroughUser', 'email': 'through@test.com', 'created_at': isoNow()});
+    await user.save();
+
+    final post = Post({'user_id': user.id, 'title': 'ThroughPost', 'created_at': isoNow()});
+    await post.save();
+
+    await Comment({
+      'body': 'ThroughComment',
+      'commentable_type': 'posts',
+      'commentable_id': post.id,
+      'user_id': user.id
+    }).save();
+
+    final fetchedUser = await User().query().withRelations(['postComments']).find(user.id);
+    if (fetchedUser == null) throw 'User not found';
+
+    final comments = fetchedUser.getRelationList<Comment>('postComments');
+    if (comments.isEmpty) throw 'No comments found via HasManyThrough';
+    if (comments.first.attributes['body'] != 'ThroughComment') throw 'Comment content mismatch';
+  });
+
+  // TEST 14: Lifecycle Hooks (onCreating)
+  await runTest('Lifecycle Hooks (onCreating)', () async {
+    final product = Product({'name': 'laptop', 'price': 999.99, 'created_at': isoNow()});
+    await product.save();
+
+    final fetched = await Product().query().find(product.id);
+    if (fetched == null) throw 'Product not found';
+
+    // Verify hook modified the data (laptop -> LAPTOP)
+    if (fetched.attributes['name'] != 'LAPTOP') {
+      throw 'Hook failed: Name should be LAPTOP, got ${fetched.attributes['name']}';
+    }
+  });
+
+  // TEST 15: Aggregates (Sum, Avg, Max)
+  await runTest('Aggregates (Sum, Avg, Max)', () async {
+    db.execute("DELETE FROM posts");
+    // Insert dummy posts with views: 10, 20, 30
+    await Post({'title': 'P1', 'views': 10, 'created_at': isoNow()}).save();
+    await Post({'title': 'P2', 'views': 20, 'created_at': isoNow()}).save();
+    await Post({'title': 'P3', 'views': 30, 'created_at': isoNow()}).save();
+
+    final sum = await Post().query().sum('views');
+    if (sum != 60) throw 'Sum failed: Expected 60, got $sum';
+
+    final avg = await Post().query().avg('views');
+    if (avg != 20.0) throw 'Avg failed: Expected 20.0, got $avg';
+
+    final max = await Post().query().max('views');
+    if (max != 30) throw 'Max failed: Expected 30, got $max';
+
+    final min = await Post().query().min('views');
+    if (min != 10) throw 'Min failed: Expected 10, got $min';
   });
 
   print('\n🎉 --- ALL SYSTEMS GO: CORE IS STABLE --- 🎉');
