@@ -24,8 +24,7 @@ class User extends Model {
 
 ### Relationships & `getRelation`
 
-If your model defines relationships, you **must** override the `getRelation` method. This method maps relationship names (used in eager loading) to their corresponding definition methods.
-
+If the model defines relationships, it is **necessary** to override the `getRelation` method. This method maps relationship names (used in lazy loading) to the corresponding definition methods. For this ORM to function correctly, it must always be defined for each model.
 ```dart
 class User extends Model {
   HasMany<Post> posts() => hasMany(Post.new);

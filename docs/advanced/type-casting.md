@@ -1,6 +1,6 @@
 # Type Casting
 
-Bavard allows you to convert attributes to common data types when retrieving them from the database, and serialize them back when saving.
+Bavard manages data conversion through the HasCasts mixin, acting as a bridge between raw database values and Dart objects. Hydration occurs when fetching records; the framework stores the raw data internally but lazily parses it—converting timestamps, booleans, or JSON strings into their respective objects—only when you access an attribute via getAttribute. Conversely, Dehydration prepares data for storage or comparison. When setting values or saving a model, the framework serializes rich Dart objects back into database-compatible primitives (like integers for booleans), ensuring complex structures are correctly encoded for persistence and dirty checking.
 
 ## Defining Casts
 

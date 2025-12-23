@@ -2,6 +2,10 @@
 
 Add Bavard to your `pubspec.yaml` dependencies:
 
+> [!IMPORTANT]
+> For now, the project is under development and has not been released on pub.dev. As soon as it is ready, you will find it online. To use it, you need to download it and manage it as an external repository for the project.
+>
+
 ```yaml
 dependencies:
   bavard: ^0.0.1

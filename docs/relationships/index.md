@@ -4,7 +4,7 @@ Bavard supports all standard database relationships.
 
 > [!IMPORTANT]
 > **The `getRelation` Method**
-> To enable features like **Eager Loading** (`withRelations`), you **MUST** override the `getRelation` method in your Model. This method maps relationship names (strings) to their corresponding definition methods.
+> If the model defines relationships, it is **necessary** to override the `getRelation` method for **ALL** existing relationships. This method maps the relationship names (used in lazy loading) to the corresponding definition methods. For this ORM to function correctly, it must always be defined for each model.
 >
 > ```dart
 > class User extends Model {

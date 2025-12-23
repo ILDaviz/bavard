@@ -4,11 +4,27 @@ Bavard is designed to be purely agnostic regarding the underlying database drive
 
 To connect Bavard to a database, you must implement the `DatabaseAdapter` interface.
 
+## Grammars & Dialects
+
+Since Bavard supports multiple SQL dialects, your adapter must specify which **Grammar** it uses to generate SQL.
+
+- **SQLiteGrammar**: For SQLite, PowerSync, Drift, and sqflite.
+- **PostgresGrammar**: For PostgreSQL, Supabase, and other Postgres-compatible drivers.
+
+The `DatabaseAdapter` interface requires you to implement the `grammar` getter:
+
+```dart
+@override
+Grammar get grammar => SQLiteGrammar(); // or PostgresGrammar()
+```
+
 Below are the **reference implementations** for the most common use cases. You can copy these files directly into your project.
+
 
 ## SQLite (via `package:sqlite3`)
 
 Best for: **Dart Desktop / Mobile (FFI)**.
+
 
 **Dependencies:**
 - `bavard`
@@ -16,9 +32,12 @@ Best for: **Dart Desktop / Mobile (FFI)**.
 
 ```dart
 import 'dart:async';
+import 'dart:io';
+import 'dart:convert';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/src/grammars/sqlite_grammar.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:bavard/schema.dart';
 
 class SqliteAdapter implements DatabaseAdapter {
   final Database _db;
@@ -26,12 +45,21 @@ class SqliteAdapter implements DatabaseAdapter {
   SqliteAdapter(this._db);
 
   @override
-  Grammar get grammar => SqliteGrammar();
+  Grammar get grammar => SQLiteGrammar();
+
+  List<dynamic> _sanitize(List<dynamic> args) {
+    return args.map((arg) {
+      if (arg is DateTime) return arg.toIso8601String();
+      if (arg is bool) return arg ? 1 : 0;
+      if (arg is Map || arg is List) return jsonEncode(arg);
+
+      return arg;
+    }).toList();
+  }
 
   @override
   Future<List<Map<String, dynamic>>> getAll(String sql, [List<dynamic>? arguments]) async {
-    final result = _db.select(sql, arguments ?? []);
-    // Convert Row objects to Map<String, dynamic>
+    final result = _db.select(sql, _sanitize(arguments ?? []));
     return result.map((row) => Map<String, dynamic>.from(row)).toList();
   }
 
@@ -44,38 +72,33 @@ class SqliteAdapter implements DatabaseAdapter {
 
   @override
   Future<int> execute(String sql, [List<dynamic>? arguments]) async {
-    _db.execute(sql, arguments ?? []);
-    return _db.getUpdatedRows(); // Return number of affected rows
+    _db.execute(sql, _sanitize(arguments ?? []));
+    return _db.getUpdatedRows();
   }
 
   @override
   Future<dynamic> insert(String table, Map<String, dynamic> values) async {
-    // Generate standard INSERT statement
     final columns = values.keys.map((k) => '"$k"').join(', ');
     final placeholders = List.filled(values.length, '?').join(', ');
     final sql = 'INSERT INTO "$table" ($columns) VALUES ($placeholders)';
-    
-    _db.execute(sql, values.values.toList());
+
+    _db.execute(sql, _sanitize(values.values.toList()));
     return _db.lastInsertRowId;
   }
 
   @override
   Stream<List<Map<String, dynamic>>> watch(String sql, {List<dynamic>? parameters}) {
-    // NOTE: package:sqlite3 does not support reactive streams out of the box.
-    // For reactive apps, consider using 'drift' or creating a custom stream controller.
-    // This is a basic non-reactive fallback.
     return Stream.fromFuture(getAll(sql, parameters));
   }
-  
+
   @override
   bool get supportsTransactions => true;
 
   @override
   Future<T> transaction<T>(Future<T> Function(TransactionContext txn) callback) async {
-    // Basic transaction handling
     _db.execute('BEGIN TRANSACTION');
     try {
-      final txnContext = _SqliteTransactionContext(_db);
+      final txnContext = _SqliteTransactionContext(_db, _sanitize);
       final result = await callback(txnContext);
       _db.execute('COMMIT');
       return result;
@@ -88,11 +111,13 @@ class SqliteAdapter implements DatabaseAdapter {
 
 class _SqliteTransactionContext implements TransactionContext {
   final Database _db;
-  _SqliteTransactionContext(this._db);
+  final List<dynamic> Function(List<dynamic>) _sanitize;
+
+  _SqliteTransactionContext(this._db, this._sanitize);
 
   @override
   Future<List<Map<String, dynamic>>> getAll(String sql, [List? arguments]) async {
-    final result = _db.select(sql, arguments ?? []);
+    final result = _db.select(sql, _sanitize(arguments ?? []));
     return result.map((row) => Map<String, dynamic>.from(row)).toList();
   }
 
@@ -104,7 +129,7 @@ class _SqliteTransactionContext implements TransactionContext {
 
   @override
   Future<int> execute(String sql, [List? arguments]) async {
-    _db.execute(sql, arguments ?? []);
+    _db.execute(sql, _sanitize(arguments ?? []));
     return _db.getUpdatedRows();
   }
 
@@ -113,7 +138,7 @@ class _SqliteTransactionContext implements TransactionContext {
     final columns = values.keys.map((k) => '"$k"').join(', ');
     final placeholders = List.filled(values.length, '?').join(', ');
     final sql = 'INSERT INTO "$table" ($columns) VALUES ($placeholders)';
-    _db.execute(sql, values.values.toList());
+    _db.execute(sql, _sanitize(values.values.toList()));
     return _db.lastInsertRowId;
   }
 }
