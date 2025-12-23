@@ -2,6 +2,26 @@
 
 Bavard supports all standard database relationships.
 
+> [!IMPORTANT]
+> **The `getRelation` Method**
+> If the model defines relationships, it is **necessary** to override the `getRelation` method for **ALL** existing relationships. This method maps the relationship names (used in lazy loading) to the corresponding definition methods. For this ORM to function correctly, it must always be defined for each model.
+>
+> ```dart
+> class User extends Model {
+>   HasMany<Post> posts() => hasMany(Post.new);
+>   HasOne<Profile> profile() => hasOne(Profile.new);
+>
+>   @override
+>   Relation? getRelation(String name) {
+>     switch (name) {
+>       case 'posts': return posts();
+>       case 'profile': return profile();
+>       default: return super.getRelation(name);
+>     }
+>   }
+> }
+> ```
+
 ## HasOne (One-to-One)
 
 A one-to-one relationship is a very basic relation. For example, a `User` model might be associated with one `Profile`.
@@ -96,3 +116,87 @@ BelongsToMany<Role> roles() => belongsToMany(
 final user = await User().query().find(1);
 final roles = await user?.roles().get();
 ```
+
+### Accessing Intermediate Table Attributes
+
+Working with pivot tables often involves accessing extra data stored on the intermediate table. Bavard allows you to retrieve this data in a strongly-typed way using a custom `Pivot` class.
+
+**1. Define the Pivot Class**
+Create a class that extends `Pivot` and defines your intermediate table columns using a `static const schema` record. Annotate it with `@bavardPivot`.
+
+```dart
+// user_role.dart
+import 'package:bavard/bavard.dart';
+import 'package:bavard/schema.dart';
+
+import 'user_role.pivot.g.dart';
+
+@bavardPivot
+class UserRole extends Pivot with $UserRole {
+  UserRole(super.attributes);
+
+  // Define pivot columns in a schema record
+  static const schema = (
+    createdAt: DateTimeColumn('created_at'),
+    isActive: BoolColumn('is_active'),
+  );
+}
+```
+
+**2. Run the Code Generator**
+This will generate the `$UserRole` mixin containing typed accessors (getters and setters).
+```bash
+dart run build_runner build
+```
+
+**3. Use `.using()` on the Relationship**
+In your model, chain the `.using()` method to your `belongsToMany` definition, providing the `Pivot` class factory and the generated schema columns.
+
+```dart
+class User extends Model {
+  BelongsToMany<Role> roles() {
+    return belongsToMany(Role.new, 'user_roles')
+      .using(UserRole.new, UserRole.columns);
+  }
+}
+```
+
+**4. Retrieve Pivot Data**
+When you retrieve the relationship, each related model will have a `pivot` property. Use the `getPivot<T>()` helper to access it in a type-safe way.
+
+```dart
+final user = await User().query().withRelations(['roles']).first();
+
+final firstRole = user.rolesList.first;
+final pivotData = firstRole.getPivot<UserRole>();
+
+print(pivotData?.createdAt); // Fully typed as DateTime?
+print(pivotData?.isActive);  // Fully typed as bool?
+
+// You can also update pivot attributes
+pivotData?.isActive = false;
+```
+This works for both eager loading (`withRelations`) and lazy loading (`get()`).
+
+### Filtering via Pivot Columns
+
+You can filter the relationship results based on columns in the intermediate table using `wherePivot` helpers.
+
+```dart
+// Basic filtering
+final admins = await user.roles()
+    .wherePivot('is_admin', true)
+    .get();
+
+// Using WhereCondition (Typed)
+final activeRoles = await user.roles()
+    .wherePivotCondition(UserRole.schema.isActive.isTrue())
+    .get();
+```
+
+Available methods:
+- `wherePivot(column, value, [op])`
+- `orWherePivot(...)`
+- `wherePivotIn(...)` / `wherePivotNotIn(...)`
+- `wherePivotNull(...)` / `wherePivotNotNull(...)`
+- `wherePivotCondition(condition)` / `orWherePivotCondition(condition)`

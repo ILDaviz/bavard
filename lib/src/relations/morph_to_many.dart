@@ -60,9 +60,12 @@ class MorphToMany<R extends Model> extends Relation<R> {
 
     final relatedForeignKey = Utils.foreignKey(table);
 
-    // Raw SQL required to combine static Type filtering with dynamic ID IN-clause.
+    final pivotTableWrap = db.grammar.wrap(pivotTable);
+    final pivotMorphTypeWrap = db.grammar.wrap(pivotMorphType);
+    final nameWrap = db.grammar.wrap('${name}_id');
+    
     final pivotSql =
-        "SELECT * FROM $pivotTable WHERE $pivotMorphType = ? AND ${name}_id IN (${parentIds.map((_) => '?').join(',')})";
+        "SELECT * FROM $pivotTableWrap WHERE $pivotMorphTypeWrap = ? AND $nameWrap IN (${parentIds.map((_) => '?').join(',')})";
 
     final params = [parent.table, ...parentIds];
     final pivotRows = await db.getAll(pivotSql, params);

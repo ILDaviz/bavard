@@ -6,12 +6,25 @@ targets:
         generate_for:
           - lib/**/*.dart
           - test/**/*.dart
+      bavard|pivot_generator:
+        enabled: true
+        generate_for:
+          - lib/**/*.dart
+          - test/**/*.dart
 
 builders:
   fillable_generator:
-    import: "package:bavard/src/generators/builder.dart"
+    import: "package:bavard/src/generators/model_fillable_generator.dart"
     builder_factories: ["fillableGenerator"]
     build_extensions:
       ".dart": [".fillable.g.dart"]
+    auto_apply: dependents
+    build_to: source
+
+  pivot_generator:
+    import: "package:bavard/src/generators/pivot_generator.dart"
+    builder_factories: ["pivotGenerator"]
+    build_extensions:
+      ".dart": [".pivot.g.dart"]
     auto_apply: dependents
     build_to: source

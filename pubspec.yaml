@@ -1,7 +1,7 @@
 name: bavard
 description: A Laravel Eloquent-like ORM for PowerSync, sqlite or PostgreSQL.
 
-version: 0.0.2
+version: 0.0.5
 
 environment:
   sdk: ^3.10.1

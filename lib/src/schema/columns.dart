@@ -16,6 +16,7 @@ abstract class Column<T> {
   final bool isNullable;
 
   /// Prevents this column from being mass-assigned during inserts/updates.
+  /// This isGuarded is ignored on pivot column.
   final bool isGuarded;
 
   const Column(this.name, {this.isNullable = false, this.isGuarded = false});

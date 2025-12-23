@@ -98,7 +98,7 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: 'Exceptions', link: '/reference/exceptions' },
-          { text: 'Database Adapter', link: '/reference/database-adapter' },
+          { text: 'Database Adapter', link: '/reference/adapters' },
           { text: 'Best Practices', link: '/reference/best-practices' },
           { text: 'API Index', link: '/api/' },
         ]

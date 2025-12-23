@@ -22,6 +22,21 @@ class User extends Model {
 }
 ```
 
+### Relationships & `getRelation`
+
+If the model defines relationships, it is **necessary** to override the `getRelation` method. This method maps relationship names (used in lazy loading) to the corresponding definition methods. For this ORM to function correctly, it must always be defined for each model.
+```dart
+class User extends Model {
+  HasMany<Post> posts() => hasMany(Post.new);
+
+  @override
+  Relation? getRelation(String name) {
+    if (name == 'posts') return posts();
+    return super.getRelation(name);
+  }
+}
+```
+
 ## Accessing Attributes
 
 By default, attributes are stored in a `Map<String, dynamic>`.

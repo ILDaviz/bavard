@@ -11,7 +11,7 @@ The foundational classes that power the ORM.
 | `Model` | The abstract base class for all your entities. Handles hydration, dirty checking, and persistence. | [Creating Models](../guide/models.md) |
 | `QueryBuilder<T>` | Fluent interface for constructing SQL queries safely. Returned by `User().query()`. | [Query Builder](../core/query-builder.md) |
 | `DatabaseManager` | Singleton service locator for managing the active database connection and transactions. | [Initial Setup](../guide/setup.md) |
-| `DatabaseAdapter` | Interface that must be implemented to connect Bavard to a specific database driver (SQLite, Postgres, etc.). | [Adapter](../reference/database-adapter.md) |
+| `DatabaseAdapter` | Interface that must be implemented to connect Bavard to a specific database driver (SQLite, Postgres, etc.). | [Adapter](../reference/adapters.md) |
 
 ## Schema Definition
 
