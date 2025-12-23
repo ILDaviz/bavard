@@ -127,9 +127,12 @@ class User extends Model with HasTimestamps {
   HasMany<Post> posts() => hasMany(Post.new);
   HasMany<Comment> comments() => hasMany(Comment.new);
   HasManyThrough<Comment, Post> postComments() {
-    return hasManyThrough(Comment.new, Post.new, secondKey: 'commentable_id')
-      // For get only posts comments
-      ..where('commentable_type', 'posts');
+    return hasManyThroughPolymorphic(
+      Comment.new, 
+      Post.new, 
+      name: 'commentable', 
+      type: 'posts'
+    );
   }
 
   @override

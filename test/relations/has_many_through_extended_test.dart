@@ -2,16 +2,6 @@ import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
 
-class Country extends Model {
-  @override
-  String get table => 'countries';
-  Country([super.attributes]);
-  @override
-  Country fromMap(Map<String, dynamic> map) => Country(map);
-
-  HasManyThrough<Post, User> posts() => hasManyThrough(Post.new, User.new);
-}
-
 class User extends Model {
   @override
   String get table => 'users';
@@ -28,6 +18,31 @@ class Post extends Model {
   Post fromMap(Map<String, dynamic> map) => Post(map);
 }
 
+class Comment extends Model {
+  @override
+  String get table => 'comments';
+  Comment([super.attributes]);
+  @override
+  Comment fromMap(Map<String, dynamic> map) => Comment(map);
+}
+
+class Country extends Model {
+  @override
+  String get table => 'countries';
+  Country([super.attributes]);
+  @override
+  Country fromMap(Map<String, dynamic> map) => Country(map);
+
+  HasManyThrough<Post, User> posts() => hasManyThrough(Post.new, User.new);
+  
+  HasManyThrough<Comment, User> userComments() => hasManyThroughPolymorphic(
+        Comment.new,
+        User.new,
+        name: 'commentable',
+        type: 'users',
+      );
+}
+
 void main() {
   late MockDatabaseSpy dbSpy;
 
@@ -37,6 +52,27 @@ void main() {
   });
 
   group('HasManyThrough Extended', () {
+    test('generates correct SQL for hasManyThroughPolymorphic', () async {
+      final country = Country({'id': 1});
+      
+      // We expect the query to fail execution because of empty mock, 
+      // but we only care about the generated SQL in dbSpy.
+      try {
+        await country.userComments().get();
+      } catch (_) {}
+
+      final sql = dbSpy.lastSql;
+      
+      // 1. Should join using 'commentable_id' instead of 'user_id'
+      expect(sql, contains('"users"."id" = "comments"."commentable_id"'));
+      
+      // 2. Should filter by 'commentable_type'
+      expect(sql, contains('"commentable_type" = ?'));
+      
+      // 3. Should filter by parent (Country) ID on intermediate (User) table
+      expect(sql, contains('"users"."country_id" = ?'));
+    });
+
     test('returns empty when no intermediate records', () async {
       final mockDb = MockDatabaseSpy([], {'FROM users': [], 'FROM posts': []});
       DatabaseManager().setDatabase(mockDb);

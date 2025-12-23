@@ -22,6 +22,28 @@ Bavard supports all standard database relationships.
 > }
 > ```
 
+## Constraining Relations
+
+Since all relationships in Bavard serve as query builders, you can add further constraints to the relationship queries directly within the model definition. This is useful for defining specialized relationships like "Active Posts" or sorting default results.
+
+The recommended way to do this is using the **cascade operator** (`..`) in Dart:
+
+```dart
+class User extends Model {
+  // Standard relation
+  HasMany<Post> posts() => hasMany(Post.new);
+
+  // Constrained relation: Only active posts
+  HasMany<Post> activePosts() {
+    return hasMany(Post.new)
+      ..where('is_active', true)
+      ..orderBy('created_at', direction: 'desc');
+  }
+}
+```
+
+Now, when you eager load or access `activePosts`, the additional WHERE and ORDER BY clauses will be automatically applied.
+
 ## HasOne (One-to-One)
 
 A one-to-one relationship is a very basic relation. For example, a `User` model might be associated with one `Profile`.

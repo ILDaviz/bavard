@@ -131,6 +131,35 @@ mixin HasRelationships {
     );
   }
 
+  /// Defines a distant 1:N relationship where the target model is polymorphic.
+  ///
+  /// Example: User has many Comments through Post.
+  /// (User -> Post -> Comment), but Comment is polymorphic (commentable_id, commentable_type).
+  ///
+  /// This automatically sets the [secondKey] to `${name}_id` and filters by `${name}_type`.
+  ///
+  /// * [name]: The polymorphic prefix (e.g. 'commentable').
+  /// * [type]: The discriminator value (e.g. 'posts').
+  HasManyThrough<R, I> hasManyThroughPolymorphic<R extends Model, I extends Model>(
+    R Function(Map<String, dynamic>) relatedCreator,
+    I Function(Map<String, dynamic>) intermediateCreator, {
+    required String name,
+    required String type,
+    String? firstKey,
+    String? secondKey,
+  }) {
+    final relation = hasManyThrough(
+      relatedCreator,
+      intermediateCreator,
+      firstKey: firstKey,
+      secondKey: secondKey ?? '${name}_id',
+    );
+
+    relation.where('${name}_type', type);
+
+    return relation;
+  }
+
   // --- Polymorphic Relationships ---
 
   /// Polymorphic 1:N. The target model [R] stores the `_id` and `_type`.
