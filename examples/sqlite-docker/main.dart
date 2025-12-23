@@ -6,9 +6,9 @@ import 'package:bavard/bavard.dart';
 import 'package:bavard/src/grammars/sqlite_grammar.dart';
 import 'package:bavard/schema.dart';
 
-// ==========================================
+// ========================================== 
 // 1. ADAPTER & INFRASTRUCTURE
-// ==========================================
+// ========================================== 
 
 class SqliteAdapter implements DatabaseAdapter {
   final Database _db;
@@ -114,9 +114,9 @@ class _SqliteTransactionContext implements TransactionContext {
   }
 }
 
-// ==========================================
+// ========================================== 
 // 2. MODELS (With Dispatcher)
-// ==========================================
+// ========================================== 
 
 class User extends Model with HasTimestamps {
   @override String get table => 'users';
@@ -233,9 +233,9 @@ class Task extends Model with HasTimestamps, HasSoftDeletes {
   };
 }
 
-// ==========================================
+// ========================================== 
 // 3. MAIN TEST SUITE
-// ==========================================
+// ========================================== 
 
 void main() async {
   print('\n🧪 --- STARTING BAVARD CORE & EDGE CASE TESTS --- 🧪\n');
@@ -244,14 +244,14 @@ void main() async {
   final dataDir = Directory('data');
   if (!dataDir.existsSync()) dataDir.createSync();
 
-  // Use a fresh DB name to avoid stale schema issues (fix for 'no column named views')
+  // Use a fresh DB name to avoid stale schema issues
   final dbPath = 'data/test_v2.db';
   if (File(dbPath).existsSync()) File(dbPath).deleteSync();
 
   final db = sqlite3.open(dbPath);
   DatabaseManager().setDatabase(SqliteAdapter(db));
 
-  // Create Schema - Added DEFAULT NULL to timestamps just in case, but we will provide them manually
+  // Create Schema
   db.execute('''
     CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, created_at TEXT, updated_at TEXT);
     CREATE TABLE profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, bio TEXT, website TEXT, created_at TEXT, updated_at TEXT);
@@ -271,7 +271,7 @@ void main() async {
     await user.save();
     if (user.id == null) throw 'User ID is null after save';
 
-    // Read - AGGIUNTO .query()
+    // Read
     final fetched = await User().query().find(user.id);
     if (fetched == null || fetched.attributes['name'] != 'David') throw 'Fetch failed or data mismatch';
 
@@ -279,15 +279,14 @@ void main() async {
     fetched.attributes['name'] = 'David Updated';
     await fetched.save();
 
-    // Read again - AGGIUNTO .query()
+    // Read again
     final updated = await User().query().find(user.id);
     if (updated!.attributes['name'] != 'David Updated') throw 'Update failed';
 
     // Delete
-    // Nota: Se Model non ha delete(), usa: await User().query().where('id', user.id).delete();
     await updated.delete();
 
-    // Check deletion - AGGIUNTO .query()
+    // Check deletion
     final deleted = await User().query().find(user.id);
     if (deleted != null) throw 'Delete failed (User still exists)';
 
@@ -302,7 +301,7 @@ void main() async {
       await Post({'title': 'Post $i', 'views': i * 10, 'created_at': isoNow()}).save();
     }
 
-    // Where (.query() era già presente qui)
+    // Where
     final p3 = await Post().query().where('views', 30).first();
     if (p3?.attributes['title'] != 'Post 3') throw 'Where clause failed';
 
@@ -426,23 +425,18 @@ void main() async {
     await t.save();
     final id = t.id;
 
-    // 1. Cancellazione Logica
+    // 1. Logical Delete
     await t.delete();
 
-    // 2. Verifica: La query standard NON deve trovarlo
+    // 2. Verification: Standard query should NOT find it
     final search = await Task().query().find(id);
     if (search != null) throw 'Soft Deleted record was found by standard query!';
 
-    // 3. Verifica: Il record deve esistere fisicamente nel DB con deleted_at valorizzato
-    // Usiamo l'adapter diretto per bypassare i filtri del Model
+    // 3. Verification: Record MUST exist physically in DB with deleted_at set
+    // Use direct adapter to bypass Model filters
     final raw = await db.select('SELECT * FROM tasks WHERE id = ?', [id]);
     if (raw.isEmpty) throw 'Record was physically deleted from DB!';
     if (raw.first['deleted_at'] == null) throw 'deleted_at column is null!';
-
-    // 4. Restore (Se il tuo ORM supporta .withTrashed() e .restore())
-    // await t.restore();
-    // final restored = await Task().query().find(id);
-    // if (restored == null) throw 'Restore failed';
   });
 
   // TEST 9: JSON Casting
@@ -451,18 +445,16 @@ void main() async {
 
     final t = Task({
       'title': 'Config Task',
-      'metadata': config, // Passiamo una Map, l'ORM dovrebbe serializzarla
+      'metadata': config, // Passing a Map, ORM should serialize it
       'created_at': isoNow(),
       'updated_at': isoNow()
     });
 
-    // Nota: Se il tuo Model.save() non gestisce automaticamente la serializzazione JSON,
-    // dovrai assicurarti che il casting funzioni in "set" attribute o qui fallirà l'insert.
     await t.save();
 
     final fetched = await Task().query().find(t.id);
 
-    // Verifica che leggendo dal DB ritorni una Map e non una String
+    // Verify that reading from DB returns a Map, not a String
     final meta = fetched!.attributes['metadata'];
 
     if (meta is! Map) throw 'JSON Cast failed: Expected Map, got ${meta.runtimeType}';
@@ -483,59 +475,58 @@ void main() async {
     await p3.save();
 
     // WHERE IN
-    // Ora p1.id e p3.id sono accessibili perché p1 e p3 sono oggetti Post
     final inResults = await Post().query().whereIn('id', [p1.id, p3.id]).get();
 
     if (inResults.length != 2) {
       throw 'WhereIn failed. Expected 2, got ${inResults.length}';
     }
 
-    // WHERE NULL (Creiamo un post orfano, user_id sarà null)
+    // WHERE NULL (Create orphan post, user_id will be null)
     final orphan = Post({'title': 'NullCheck', 'created_at': isoNow(), 'updated_at': isoNow()});
     await orphan.save();
 
     final nullResults = await Post().query().whereNull('user_id').get();
-    // Dovrebbe trovare tutti i post creati sopra (perché non abbiamo settato user_id)
     if (nullResults.isEmpty) throw 'WhereNull failed';
   });
 
   // TEST 11: Performance / Stress Test
   await runTest('Performance & Stress Test (Bulk Operations)', () async {
-    final int count = 1000;
+    final int count = 100000;
     final stopwatch = Stopwatch()..start();
 
     // Use transaction for bulk insert to be realistic
     await DatabaseManager().transaction((txn) async {
       for (var i = 0; i < count; i++) {
-        // Create objects but don't print inside loop
         await User({'name': 'Stress User $i', 'email': 'stress$i@test.com', 'created_at': isoNow()}).save();
       }
     });
 
     stopwatch.stop();
-    print('    -> Inserted $count records in ${stopwatch.elapsedMilliseconds}ms');
+    //print('    -> Inserted $count records in ${stopwatch.elapsedMilliseconds}ms');
 
     final countWatch = Stopwatch()..start();
     final totalUsers = await User().query().count();
     countWatch.stop();
 
-    // We expect at least 1000 + existing users
     if (totalUsers! < count) throw 'Bulk insert failed. Total users: $totalUsers';
 
     final queryWatch = Stopwatch()..start();
     // Fetch a large chunk
     final manyUsers = await User().query().limit(count).get();
     queryWatch.stop();
-    print('    -> Fetched ${manyUsers.length} records in ${queryWatch.elapsedMilliseconds}ms');
+    //print('    -> Fetched ${manyUsers.length} records in ${queryWatch.elapsedMilliseconds}ms');
 
     if (manyUsers.length != count) throw 'Bulk fetch returned wrong number of records';
   });
 
   // TEST 12: Type Safety Verification
   await runTest('Type Safety Verification', () async {
+    // SQLite uses dynamic typing, but the driver maps them to Dart types.
+    // We want to ensure our Model attributes preserve these types (e.g. Int stays Int, not String).
+
     final p = Post({
       'title': 'Typed Post',
-      'views': 99999,
+      'views': 99999, // Integer
       'created_at': isoNow()
     });
     await p.save();
@@ -545,23 +536,27 @@ void main() async {
 
     final attrs = fetched.attributes;
 
+    // 1. Check String
     if (attrs['title'] is! String) {
       throw 'Type Error: "title" should be String, got ${attrs['title'].runtimeType} (${attrs['title']})';
     }
 
+    // 2. Check Integer (Critical for SQLite)
     if (attrs['views'] is! int) {
       throw 'Type Error: "views" should be int, got ${attrs['views'].runtimeType} (${attrs['views']})';
     }
 
+    // 3. Check ID (AutoIncrement Integer)
     if (attrs['id'] is! int) {
       throw 'Type Error: "id" should be int, got ${attrs['id'].runtimeType} (${attrs['id']})';
     }
 
-    print('    -> Types verified: String=${attrs['title'].runtimeType}, Int=${attrs['views'].runtimeType}');
+    //print('    -> Types verified: String=${attrs['title'].runtimeType}, Int=${attrs['views'].runtimeType}');
   });
 
   print('\n🎉 --- ALL SYSTEMS GO: CORE IS STABLE --- 🎉');
 
+  // Only for debug.
   //printAllDbTables(db);
 }
 
@@ -576,7 +571,6 @@ Future<void> runTest(String name, Future<void> Function() testBody) async {
     print('❌ FAIL');
     print('   Error: $e');
     print('   Stack: $s');
-    // Optional: exit(1) to stop on first fail
   }
 }
 
@@ -590,7 +584,7 @@ void printAllDbTables(dynamic db) {
   );
 
   if (tablesResult.isEmpty) {
-    print('⚠️  Nessuna tabella trovata nel database.');
+    print('⚠️  No tables found in database.');
     return;
   }
 
@@ -600,7 +594,7 @@ void printAllDbTables(dynamic db) {
       final rows = db.select('SELECT * FROM $tableName');
       _printTable(rows, tableName);
     } catch (e) {
-      print('❌ Errore leggendo la tabella $tableName: $e');
+      print('❌ Error reading table $tableName: $e');
     }
   }
   print('════════════════════════════════════════════════════════════\n');
@@ -608,7 +602,7 @@ void printAllDbTables(dynamic db) {
 
 void _printTable(dynamic rows, String tableName) {
   if (rows.isEmpty) {
-    print('\n--- Table: $tableName (0 righe) ---');
+    print('\n--- Table: $tableName (0 rows) ---');
     return;
   }
 
@@ -629,7 +623,7 @@ void _printTable(dynamic rows, String tableName) {
     }
   }
 
-  print('\n--- Table: $tableName (${data.length} righe) ---');
+  print('\n--- Table: $tableName (${data.length} rows) ---');
 
   final header = columns.map((c) => c.padRight(widths[c]!)).join(' | ');
   print(header);
