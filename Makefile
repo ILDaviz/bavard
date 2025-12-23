@@ -28,9 +28,12 @@ release: check-git
 	@echo "🔄 Updating version in pubspec.yaml..."
 	@python3 -c "import sys; f='pubspec.yaml'; lines=open(f).readlines(); open(f,'w').writelines(['version: '+sys.argv[1]+'\n' if line.startswith('version:') else line for line in lines])" $(v)
 
-	@echo "📦 Committing pubspec.yaml..."
-	git add pubspec.yaml
-	git commit -m "chore: bump version to $(v)"
+	@echo "📝 Updating CHANGELOG.md..."
+	@python3 -c "import sys, datetime; v=sys.argv[1]; d=datetime.date.today().strftime('%Y-%m-%d'); f='CHANGELOG.md'; c=open(f).read(); open(f,'w').write(c.replace('## [Unreleased]', '## [Unreleased]\n\n## ['+v+'] - '+d))" $(v)
+
+	@echo "📦 Committing release files..."
+	git add pubspec.yaml CHANGELOG.md
+	git commit -m "chore: release v$(v)"
 
 	@echo "🏷️ Creating Tag v$(v)..."
 	git tag v$(v)

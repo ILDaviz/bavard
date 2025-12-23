@@ -1,4 +1,4 @@
-# Bavard (Pre-Alpha)
+# Bavard
 
 Bavard is an Eloquent-like ORM for Flutter/Dart, designed to work with SQLite, PostgreSQL, PowerSync or any driver you want.
 

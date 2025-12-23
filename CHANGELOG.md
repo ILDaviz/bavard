@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.3] - 2025-12-23
+
 ### Added
 - **Pivots:** Added typed pivot support for many-to-many relations, allowing type-safe access to pivot data.
 - **Pivots:** Allowed retrieving extra pivot columns without requiring a custom pivot class definition.
