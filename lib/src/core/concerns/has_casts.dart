@@ -22,6 +22,37 @@ mixin HasCasts {
     return value.split(':').first.replaceAll('!', '').replaceAll('?', '');
   }
 
+  void hydrateAttributes(Map<String, dynamic> rawData) {
+    attributes.addAll(rawData);
+    casts.forEach((key, rawType) {
+      if (!attributes.containsKey(key)) return; // Se nullo, lasciamo nullo
+      setAttribute(key, attributes[key]);
+    });
+  }
+
+  Map<String, dynamic> dehydrateAttributes() {
+    final dehydrateData = Map<String, dynamic>.from(attributes);
+
+    casts.forEach((key, rawType) {
+      if (!dehydrateData.containsKey(key) || dehydrateData[key] == null) return;
+
+      final type = _normalizeType(rawType);
+      final value = dehydrateData[key];
+
+      if (type == 'json' || type == 'array' || type == 'object') {
+        if (value is String) {
+          try {
+            dehydrateData[key] = jsonDecode(value);
+          } catch (_) {
+            // Fail-safe
+          }
+        }
+      }
+    });
+
+    return dehydrateData;
+  }
+
   /// Safe accessor that transforms raw data into type [T] based on [casts].
   ///
   /// Handles distinct parsing strategies:
@@ -51,7 +82,9 @@ mixin HasCasts {
       case 'bool':
         if (value is bool) return value as T;
         final s = value.toString().toLowerCase();
-        return (s == '1' || s == 'true') as T;
+        if (s == '1' || s == 'true') return true as T;
+        if (s == '0' || s == 'false') return false as T;
+        return null;
 
       case 'datetime':
         if (value is DateTime) return value as T;
@@ -60,18 +93,28 @@ mixin HasCasts {
       case 'json':
       case 'array':
       case 'object':
+        if (value is T && value is! String) return value;
         if (value is String) {
           try {
-            return jsonDecode(value) as T;
+            final decoded = jsonDecode(value);
+            return decoded as T;
           } catch (_) {
             return null;
           }
         }
-        return value as T;
+
+        // Return null the type is not compatible
+        return null;
 
       default:
-        return value as T;
+        try {
+          return value as T;
+        } catch (_) {
+          return null;
+        }
     }
+
+    return null;
   }
 
   /// Maps a raw value to a specific [Enum] entry.
@@ -123,12 +166,11 @@ mixin HasCasts {
       case 'json':
       case 'array':
       case 'object':
-        if (value is! String) {
+        if (value is String) {
           try {
-            // Prioritizes .toJson() for custom objects, falls back to primitive encoding.
-            attributes[key] = jsonEncode((value as dynamic).toJson());
-          } catch (_) {
-            attributes[key] = jsonEncode(value);
+            attributes[key] = jsonDecode(value);
+          } catch (e) {
+            attributes[key] = value;
           }
         } else {
           attributes[key] = value;
@@ -136,14 +178,21 @@ mixin HasCasts {
         break;
 
       case 'bool':
-        attributes[key] = (value == true) ? 1 : 0;
+        if (value is bool) {
+          attributes[key] = value ? 1 : 0;
+        } else if (value is int) {
+          attributes[key] = value == 1 ? 1 : 0;
+        } else {
+          final s = value.toString().toLowerCase();
+          attributes[key] = (s == 'true' || s == '1') ? 1 : 0;
+        }
         break;
 
       case 'datetime':
         if (value is DateTime) {
           attributes[key] = value.toIso8601String();
         } else {
-          attributes[key] = value;
+          attributes[key] = value.toString();
         }
         break;
 
