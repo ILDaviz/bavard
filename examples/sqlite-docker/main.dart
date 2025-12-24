@@ -6,9 +6,9 @@ import 'package:bavard/bavard.dart';
 import 'package:bavard/src/grammars/sqlite_grammar.dart';
 import 'package:bavard/schema.dart';
 
-// ========================================== 
+// ==========================================
 // 1. ADAPTER & INFRASTRUCTURE
-// ========================================== 
+// ==========================================
 
 class SqliteAdapter implements DatabaseAdapter {
   final Database _db;
@@ -29,13 +29,19 @@ class SqliteAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getAll(String sql, [List<dynamic>? arguments]) async {
+  Future<List<Map<String, dynamic>>> getAll(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     final result = _db.select(sql, _sanitize(arguments ?? []));
     return result.map((row) => Map<String, dynamic>.from(row)).toList();
   }
 
   @override
-  Future<Map<String, dynamic>> get(String sql, [List<dynamic>? arguments]) async {
+  Future<Map<String, dynamic>> get(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     final result = await getAll(sql, arguments);
     if (result.isEmpty) return {};
     return result.first;
@@ -58,7 +64,10 @@ class SqliteAdapter implements DatabaseAdapter {
   }
 
   @override
-  Stream<List<Map<String, dynamic>>> watch(String sql, {List<dynamic>? parameters}) {
+  Stream<List<Map<String, dynamic>>> watch(
+    String sql, {
+    List<dynamic>? parameters,
+  }) {
     return Stream.fromFuture(getAll(sql, parameters));
   }
 
@@ -66,7 +75,9 @@ class SqliteAdapter implements DatabaseAdapter {
   bool get supportsTransactions => true;
 
   @override
-  Future<T> transaction<T>(Future<T> Function(TransactionContext txn) callback) async {
+  Future<T> transaction<T>(
+    Future<T> Function(TransactionContext txn) callback,
+  ) async {
     _db.execute('BEGIN TRANSACTION');
     try {
       final txnContext = _SqliteTransactionContext(_db, _sanitize);
@@ -87,7 +98,10 @@ class _SqliteTransactionContext implements TransactionContext {
   _SqliteTransactionContext(this._db, this._sanitize);
 
   @override
-  Future<List<Map<String, dynamic>>> getAll(String sql, [List? arguments]) async {
+  Future<List<Map<String, dynamic>>> getAll(
+    String sql, [
+    List? arguments,
+  ]) async {
     final result = _db.select(sql, _sanitize(arguments ?? []));
     return result.map((row) => Map<String, dynamic>.from(row)).toList();
   }
@@ -114,43 +128,52 @@ class _SqliteTransactionContext implements TransactionContext {
   }
 }
 
-// ========================================== 
+// ==========================================
 // 2. MODELS (With Dispatcher)
-// ========================================== 
+// ==========================================
 
 class User extends Model with HasTimestamps {
-  @override String get table => 'users';
+  @override
+  String get table => 'users';
   User([super.attributes]);
-  @override User fromMap(Map<String, dynamic> map) => User(map);
+  @override
+  User fromMap(Map<String, dynamic> map) => User(map);
 
   HasOne<Profile> profile() => hasOne(Profile.new);
   HasMany<Post> posts() => hasMany(Post.new);
   HasMany<Comment> comments() => hasMany(Comment.new);
   HasManyThrough<Comment, Post> postComments() {
     return hasManyThroughPolymorphic(
-      Comment.new, 
-      Post.new, 
-      name: 'commentable', 
-      type: 'posts'
+      Comment.new,
+      Post.new,
+      name: 'commentable',
+      type: 'posts',
     );
   }
 
   @override
   Relation? getRelation(String name) {
     switch (name) {
-      case 'profile': return profile();
-      case 'posts': return posts();
-      case 'comments': return comments();
-      case 'postComments': return postComments();
-      default: return super.getRelation(name);
+      case 'profile':
+        return profile();
+      case 'posts':
+        return posts();
+      case 'comments':
+        return comments();
+      case 'postComments':
+        return postComments();
+      default:
+        return super.getRelation(name);
     }
   }
 }
 
 class Profile extends Model with HasTimestamps {
-  @override String get table => 'profiles';
+  @override
+  String get table => 'profiles';
   Profile([super.attributes]);
-  @override Profile fromMap(Map<String, dynamic> map) => Profile(map);
+  @override
+  Profile fromMap(Map<String, dynamic> map) => Profile(map);
 
   BelongsTo<User> user() => belongsTo(User.new);
 
@@ -161,14 +184,19 @@ class Profile extends Model with HasTimestamps {
 }
 
 class Post extends Model with HasTimestamps {
-  @override String get table => 'posts';
+  @override
+  String get table => 'posts';
   Post([super.attributes]);
-  @override Post fromMap(Map<String, dynamic> map) => Post(map);
+  @override
+  Post fromMap(Map<String, dynamic> map) => Post(map);
 
   BelongsTo<User> author() => belongsTo(User.new, foreignKey: 'user_id');
 
   BelongsToMany<Category> categories() {
-    return belongsToMany(Category.new, 'category_post').withPivot(['created_at']);
+    return belongsToMany(
+      Category.new,
+      'category_post',
+    ).withPivot(['created_at']);
   }
 
   MorphMany<Comment> comments() => morphMany(Comment.new, 'commentable');
@@ -176,18 +204,24 @@ class Post extends Model with HasTimestamps {
   @override
   Relation? getRelation(String name) {
     switch (name) {
-      case 'author': return author();
-      case 'categories': return categories();
-      case 'comments': return comments();
-      default: return super.getRelation(name);
+      case 'author':
+        return author();
+      case 'categories':
+        return categories();
+      case 'comments':
+        return comments();
+      default:
+        return super.getRelation(name);
     }
   }
 }
 
 class Category extends Model with HasTimestamps {
-  @override String get table => 'categories';
+  @override
+  String get table => 'categories';
   Category([super.attributes]);
-  @override Category fromMap(Map<String, dynamic> map) => Category(map);
+  @override
+  Category fromMap(Map<String, dynamic> map) => Category(map);
 
   BelongsToMany<Post> posts() => belongsToMany(Post.new, 'category_post');
 
@@ -198,9 +232,11 @@ class Category extends Model with HasTimestamps {
 }
 
 class Video extends Model with HasTimestamps {
-  @override String get table => 'videos';
+  @override
+  String get table => 'videos';
   Video([super.attributes]);
-  @override Video fromMap(Map<String, dynamic> map) => Video(map);
+  @override
+  Video fromMap(Map<String, dynamic> map) => Video(map);
 
   MorphMany<Comment> comments() => morphMany(Comment.new, 'commentable');
 
@@ -211,25 +247,32 @@ class Video extends Model with HasTimestamps {
 }
 
 class Comment extends Model with HasTimestamps {
-  @override String get table => 'comments';
+  @override
+  String get table => 'comments';
   Comment([super.attributes]);
-  @override Comment fromMap(Map<String, dynamic> map) => Comment(map);
+  @override
+  Comment fromMap(Map<String, dynamic> map) => Comment(map);
 
-  MorphTo<Model> commentable() => morphToTyped('commentable', {'posts': Post.new, 'videos': Video.new});
+  MorphTo<Model> commentable() =>
+      morphToTyped('commentable', {'posts': Post.new, 'videos': Video.new});
   BelongsTo<User> author() => belongsTo(User.new);
 
   @override
   Relation? getRelation(String name) {
     switch (name) {
-      case 'commentable': return commentable();
-      case 'author': return author();
-      default: return super.getRelation(name);
+      case 'commentable':
+        return commentable();
+      case 'author':
+        return author();
+      default:
+        return super.getRelation(name);
     }
   }
 }
 
 class Task extends Model with HasTimestamps, HasSoftDeletes {
-  @override String get table => 'tasks';
+  @override
+  String get table => 'tasks';
 
   Task([super.attributes]);
 
@@ -237,15 +280,15 @@ class Task extends Model with HasTimestamps, HasSoftDeletes {
   Task fromMap(Map<String, dynamic> map) => Task(map);
 
   @override
-  Map<String, String> get casts => {
-    'metadata': 'json',
-  };
+  Map<String, String> get casts => {'metadata': 'json'};
 }
 
 class Product extends Model with HasTimestamps {
-  @override String get table => 'products';
+  @override
+  String get table => 'products';
   Product([super.attributes]);
-  @override Product fromMap(Map<String, dynamic> map) => Product(map);
+  @override
+  Product fromMap(Map<String, dynamic> map) => Product(map);
 
   @override
   Future<bool> onSaving() async {
@@ -257,9 +300,9 @@ class Product extends Model with HasTimestamps {
   }
 }
 
-// ========================================== 
+// ==========================================
 // 3. MAIN TEST SUITE
-// ========================================== 
+// ==========================================
 
 void main() async {
   print('\n🧪 --- STARTING BAVARD CORE & EDGE CASE TESTS --- 🧪\n');
@@ -292,13 +335,18 @@ void main() async {
   // TEST 1: Basic CRUD & Validation
   await runTest('CRUD Operations', () async {
     // Create
-    final user = User({'name': 'David', 'email': 'david@test.com', 'created_at': isoNow()});
+    final user = User({
+      'name': 'David',
+      'email': 'david@test.com',
+      'created_at': isoNow(),
+    });
     await user.save();
     if (user.id == null) throw 'User ID is null after save';
 
     // Read
     final fetched = await User().query().find(user.id);
-    if (fetched == null || fetched.attributes['name'] != 'David') throw 'Fetch failed or data mismatch';
+    if (fetched == null || fetched.attributes['name'] != 'David')
+      throw 'Fetch failed or data mismatch';
 
     // Update
     fetched.attributes['name'] = 'David Updated';
@@ -316,14 +364,22 @@ void main() async {
     if (deleted != null) throw 'Delete failed (User still exists)';
 
     // Restore for next tests
-    await User({'name': 'David', 'email': 'david@test.com', 'created_at': isoNow()}).save();
+    await User({
+      'name': 'David',
+      'email': 'david@test.com',
+      'created_at': isoNow(),
+    }).save();
   });
 
   // TEST 2: Query Builder (Where, Order, Limit)
   await runTest('Query Builder Capabilities', () async {
     // Setup dummy data
     for (var i = 1; i <= 5; i++) {
-      await Post({'title': 'Post $i', 'views': i * 10, 'created_at': isoNow()}).save();
+      await Post({
+        'title': 'Post $i',
+        'views': i * 10,
+        'created_at': isoNow(),
+      }).save();
     }
 
     // Where
@@ -332,23 +388,37 @@ void main() async {
 
     // Greater Than
     final popular = await Post().query().where('views', 30, '>').get();
-    if (popular.length != 2) throw 'Where operator (>) failed. Expected 2, got ${popular.length}';
+    if (popular.length != 2)
+      throw 'Where operator (>) failed. Expected 2, got ${popular.length}';
 
     // Order By & Limit
-    final top = await Post().query().orderBy('views', direction: 'desc').limit(1).get();
-    if (top.first.attributes['title'] != 'Post 5') throw 'OrderBy or Limit failed';
+    final top = await Post()
+        .query()
+        .orderBy('views', direction: 'desc')
+        .limit(1)
+        .get();
+    if (top.first.attributes['title'] != 'Post 5')
+      throw 'OrderBy or Limit failed';
   });
 
   // TEST 3: Edge Case - Orphan Relations
   await runTest('Orphan Relation Handling (Null Safety)', () async {
     // Post without user
-    final orphanPost = Post({'title': 'Orphan', 'user_id': 9999, 'created_at': isoNow()});
+    final orphanPost = Post({
+      'title': 'Orphan',
+      'user_id': 9999,
+      'created_at': isoNow(),
+    });
     await orphanPost.save();
 
-    final loaded = await Post().query().withRelations(['author']).find(orphanPost.id);
+    final loaded = await Post()
+        .query()
+        .withRelations(['author'])
+        .find(orphanPost.id);
     final author = loaded!.getRelated<User>('author');
 
-    if (author != null) throw 'Orphan post returned an author object! Should be null.';
+    if (author != null)
+      throw 'Orphan post returned an author object! Should be null.';
   });
 
   // TEST 4: Nested Eager Loading (Users -> Posts -> Comments)
@@ -365,21 +435,28 @@ void main() async {
       'body': 'Nested test',
       'commentable_type': 'posts',
       'commentable_id': p.id,
-      'user_id': u.id
+      'user_id': u.id,
     }).save();
 
     // Load User with Posts
-    final userWithPosts = await User().query().withRelations(['posts']).find(u.id);
+    final userWithPosts = await User()
+        .query()
+        .withRelations(['posts'])
+        .find(u.id);
     final posts = userWithPosts!.getRelationList<Post>('posts');
 
     if (posts.isEmpty) throw 'Failed to load posts';
 
     // Now load comments for that post
-    final postWithComments = await Post().query().withRelations(['comments']).find(posts.first.id);
+    final postWithComments = await Post()
+        .query()
+        .withRelations(['comments'])
+        .find(posts.first.id);
     final comments = postWithComments!.getRelationList<Comment>('comments');
 
     if (comments.isEmpty) throw 'Failed to load nested comments';
-    if (comments.first.attributes['body'] != 'Nested test') throw 'Comment data mismatch';
+    if (comments.first.attributes['body'] != 'Nested test')
+      throw 'Comment data mismatch';
   });
 
   // TEST 5: Transactions & Rollback
@@ -396,7 +473,8 @@ void main() async {
     }
 
     final endCount = await User().query().count();
-    if (startCount != endCount) throw 'Rollback failed! Record persisted despite error.';
+    if (startCount != endCount)
+      throw 'Rollback failed! Record persisted despite error.';
   });
 
   // TEST 6: BelongsToMany with Metadata
@@ -406,38 +484,51 @@ void main() async {
     await c.save();
 
     db.execute(
-        "INSERT INTO category_post (post_id, category_id, created_at) VALUES (?, ?, ?)",
-        [p!.id, c.id, '2025-01-01']
+      "INSERT INTO category_post (post_id, category_id, created_at) VALUES (?, ?, ?)",
+      [p!.id, c.id, '2025-01-01'],
     );
 
-    final result = await Post().query().withRelations(['categories']).find(p.id);
+    final result = await Post()
+        .query()
+        .withRelations(['categories'])
+        .find(p.id);
     final cats = result!.getRelationList<Category>('categories');
 
     if (cats.isEmpty) throw 'No categories found';
     final pivot = cats.first.pivot;
 
     if (pivot == null) throw 'Pivot object is null';
-    if (pivot.attributes['created_at'] != '2025-01-01') throw 'Pivot metadata mismatch';
+    if (pivot.attributes['created_at'] != '2025-01-01')
+      throw 'Pivot metadata mismatch';
   });
 
   // TEST 7: Polymorphism (MorphTo)
   await runTest('Polymorphic Relations', () async {
-    final v = Video({'title': 'Poly Vid', 'url': 'http', 'created_at': isoNow()});
+    final v = Video({
+      'title': 'Poly Vid',
+      'url': 'http',
+      'created_at': isoNow(),
+    });
     await v.save();
 
     final c = Comment({
       'body': 'Video Comment',
       'commentable_type': 'videos', // Matches MorphToTyped map key
-      'commentable_id': v.id
+      'commentable_id': v.id,
     });
     await c.save();
 
-    final loadedComment = await Comment().query().withRelations(['commentable']).find(c.id);
+    final loadedComment = await Comment()
+        .query()
+        .withRelations(['commentable'])
+        .find(c.id);
     final parent = loadedComment!.getRelated<Model>('commentable');
 
     if (parent == null) throw 'Polymorphic parent not loaded';
-    if (parent is! Video) throw 'Polymorphic parent is wrong type. Expected Video, got ${parent.runtimeType}';
-    if (parent.attributes['title'] != 'Poly Vid') throw 'Polymorphic parent data mismatch';
+    if (parent is! Video)
+      throw 'Polymorphic parent is wrong type. Expected Video, got ${parent.runtimeType}';
+    if (parent.attributes['title'] != 'Poly Vid')
+      throw 'Polymorphic parent data mismatch';
   });
 
   // TEST 8: Soft Deletes
@@ -445,7 +536,7 @@ void main() async {
     final t = Task({
       'title': 'Secret Task',
       'created_at': isoNow(),
-      'updated_at': isoNow()
+      'updated_at': isoNow(),
     });
     await t.save();
     final id = t.id;
@@ -455,7 +546,8 @@ void main() async {
 
     // 2. Verification: Standard query should NOT find it
     final search = await Task().query().find(id);
-    if (search != null) throw 'Soft Deleted record was found by standard query!';
+    if (search != null)
+      throw 'Soft Deleted record was found by standard query!';
 
     // 3. Verification: Record MUST exist physically in DB with deleted_at set
     // Use direct adapter to bypass Model filters
@@ -472,7 +564,7 @@ void main() async {
       'title': 'Config Task',
       'metadata': config, // Passing a Map, ORM should serialize it
       'created_at': isoNow(),
-      'updated_at': isoNow()
+      'updated_at': isoNow(),
     });
 
     await t.save();
@@ -482,7 +574,8 @@ void main() async {
     // Verify that reading from DB returns a Map, not a String
     final meta = fetched!.attributes['metadata'];
 
-    if (meta is! Map) throw 'JSON Cast failed: Expected Map, got ${meta.runtimeType}';
+    if (meta is! Map)
+      throw 'JSON Cast failed: Expected Map, got ${meta.runtimeType}';
     if (meta['theme'] != 'dark') throw 'JSON content mismatch';
   });
 
@@ -490,13 +583,28 @@ void main() async {
   await runTest('Advanced Clauses (WhereIn, WhereNull)', () async {
     db.execute("DELETE FROM posts");
 
-    final p1 = Post({'title': 'A', 'views': 10, 'created_at': isoNow(), 'updated_at': isoNow()});
+    final p1 = Post({
+      'title': 'A',
+      'views': 10,
+      'created_at': isoNow(),
+      'updated_at': isoNow(),
+    });
     await p1.save();
 
-    final p2 = Post({'title': 'B', 'views': 20, 'created_at': isoNow(), 'updated_at': isoNow()});
+    final p2 = Post({
+      'title': 'B',
+      'views': 20,
+      'created_at': isoNow(),
+      'updated_at': isoNow(),
+    });
     await p2.save();
 
-    final p3 = Post({'title': 'C', 'views': 30, 'created_at': isoNow(), 'updated_at': isoNow()});
+    final p3 = Post({
+      'title': 'C',
+      'views': 30,
+      'created_at': isoNow(),
+      'updated_at': isoNow(),
+    });
     await p3.save();
 
     // WHERE IN
@@ -507,7 +615,11 @@ void main() async {
     }
 
     // WHERE NULL (Create orphan post, user_id will be null)
-    final orphan = Post({'title': 'NullCheck', 'created_at': isoNow(), 'updated_at': isoNow()});
+    final orphan = Post({
+      'title': 'NullCheck',
+      'created_at': isoNow(),
+      'updated_at': isoNow(),
+    });
     await orphan.save();
 
     final nullResults = await Post().query().whereNull('user_id').get();
@@ -522,7 +634,11 @@ void main() async {
     // Use transaction for bulk insert to be realistic
     await DatabaseManager().transaction((txn) async {
       for (var i = 0; i < count; i++) {
-        await User({'name': 'Stress User $i', 'email': 'stress$i@test.com', 'created_at': isoNow()}).save();
+        await User({
+          'name': 'Stress User $i',
+          'email': 'stress$i@test.com',
+          'created_at': isoNow(),
+        }).save();
       }
     });
 
@@ -533,7 +649,8 @@ void main() async {
     final totalUsers = await User().query().count();
     countWatch.stop();
 
-    if (totalUsers! < count) throw 'Bulk insert failed. Total users: $totalUsers';
+    if (totalUsers! < count)
+      throw 'Bulk insert failed. Total users: $totalUsers';
 
     final queryWatch = Stopwatch()..start();
     // Fetch a large chunk
@@ -541,7 +658,8 @@ void main() async {
     queryWatch.stop();
     //print('    -> Fetched ${manyUsers.length} records in ${queryWatch.elapsedMilliseconds}ms');
 
-    if (manyUsers.length != count) throw 'Bulk fetch returned wrong number of records';
+    if (manyUsers.length != count)
+      throw 'Bulk fetch returned wrong number of records';
   });
 
   // TEST 12: Type Safety Verification
@@ -552,7 +670,7 @@ void main() async {
     final p = Post({
       'title': 'Typed Post',
       'views': 99999, // Integer
-      'created_at': isoNow()
+      'created_at': isoNow(),
     });
     await p.save();
 
@@ -582,30 +700,46 @@ void main() async {
 
   // TEST 13: HasManyThrough (User -> Post -> Comments)
   await runTest('HasManyThrough (User -> Post -> Comments)', () async {
-    final user = User({'name': 'ThroughUser', 'email': 'through@test.com', 'created_at': isoNow()});
+    final user = User({
+      'name': 'ThroughUser',
+      'email': 'through@test.com',
+      'created_at': isoNow(),
+    });
     await user.save();
 
-    final post = Post({'user_id': user.id, 'title': 'ThroughPost', 'created_at': isoNow()});
+    final post = Post({
+      'user_id': user.id,
+      'title': 'ThroughPost',
+      'created_at': isoNow(),
+    });
     await post.save();
 
     await Comment({
       'body': 'ThroughComment',
       'commentable_type': 'posts',
       'commentable_id': post.id,
-      'user_id': user.id
+      'user_id': user.id,
     }).save();
 
-    final fetchedUser = await User().query().withRelations(['postComments']).find(user.id);
+    final fetchedUser = await User()
+        .query()
+        .withRelations(['postComments'])
+        .find(user.id);
     if (fetchedUser == null) throw 'User not found';
 
     final comments = fetchedUser.getRelationList<Comment>('postComments');
     if (comments.isEmpty) throw 'No comments found via HasManyThrough';
-    if (comments.first.attributes['body'] != 'ThroughComment') throw 'Comment content mismatch';
+    if (comments.first.attributes['body'] != 'ThroughComment')
+      throw 'Comment content mismatch';
   });
 
   // TEST 14: Lifecycle Hooks (onCreating)
   await runTest('Lifecycle Hooks (onCreating)', () async {
-    final product = Product({'name': 'laptop', 'price': 999.99, 'created_at': isoNow()});
+    final product = Product({
+      'name': 'laptop',
+      'price': 999.99,
+      'created_at': isoNow(),
+    });
     await product.save();
 
     final fetched = await Product().query().find(product.id);

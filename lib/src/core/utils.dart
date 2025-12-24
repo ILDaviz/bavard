@@ -26,7 +26,14 @@ class Utils {
 
     // 2. Uncountables (return as is)
     const uncountables = {
-      'equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep'
+      'equipment',
+      'information',
+      'rice',
+      'money',
+      'species',
+      'series',
+      'fish',
+      'sheep',
     };
     if (uncountables.contains(lower)) {
       return word;

@@ -1,7 +1,14 @@
 name: bavard
-description: A Laravel Eloquent-like ORM for PowerSync, sqlite or PostgreSQL.
-
+description: An Laravel Eloquent-inspired ORM for Flutter. Supports SQLite, PostgreSQL and PowerSync with fluent queries, relationships, soft deletes, timestamps, casts and more.
 version: 0.0.7
+homepage: https://github.com/ILDaviz/bavard
+repository: https://github.com/ILDaviz/bavard
+topics:
+  - orm
+  - flutter
+  - dart
+  - powersync
+  - sqlite
 
 environment:
   sdk: ^3.10.1

@@ -51,17 +51,17 @@ class Comment extends Model {
   @override
   Comment fromMap(Map<String, dynamic> map) => Comment(map);
 
-  BelongsTo<User> author() => belongsTo(User.new, foreignKey: 'author_id', ownerKey: 'id');
+  BelongsTo<User> author() =>
+      belongsTo(User.new, foreignKey: 'author_id', ownerKey: 'id');
 
   @override
   Relation? getRelation(String name) {
     if (name == 'author') return author();
     return super.getRelation(name);
   }
-  
+
   User? get authorModel => getRelated<User>('author');
 }
-
 
 void main() {
   group('Nested Relations', () {
@@ -80,11 +80,11 @@ void main() {
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final users = await User()
-          .query()
-          .withRelations(['posts', 'posts.comments'])
-          .get();
-      
+      final users = await User().query().withRelations([
+        'posts',
+        'posts.comments',
+      ]).get();
+
       final user = users.first;
 
       // Verify posts loaded
@@ -99,32 +99,6 @@ void main() {
     });
 
     test('It loads only top level if nested is not specified', () async {
-       final mockDb = MockDatabaseSpy([], {
-        'FROM "users"': [
-          {'id': 1, 'name': 'David'},
-        ],
-        'FROM "posts"': [
-          {'id': 100, 'user_id': 1, 'title': 'Post A'},
-        ],
-        'FROM "comments"': [
-           {'id': 200, 'post_id': 100, 'content': 'Should not load'},
-        ],
-      });
-      DatabaseManager().setDatabase(mockDb);
-
-      final users = await User()
-          .query()
-          .withRelations(['posts'])
-          .get();
-
-      final user = users.first;
-      final post = user.postsList.first;
-      
-      expect(post.relations.containsKey('comments'), isFalse);
-      expect(post.commentsList, isEmpty);
-    });
-
-     test('It handles implicit top-level relation when only nested is specified', () async {
       final mockDb = MockDatabaseSpy([], {
         'FROM "users"': [
           {'id': 1, 'name': 'David'},
@@ -133,52 +107,82 @@ void main() {
           {'id': 100, 'user_id': 1, 'title': 'Post A'},
         ],
         'FROM "comments"': [
-          {'id': 200, 'post_id': 100, 'content': 'First comment'},
+          {'id': 200, 'post_id': 100, 'content': 'Should not load'},
         ],
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final users = await User()
-          .query()
-          .withRelations(['posts.comments']) // 'posts' is implicit
-          .get();
-      
-      final user = users.first;
+      final users = await User().query().withRelations(['posts']).get();
 
-      expect(user.postsList, isNotEmpty);
-      
+      final user = users.first;
       final post = user.postsList.first;
-      expect(post.commentsList, isNotEmpty);
+
+      expect(post.relations.containsKey('comments'), isFalse);
+      expect(post.commentsList, isEmpty);
     });
+
+    test(
+      'It handles implicit top-level relation when only nested is specified',
+      () async {
+        final mockDb = MockDatabaseSpy([], {
+          'FROM "users"': [
+            {'id': 1, 'name': 'David'},
+          ],
+          'FROM "posts"': [
+            {'id': 100, 'user_id': 1, 'title': 'Post A'},
+          ],
+          'FROM "comments"': [
+            {'id': 200, 'post_id': 100, 'content': 'First comment'},
+          ],
+        });
+        DatabaseManager().setDatabase(mockDb);
+
+        final users = await User()
+            .query()
+            .withRelations(['posts.comments']) // 'posts' is implicit
+            .get();
+
+        final user = users.first;
+
+        expect(user.postsList, isNotEmpty);
+
+        final post = user.postsList.first;
+        expect(post.commentsList, isNotEmpty);
+      },
+    );
 
     test('It handles deep nesting (3 levels): posts.comments.author', () async {
       final mockDb = MockDatabaseSpy([], {
         'FROM "users"': [
           {'id': 1, 'name': 'David'},
-          {'id': 2, 'name': 'Commenter'}, 
+          {'id': 2, 'name': 'Commenter'},
         ],
         'FROM "posts"': [
           {'id': 100, 'user_id': 1, 'title': 'Post A'},
         ],
         'FROM "comments"': [
-          {'id': 200, 'post_id': 100, 'author_id': 2, 'content': 'Deep comment'},
+          {
+            'id': 200,
+            'post_id': 100,
+            'author_id': 2,
+            'content': 'Deep comment',
+          },
         ],
       });
       DatabaseManager().setDatabase(mockDb);
 
-      final users = await User()
-          .query()
-          .withRelations(['posts.comments.author'])
-          .get();
-      
+      final users = await User().query().withRelations([
+        'posts.comments.author',
+      ]).get();
+
       final user = users.firstWhere((u) => u.id == 1);
-      
+
       expect(user.postsList, isNotEmpty);
       final post = user.postsList.first;
-      
+
       expect(post.commentsList, isNotEmpty);
       final comment = post.commentsList.first;
-      
+
       expect(comment.authorModel, isNotNull);
       expect(comment.authorModel!.id, 2);
       expect(comment.authorModel!.attributes['name'], 'Commenter');
@@ -229,10 +233,7 @@ void main() {
     });
     DatabaseManager().setDatabase(mockDb);
 
-    final users = await User()
-        .query()
-        .withRelations(['posts.comments'])
-        .get();
+    final users = await User().query().withRelations(['posts.comments']).get();
 
     expect(users, hasLength(1));
     expect(users.first.postsList, isEmpty);
@@ -247,38 +248,44 @@ void main() {
     });
     DatabaseManager().setDatabase(mockDb);
 
-    final comments = await Comment()
-        .query()
-        .withRelations(['post.author'])
-        .get();
+    final comments = await Comment().query().withRelations([
+      'post.author',
+    ]).get();
 
     final comment = comments.first;
     expect(comment.getRelated('post'), isNull);
   });
 
-  test('It handles branching nested relations (same root, different children)', () async {
-    final mockDb = MockDatabaseSpy([], {
-      'FROM "users"': [
-        {'id': 1, 'name': 'David'},
-      ],
-      'FROM "posts"': [
-        {'id': 100, 'user_id': 1, 'title': 'Post A'},
-      ],
-      'FROM "comments"': [
-        {'id': 200, 'post_id': 100, 'content': 'Comment 1'},
-      ],
-    });
-    DatabaseManager().setDatabase(mockDb);
+  test(
+    'It handles branching nested relations (same root, different children)',
+    () async {
+      final mockDb = MockDatabaseSpy([], {
+        'FROM "users"': [
+          {'id': 1, 'name': 'David'},
+        ],
+        'FROM "posts"': [
+          {'id': 100, 'user_id': 1, 'title': 'Post A'},
+        ],
+        'FROM "comments"': [
+          {'id': 200, 'post_id': 100, 'content': 'Comment 1'},
+        ],
+      });
+      DatabaseManager().setDatabase(mockDb);
 
-    await User()
-        .query()
-        .withRelations(['posts.comments', 'posts.author'])
-        .get();
+      await User().query().withRelations([
+        'posts.comments',
+        'posts.author',
+      ]).get();
 
-    final postQueries = mockDb.history
-        .where((sql) => sql.contains('FROM "posts"'))
-        .length;
+      final postQueries = mockDb.history
+          .where((sql) => sql.contains('FROM "posts"'))
+          .length;
 
-    expect(postQueries, 1, reason: 'Should group nested relations and fetch root only once');
-  });
+      expect(
+        postQueries,
+        1,
+        reason: 'Should group nested relations and fetch root only once',
+      );
+    },
+  );
 }

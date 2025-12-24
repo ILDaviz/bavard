@@ -63,7 +63,7 @@ class MorphToMany<R extends Model> extends Relation<R> {
     final pivotTableWrap = db.grammar.wrap(pivotTable);
     final pivotMorphTypeWrap = db.grammar.wrap(pivotMorphType);
     final nameWrap = db.grammar.wrap('${name}_id');
-    
+
     final pivotSql =
         "SELECT * FROM $pivotTableWrap WHERE $pivotMorphTypeWrap = ? AND $nameWrap IN (${parentIds.map((_) => '?').join(',')})";
 
@@ -82,10 +82,11 @@ class MorphToMany<R extends Model> extends Relation<R> {
 
     final relatedModels =
         (await creator({})
-            .newQuery()
-            .withRelations(nested)
-            .whereIn(relatedPk, relatedIds)
-            .get()).cast<R>();
+                .newQuery()
+                .withRelations(nested)
+                .whereIn(relatedPk, relatedIds)
+                .get())
+            .cast<R>();
 
     // Map: related_id -> model instance
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};

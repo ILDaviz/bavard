@@ -41,11 +41,7 @@ void main() {
   });
 
   test('It chains multiple WHERE clauses', () async {
-    await TestUser()
-        .query()
-        .where('role', 'admin')
-        .where('age', 18, '>')
-        .get();
+    await TestUser().query().where('role', 'admin').where('age', 18, '>').get();
 
     final q = TestUser().where('role', 'admin').where('age', 18, '>');
     await q.get();
@@ -165,7 +161,10 @@ void main() {
 
     await TestUser().query().whereNotExists(subQuery).get();
 
-    expect(dbSpy.lastSql, contains('WHERE NOT EXISTS (SELECT "1" FROM "posts")'));
+    expect(
+      dbSpy.lastSql,
+      contains('WHERE NOT EXISTS (SELECT "1" FROM "posts")'),
+    );
   });
 
   test('It handles orWhereIn', () async {
@@ -270,7 +269,10 @@ void main() {
 
     final sql = dbSpy.lastSql;
 
-    expect(sql, startsWith('SELECT "users"."name", "users"."role" FROM "users"'));
+    expect(
+      sql,
+      startsWith('SELECT "users"."name", "users"."role" FROM "users"'),
+    );
     expect(sql, contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'));
     expect(sql, contains('WHERE "active" = ? AND age > ?'));
     expect(sql, contains('ORDER BY "created_at" DESC'));

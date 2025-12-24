@@ -45,8 +45,8 @@ abstract class Model
   }
 
   Model([Map<String, dynamic> rawAttributes = const {}])
-      : attributes = {}, original = Map.from(rawAttributes)
-  {
+    : attributes = {},
+      original = Map.from(rawAttributes) {
     hydrateAttributes(rawAttributes);
   }
 

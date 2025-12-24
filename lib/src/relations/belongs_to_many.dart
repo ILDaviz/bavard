@@ -129,11 +129,12 @@ class BelongsToMany<R extends Model> extends Relation<R> {
     String boolean = 'AND',
   }) {
     return where(
-      '$pivotTable.${condition.column}',
-      condition.value,
-      condition.operator,
-      boolean,
-    ) as BelongsToMany<R>;
+          '$pivotTable.${condition.column}',
+          condition.value,
+          condition.operator,
+          boolean,
+        )
+        as BelongsToMany<R>;
   }
 
   BelongsToMany<R> orWherePivotCondition(WhereCondition condition) {
@@ -146,7 +147,7 @@ class BelongsToMany<R extends Model> extends Relation<R> {
     if (_pivotColumns.isNotEmpty) {
       // Ensure we select related model fields to avoid them being clobbered
       final selects = <String>['$table.*'];
-      
+
       // Select pivot columns with alias to prevent collision (e.g. created_at)
       for (final col in _pivotColumns) {
         if (col.name != null) {
@@ -207,12 +208,18 @@ class BelongsToMany<R extends Model> extends Relation<R> {
     final db = DatabaseManager().db;
 
     final placeholders = List.filled(parentIds.length, '?').join(',');
-    
+
     String selectClause = '*';
 
     if (_pivotColumns.isNotEmpty) {
-      final requiredKeys = {foreignPivotKey, relatedPivotKey, ..._pivotColumns.map((c) => c.name).whereType<String>()};
-      final requiredKeyWithWrap = requiredKeys.map((e) => db.grammar.wrap(e)).toList();
+      final requiredKeys = {
+        foreignPivotKey,
+        relatedPivotKey,
+        ..._pivotColumns.map((c) => c.name).whereType<String>(),
+      };
+      final requiredKeyWithWrap = requiredKeys
+          .map((e) => db.grammar.wrap(e))
+          .toList();
       selectClause = requiredKeyWithWrap.join(', ');
     }
 
@@ -227,15 +234,15 @@ class BelongsToMany<R extends Model> extends Relation<R> {
 
     if (pivotRows.isEmpty) return;
 
-    final relatedIds = pivotRows.map((r) => r[relatedPivotKey]).toSet().toList();
+    final relatedIds = pivotRows
+        .map((r) => r[relatedPivotKey])
+        .toSet()
+        .toList();
 
     final pk = creator({}).primaryKey;
-    final relatedModels =
-        (await creator({})
-            .newQuery()
-            .withRelations(nested)
-            .whereIn(pk, relatedIds)
-            .get()).cast<R>();
+    final relatedModels = (await creator(
+      {},
+    ).newQuery().withRelations(nested).whereIn(pk, relatedIds).get()).cast<R>();
 
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};
 
@@ -254,12 +261,12 @@ class BelongsToMany<R extends Model> extends Relation<R> {
           // CLONE the model so we can attach unique pivot data to this instance
           // without affecting other parents who might share the same related model.
           final original = relatedDict[rId]!;
-          
+
           // Re-hydrate a fresh instance
           final clone = creator(original.attributes);
           clone.exists = true;
           clone.syncOriginal();
-          
+
           // Manually copy relations if they were eager loaded on the original
           clone.relations.addAll(original.relations);
 

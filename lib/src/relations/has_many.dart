@@ -42,11 +42,10 @@ class HasMany<R extends Model> extends Relation<R> {
     final ids = getKeys(models, localKey);
 
     final results =
-        (await creator({})
-            .newQuery()
-            .withRelations(nested)
-            .whereIn(foreignKey, ids)
-            .get()).cast<R>();
+        (await creator(
+              {},
+            ).newQuery().withRelations(nested).whereIn(foreignKey, ids).get())
+            .cast<R>();
 
     for (var model in models) {
       final myKey = normKey(model.attributes[localKey]);

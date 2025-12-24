@@ -18,7 +18,7 @@ class MockDatabaseSpy implements DatabaseAdapter {
   Map<String, List<Map<String, dynamic>>> _smartResponses;
 
   bool _inTransaction = false;
-  
+
   // Default grammar for testing
   final Grammar _grammar = SQLiteGrammar();
 
@@ -69,7 +69,7 @@ class MockDatabaseSpy implements DatabaseAdapter {
         return _smartResponses[key]!;
       }
     }
-    
+
     // Check normalized (unquoted) SQL for backward compatibility with tests
     final normalized = _normalize(sql);
     for (var key in _smartResponses.keys) {

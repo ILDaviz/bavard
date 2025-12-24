@@ -11,8 +11,10 @@ Builder pivotGenerator(BuilderOptions options) =>
 class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
   @override
   Future<String> generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) async {
-
+    Element element,
+    ConstantReader annotation,
+    BuildStep buildStep,
+  ) async {
     final fileName = buildStep.inputId.pathSegments.last;
 
     if (element is! ClassElement) {
@@ -37,15 +39,22 @@ class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
 
     for (final col in columnsData) {
       buffer.writeln();
-      buffer.writeln('  /// Accessor for [${col.propertyName}] (DB: ${col.dbName})');
-      buffer.writeln('  ${col.dartType} get ${col.propertyName} => get($className.schema.${col.propertyName});');
       buffer.writeln(
-          '  set ${col.propertyName}(${col.dartType} value) => set($className.schema.${col.propertyName}, value);');
+        '  /// Accessor for [${col.propertyName}] (DB: ${col.dbName})',
+      );
+      buffer.writeln(
+        '  ${col.dartType} get ${col.propertyName} => get($className.schema.${col.propertyName});',
+      );
+      buffer.writeln(
+        '  set ${col.propertyName}(${col.dartType} value) => set($className.schema.${col.propertyName}, value);',
+      );
     }
 
     buffer.writeln();
 
-    final colList = columnsData.map((c) => '$className.schema.${c.propertyName}').join(', ');
+    final colList = columnsData
+        .map((c) => '$className.schema.${c.propertyName}')
+        .join(', ');
     buffer.writeln('  static List<Column> get columns => [$colList];');
 
     buffer.writeln('}');

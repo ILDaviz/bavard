@@ -62,7 +62,10 @@ void main() {
           .orWhereNull('deleted_at')
           .get();
 
-      expect(dbSpy.lastSql, contains('WHERE "active" = ? OR "deleted_at" IS NULL'));
+      expect(
+        dbSpy.lastSql,
+        contains('WHERE "active" = ? OR "deleted_at" IS NULL'),
+      );
     });
 
     test('orWhereNotNull() generates correct SQL', () async {
@@ -86,10 +89,7 @@ void main() {
     });
 
     test('where with NOT LIKE operator', () async {
-      await TestUser()
-          .query()
-          .where('email', '%spam%', 'NOT LIKE')
-          .get();
+      await TestUser().query().where('email', '%spam%', 'NOT LIKE').get();
 
       expect(dbSpy.lastSql, contains('"email" NOT LIKE ?'));
       expect(dbSpy.lastArgs, contains('%spam%'));
@@ -106,7 +106,9 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('WHERE "age" >= ? AND "age" <= ? AND "status" = ? OR "role" = ?'),
+        contains(
+          'WHERE "age" >= ? AND "age" <= ? AND "status" = ? OR "role" = ?',
+        ),
       );
       expect(dbSpy.lastArgs, equals([18, 65, 'active', 'admin']));
     });
@@ -124,12 +126,8 @@ void main() {
     });
 
     test('It handles nested OR groups with correct binding order', () async {
-      await TestUser().query().where('age', 18, '>').orWhereGroup((
-        q,
-      ) {
-        q
-            .where('status', 'pending')
-            .where('created_at', '2023-01-01', '>');
+      await TestUser().query().where('age', 18, '>').orWhereGroup((q) {
+        q.where('status', 'pending').where('created_at', '2023-01-01', '>');
       }).get();
 
       expect(
@@ -404,7 +402,10 @@ void main() {
         dbSpy.lastSql,
         contains('JOIN "profiles" ON "users"."id" = "profiles"."user_id"'),
       );
-      expect(dbSpy.lastSql, contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'));
+      expect(
+        dbSpy.lastSql,
+        contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'),
+      );
     });
 
     test('join with different operators (>, <, !=)', () async {
@@ -439,7 +440,9 @@ void main() {
 
       expect(
         dbSpy.lastSql,
-        contains('RIGHT JOIN "profiles" ON "users"."id" = "profiles"."user_id"'),
+        contains(
+          'RIGHT JOIN "profiles" ON "users"."id" = "profiles"."user_id"',
+        ),
       );
     });
   });

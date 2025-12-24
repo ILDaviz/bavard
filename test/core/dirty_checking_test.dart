@@ -21,7 +21,7 @@ void main() {
     test('model is clean after syncOriginal', () {
       final user = User({'name': 'David'});
       user.syncOriginal();
-      
+
       expect(user.isDirty(), isFalse);
       expect(user.getDirty(), isEmpty);
     });
@@ -29,9 +29,9 @@ void main() {
     test('model becomes dirty after attribute change', () {
       final user = User({'name': 'David'});
       user.syncOriginal();
-      
+
       user.attributes['name'] = 'Updated';
-      
+
       expect(user.isDirty(), isTrue);
       expect(user.isDirty('name'), isTrue);
       expect(user.getDirty(), containsPair('name', 'Updated'));
@@ -40,9 +40,9 @@ void main() {
     test('isDirty accurately detects specific field changes', () {
       final user = User({'name': 'David', 'email': 'test@test.com'});
       user.syncOriginal();
-      
+
       user.attributes['name'] = 'Updated';
-      
+
       expect(user.isDirty('name'), isTrue);
       expect(user.isDirty('email'), isFalse);
     });
@@ -50,9 +50,9 @@ void main() {
     test('getDirty only returns modified fields', () {
       final user = User({'name': 'David', 'email': 'test@test.com'});
       user.syncOriginal();
-      
+
       user.attributes['name'] = 'Updated';
-      
+
       final dirty = user.getDirty();
       expect(dirty.length, 1);
       expect(dirty, hasLength(1));
@@ -63,10 +63,10 @@ void main() {
     test('model becomes clean again after reverting changes manually', () {
       final user = User({'name': 'David'});
       user.syncOriginal();
-      
+
       user.attributes['name'] = 'Updated';
       expect(user.isDirty(), isTrue);
-      
+
       user.attributes['name'] = 'David';
       expect(user.isDirty(), isFalse);
     });

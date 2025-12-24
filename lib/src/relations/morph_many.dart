@@ -44,11 +44,12 @@ class MorphMany<R extends Model> extends Relation<R> {
 
     final results =
         (await creator({})
-            .newQuery()
-            .withRelations(nested)
-            .where('${name}_type', type)
-            .whereIn('${name}_id', ids)
-            .get()).cast<R>();
+                .newQuery()
+                .withRelations(nested)
+                .where('${name}_type', type)
+                .whereIn('${name}_id', ids)
+                .get())
+            .cast<R>();
 
     for (var model in models) {
       final myId = normKey(model.id);

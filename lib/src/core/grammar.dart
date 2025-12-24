@@ -58,25 +58,31 @@ abstract class Grammar {
   String compileColumns(QueryBuilder query, List<dynamic> columns) {
     final needsPrefixing = query.joins.isNotEmpty;
 
-    return columns.map((column) {
-      if (column is RawExpression) return column.value;
-      
-      final colStr = column.toString();
-      if (colStr == '*') return '${wrap(query.table)}.*';
+    return columns
+        .map((column) {
+          if (column is RawExpression) return column.value;
 
-      if (colStr.toLowerCase().contains(' as ')) {
-        final parts = colStr.split(RegExp(r'\s+as\s+', caseSensitive: false));
-        if (parts.length == 2) {
-          return '${wrap(parts[0])} AS ${wrap(parts[1])}';
-        }
-      }
-      
-      if (needsPrefixing && !colStr.contains('.') && !colStr.contains('(')) {
-         return wrap('${query.table}.$colStr');
-      }
-      
-      return wrap(colStr);
-    }).join(', ');
+          final colStr = column.toString();
+          if (colStr == '*') return '${wrap(query.table)}.*';
+
+          if (colStr.toLowerCase().contains(' as ')) {
+            final parts = colStr.split(
+              RegExp(r'\s+as\s+', caseSensitive: false),
+            );
+            if (parts.length == 2) {
+              return '${wrap(parts[0])} AS ${wrap(parts[1])}';
+            }
+          }
+
+          if (needsPrefixing &&
+              !colStr.contains('.') &&
+              !colStr.contains('(')) {
+            return wrap('${query.table}.$colStr');
+          }
+
+          return wrap(colStr);
+        })
+        .join(', ');
   }
 
   List<String> compileJoins(QueryBuilder query, List<String> joins) {
@@ -86,12 +92,14 @@ abstract class Grammar {
   String compileWheres(QueryBuilder query) {
     if (query.wheres.isEmpty) return '';
 
-    final sql = query.wheres.map((where) {
-      final boolean = where['type'];
-      final querySql = where['sql'];
-      return '$boolean $querySql';
-    }).join(' ');
-    
+    final sql = query.wheres
+        .map((where) {
+          final boolean = where['type'];
+          final querySql = where['sql'];
+          return '$boolean $querySql';
+        })
+        .join(' ');
+
     // Remove the leading logic operator (AND/OR)
     return 'WHERE ' + sql.replaceFirst(RegExp(r'^(AND|OR)\s+'), '');
   }
@@ -104,11 +112,13 @@ abstract class Grammar {
   String compileHavings(QueryBuilder query) {
     if (query.havings.isEmpty) return '';
 
-    final sql = query.havings.map((having) {
-      final boolean = having['type'];
-      final querySql = having['sql'];
-      return '$boolean $querySql';
-    }).join(' ');
+    final sql = query.havings
+        .map((having) {
+          final boolean = having['type'];
+          final querySql = having['sql'];
+          return '$boolean $querySql';
+        })
+        .join(' ');
 
     return 'HAVING ' + sql.replaceFirst(RegExp(r'^(AND|OR)\s+'), '');
   }

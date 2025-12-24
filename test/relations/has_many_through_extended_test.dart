@@ -34,13 +34,13 @@ class Country extends Model {
   Country fromMap(Map<String, dynamic> map) => Country(map);
 
   HasManyThrough<Post, User> posts() => hasManyThrough(Post.new, User.new);
-  
+
   HasManyThrough<Comment, User> userComments() => hasManyThroughPolymorphic(
-        Comment.new,
-        User.new,
-        name: 'commentable',
-        type: 'users',
-      );
+    Comment.new,
+    User.new,
+    name: 'commentable',
+    type: 'users',
+  );
 }
 
 void main() {
@@ -54,13 +54,13 @@ void main() {
   group('HasManyThrough Extended', () {
     test('generates correct SQL for hasManyThroughPolymorphic', () async {
       final country = Country({'id': 1});
-      
+
       try {
         await country.userComments().get();
       } catch (_) {}
 
       final sql = dbSpy.lastSql;
-      
+
       expect(sql, contains('"users"."id" = "comments"."commentable_id"'));
       expect(sql, contains('"commentable_type" = ?'));
       expect(sql, contains('"users"."country_id" = ?'));

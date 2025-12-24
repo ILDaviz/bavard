@@ -103,12 +103,11 @@ class MorphTo<R extends Model> extends Relation<R> {
       final ids = mapByType[type]!;
       final dummyModel = creator(const {});
 
-      final results =
-          await dummyModel
-              .newQuery()
-              .withRelations(nested)
-              .whereIn(dummyModel.primaryKey, ids)
-              .get();
+      final results = await dummyModel
+          .newQuery()
+          .withRelations(nested)
+          .whereIn(dummyModel.primaryKey, ids)
+          .get();
 
       resultsByType[type] = {for (var r in results) normKey(r.id)!: r};
     }

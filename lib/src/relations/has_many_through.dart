@@ -74,10 +74,11 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
 
     final targets =
         (await creator({})
-            .newQuery()
-            .withRelations(nested)
-            .whereIn(_secondKey, intermediateIds)
-            .get()).cast<R>();
+                .newQuery()
+                .withRelations(nested)
+                .whereIn(_secondKey, intermediateIds)
+                .get())
+            .cast<R>();
 
     for (var model in models) {
       final myParentId = normKey(model.id);

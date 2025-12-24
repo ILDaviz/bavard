@@ -23,8 +23,9 @@ class HasOne<R extends Model> extends HasMany<R> {
 
     for (var model in models) {
       final list = model.relations[relationName] as List?;
-      model.relations[relationName] =
-          (list != null && list.isNotEmpty) ? list.first : null;
+      model.relations[relationName] = (list != null && list.isNotEmpty)
+          ? list.first
+          : null;
     }
   }
 }

@@ -3,7 +3,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:build/build.dart';
 
-Future<void> getColumnFromSchema(FieldElement? schemaField, BuildStep buildStep, List<ColumnInfo> columnsData) async {
+Future<void> getColumnFromSchema(
+  FieldElement? schemaField,
+  BuildStep buildStep,
+  List<ColumnInfo> columnsData,
+) async {
   if (schemaField != null && schemaField.isStatic) {
     AstNode? astNode;
 
@@ -89,13 +93,15 @@ Future<void> getColumnFromSchema(FieldElement? schemaField, BuildStep buildStep,
                     ? '$baseType?'
                     : baseType;
 
-                columnsData.add(ColumnInfo(
-                  propertyName: propertyName,
-                  dbName: dbName,
-                  dartType: dartType,
-                  castType: castType!,
-                  isGuarded: isGuarded,
-                ));
+                columnsData.add(
+                  ColumnInfo(
+                    propertyName: propertyName,
+                    dbName: dbName,
+                    dartType: dartType,
+                    castType: castType!,
+                    isGuarded: isGuarded,
+                  ),
+                );
               }
             }
           }

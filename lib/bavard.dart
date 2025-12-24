@@ -24,7 +24,6 @@ export 'src/core/concerns/has_soft_deletes.dart';
 export 'src/core/concerns/has_timestamps.dart';
 export 'src/core/concerns/has_guards_attributes.dart';
 
-
 /// Database connection management singleton and driver interface definitions.
 export 'src/core/database_manager.dart';
 export 'src/core/database_adapter.dart';

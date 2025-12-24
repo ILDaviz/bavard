@@ -100,7 +100,10 @@ void main() {
       user.fill(input);
 
       expect(user.attributes['settings'], isA<Map>());
-      expect(user.attributes['settings'], equals({'theme': 'dark', 'notifications': true}));
+      expect(
+        user.attributes['settings'],
+        equals({'theme': 'dark', 'notifications': true}),
+      );
     });
 
     test('forceFill() bypasses protection', () {

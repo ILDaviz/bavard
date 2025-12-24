@@ -19,10 +19,10 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
   /// since the column definitions cannot be evaluated at runtime during the build phase.
   @override
   Future<String> generateForAnnotatedElement(
-      Element element,
-      ConstantReader annotation,
-      BuildStep buildStep,
-      ) async {
+    Element element,
+    ConstantReader annotation,
+    BuildStep buildStep,
+  ) async {
     if (element is! ClassElement) {
       throw InvalidGenerationSourceError('@fillable works only on classes.');
     }
@@ -71,11 +71,15 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
     // Generate type-safe accessors that proxy to the underlying dynamic `getAttribute` / `setAttribute`.
     for (var col in columnsData) {
       buffer.writeln();
-      buffer.writeln('  /// Accessor for [${col.propertyName}] (DB: ${col.dbName})');
+      buffer.writeln(
+        '  /// Accessor for [${col.propertyName}] (DB: ${col.dbName})',
+      );
       buffer.writeln('  ${col.dartType} get ${col.propertyName} {');
       buffer.writeln("    return getAttribute('${col.dbName}');");
       buffer.writeln('  }');
-      buffer.writeln('  set ${col.propertyName}(${col.dartType} value) => setAttribute(\'${col.dbName}\', value);');
+      buffer.writeln(
+        '  set ${col.propertyName}(${col.dartType} value) => setAttribute(\'${col.dbName}\', value);',
+      );
     }
 
     buffer.writeln('}');

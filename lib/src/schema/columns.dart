@@ -6,7 +6,12 @@ class WhereCondition {
   final dynamic value;
   final String boolean;
 
-  const WhereCondition(this.column, this.operator, this.value, {this.boolean = 'AND'});
+  const WhereCondition(
+    this.column,
+    this.operator,
+    this.value, {
+    this.boolean = 'AND',
+  });
 }
 
 /// Abstract definition of a database schema column.
@@ -28,17 +33,13 @@ abstract class Column<T> {
   @override
   String toString() => name ?? '';
 
-  WhereCondition equals(T value) =>
-      WhereCondition(toString(), '=', value);
+  WhereCondition equals(T value) => WhereCondition(toString(), '=', value);
 
-  WhereCondition notEquals(T value) =>
-      WhereCondition(toString(), '!=', value);
+  WhereCondition notEquals(T value) => WhereCondition(toString(), '!=', value);
 
-  WhereCondition isNull() =>
-      WhereCondition(toString(), 'IS', null);
+  WhereCondition isNull() => WhereCondition(toString(), 'IS', null);
 
-  WhereCondition isNotNull() =>
-      WhereCondition(toString(), 'IS NOT', null);
+  WhereCondition isNotNull() => WhereCondition(toString(), 'IS NOT', null);
 
   WhereCondition inList(List<T> values) =>
       WhereCondition(toString(), 'IN', values);
@@ -70,11 +71,9 @@ class IntColumn extends Column<int> {
   @override
   String get schemaType => 'integer';
 
-  WhereCondition greaterThan(int value) =>
-      WhereCondition(name!, '>', value);
+  WhereCondition greaterThan(int value) => WhereCondition(name!, '>', value);
 
-  WhereCondition lessThan(int value) =>
-      WhereCondition(name!, '<', value);
+  WhereCondition lessThan(int value) => WhereCondition(name!, '<', value);
 
   WhereCondition greaterThanOrEqual(int value) =>
       WhereCondition(name!, '>=', value);
@@ -92,11 +91,9 @@ class DoubleColumn extends Column<double> {
   @override
   String get schemaType => 'doubleType';
 
-  WhereCondition greaterThan(double value) =>
-      WhereCondition(name!, '>', value);
+  WhereCondition greaterThan(double value) => WhereCondition(name!, '>', value);
 
-  WhereCondition lessThan(double value) =>
-      WhereCondition(name!, '<', value);
+  WhereCondition lessThan(double value) => WhereCondition(name!, '<', value);
 
   WhereCondition greaterThanOrEqual(double value) =>
       WhereCondition(name!, '>=', value);
@@ -154,11 +151,15 @@ class JsonPathColumn<T> extends Column<T> {
   @override
   String toString() => "json_extract($rootColumn, '\$.$path')";
 
-  WhereCondition greaterThan(num value) => WhereCondition(toString(), '>', value);
+  WhereCondition greaterThan(num value) =>
+      WhereCondition(toString(), '>', value);
   WhereCondition lessThan(num value) => WhereCondition(toString(), '<', value);
-  WhereCondition greaterThanOrEqual(num value) => WhereCondition(toString(), '>=', value);
-  WhereCondition lessThanOrEqual(num value) => WhereCondition(toString(), '<=', value);
-  WhereCondition contains(String value) => WhereCondition(toString(), 'LIKE', '%$value%');
+  WhereCondition greaterThanOrEqual(num value) =>
+      WhereCondition(toString(), '>=', value);
+  WhereCondition lessThanOrEqual(num value) =>
+      WhereCondition(toString(), '<=', value);
+  WhereCondition contains(String value) =>
+      WhereCondition(toString(), 'LIKE', '%$value%');
 
   /// Chains a sub-path to the current JSON extraction path.
   JsonPathColumn<R> key<R>(String subPath) {

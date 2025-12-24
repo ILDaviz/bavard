@@ -140,7 +140,8 @@ mixin HasRelationships {
   ///
   /// * [name]: The polymorphic prefix (e.g. 'commentable').
   /// * [type]: The discriminator value (e.g. 'posts').
-  HasManyThrough<R, I> hasManyThroughPolymorphic<R extends Model, I extends Model>(
+  HasManyThrough<R, I>
+  hasManyThroughPolymorphic<R extends Model, I extends Model>(
     R Function(Map<String, dynamic>) relatedCreator,
     I Function(Map<String, dynamic>) intermediateCreator, {
     required String name,
