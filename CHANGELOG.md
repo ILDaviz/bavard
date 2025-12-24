@@ -4,10 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **Documentation:** Update doc.
+
 ## [0.0.8] - 2025-12-24
 
 ### Changed
-- **Documentation:** Change locations.
+- **Documentation:** Update doc.
 - **Examples:** Change locations.
 
 
