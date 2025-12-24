@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.17] - 2025-12-24
+
 ### Added
 - **Relations:** Added `attach()` and `detach()` methods to `BelongsToMany` for easy management of many-to-many relationships.
 - **Examples:** Added a comprehensive **PostgreSQL + Docker integration test suite** in `example/postgresql-docker`.
