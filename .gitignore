@@ -16,8 +16,8 @@ migrate_working_dir/
 *.iws
 .idea/
 
-docs/.vitepress/dist
-docs/.vitepress/cache
+doc/.vitepress/dist
+doc/.vitepress/cache
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line

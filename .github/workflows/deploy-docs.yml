@@ -3,9 +3,9 @@ name: Deploy Docs to GitHub Pages
 on:
   push:
     branches: [main]
-    # Attiva il workflow solo se ci sono modifiche nella cartella docs
+    # Attiva il workflow solo se ci sono modifiche nella cartella doc
     paths:
-      - 'docs/**'
+      - 'doc/**'
 
 permissions:
   contents: read
@@ -33,23 +33,23 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-          cache-dependency-path: docs/yarn.lock
+          cache-dependency-path: doc/yarn.lock
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
-        working-directory: ./docs
+        working-directory: ./doc
         run: yarn install --immutable
 
       - name: Build with VitePress
-        working-directory: ./docs
+        working-directory: ./doc
         run: yarn run docs:build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/.vitepress/dist
+          path: doc/.vitepress/dist
 
   deploy:
     environment:
