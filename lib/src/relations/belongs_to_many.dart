@@ -43,8 +43,13 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   ///
   /// Useful for retrieving extra data without defining a full [Pivot] class.
   /// The attributes will be available via `model.pivot.attributes`.
-  BelongsToMany<R> withPivot(List<String> columns) {
-    _pivotColumns.addAll(columns.map((name) => TextColumn(name)));
+  BelongsToMany<R> withPivot(List<dynamic> columns) {
+    _pivotColumns.addAll(
+      columns.map((c) {
+        if (c is Column) return c;
+        return TextColumn(c.toString());
+      }),
+    );
     // Ensure we have a pivot creator if not set
     _pivotCreator ??= (map) => GenericPivot(map);
     return this;
@@ -68,20 +73,33 @@ class BelongsToMany<R extends Model> extends Relation<R> {
     where('$pivotTable.$foreignPivotKey', parent.id);
   }
 
+  String _resolvePivotColumnName(dynamic column) {
+    if (column is WhereCondition) {
+      throw ArgumentError(
+        'You passed a WhereCondition to a pivot method expecting a Column or String name.',
+      );
+    }
+    if (column is Column) {
+      return column.name ?? column.toString();
+    }
+    return column.toString();
+  }
+
   // --- Pivot Filters ---
 
   BelongsToMany<R> wherePivot(
-    String column, [
+    dynamic column, [
     dynamic value,
     String operator = '=',
     String boolean = 'AND',
   ]) {
-    return where('$pivotTable.$column', value, operator, boolean)
+    final colName = _resolvePivotColumnName(column);
+    return where('$pivotTable.$colName', value, operator, boolean)
         as BelongsToMany<R>;
   }
 
   BelongsToMany<R> orWherePivot(
-    String column, [
+    dynamic column, [
     dynamic value,
     String operator = '=',
   ]) {
@@ -89,38 +107,42 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   }
 
   BelongsToMany<R> wherePivotIn(
-    String column,
+    dynamic column,
     List<dynamic> values, {
     String boolean = 'AND',
   }) {
-    return whereIn('$pivotTable.$column', values, boolean: boolean)
+    final colName = _resolvePivotColumnName(column);
+    return whereIn('$pivotTable.$colName', values, boolean: boolean)
         as BelongsToMany<R>;
   }
 
-  BelongsToMany<R> orWherePivotIn(String column, List<dynamic> values) {
+  BelongsToMany<R> orWherePivotIn(dynamic column, List<dynamic> values) {
     return wherePivotIn(column, values, boolean: 'OR');
   }
 
   BelongsToMany<R> wherePivotNotIn(
-    String column,
+    dynamic column,
     List<dynamic> values, {
     String boolean = 'AND',
   }) {
-    return where('$pivotTable.$column', values, 'NOT IN', boolean)
+    final colName = _resolvePivotColumnName(column);
+    return where('$pivotTable.$colName', values, 'NOT IN', boolean)
         as BelongsToMany<R>;
   }
 
-  BelongsToMany<R> orWherePivotNotIn(String column, List<dynamic> values) {
+  BelongsToMany<R> orWherePivotNotIn(dynamic column, List<dynamic> values) {
     return wherePivotNotIn(column, values, boolean: 'OR');
   }
 
-  BelongsToMany<R> wherePivotNull(String column, {String boolean = 'AND'}) {
-    return whereNull('$pivotTable.$column', boolean: boolean)
+  BelongsToMany<R> wherePivotNull(dynamic column, {String boolean = 'AND'}) {
+    final colName = _resolvePivotColumnName(column);
+    return whereNull('$pivotTable.$colName', boolean: boolean)
         as BelongsToMany<R>;
   }
 
-  BelongsToMany<R> wherePivotNotNull(String column, {String boolean = 'AND'}) {
-    return whereNotNull('$pivotTable.$column', boolean: boolean)
+  BelongsToMany<R> wherePivotNotNull(dynamic column, {String boolean = 'AND'}) {
+    final colName = _resolvePivotColumnName(column);
+    return whereNotNull('$pivotTable.$colName', boolean: boolean)
         as BelongsToMany<R>;
   }
 

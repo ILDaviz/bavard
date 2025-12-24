@@ -50,11 +50,15 @@ final user = await User().query().where('email', 'test@example.com').firstOrFail
 
 ## Selects
 
-By default, the query selects all columns (`*`). You can specify specific columns using `select`:
+By default, the query selects all columns (`*`). You can specify specific columns using `select`. It supports both string column names and `Column` objects:
 
 ```dart
 final users = await User().query()
-    .select(['id', 'name', 'email'])
+    .select([
+        User.schema.id, 
+        User.schema.name, 
+        'email'
+    ])
     .get();
 ```
 
@@ -87,7 +91,7 @@ The `where` method accepts three arguments: the column, the value, and an option
 
 ### Type-Safe Where (Recommended)
 
-When using code generation, you can use the `schema` for type-safe queries:
+When using code generation, you can use the `schema` for type-safe queries. This approach is robust against column name changes.
 
 ```dart
 // Equality
@@ -99,6 +103,16 @@ When using code generation, you can use the `schema` for type-safe queries:
 
 // LIKE
 .where(User.schema.name.startsWith('Mar'))
+```
+
+You can also pass `Column` objects directly to methods like `whereNull`, `whereIn`, `orderBy`, etc. The builder will automatically prefix the column with the table name (e.g., `users.updated_at`).
+
+```dart
+// Generates: ... WHERE "users"."updated_at" IS NULL
+.whereNull(User.schema.updatedAt)
+
+// Generates: ... WHERE "users"."status" IN ('active', 'pending')
+.whereIn(User.schema.status, ['active', 'pending'])
 ```
 
 ### Or Where
@@ -114,26 +128,61 @@ To join clauses with an `OR` operator, use `orWhere`:
 
 ```dart
 .whereIn('id', [1, 2, 3])
+.whereIn(User.schema.roleId, [1, 2]) // Type-safe column
 .orWhereIn('id', [10, 11])
 .whereNotIn('id', [4, 5, 6])
+```
+
+### Where Between / Where Not Between
+
+```dart
+.whereBetween('votes', [1, 100])
+.whereNotBetween('votes', [1, 100])
+.orWhereBetween(User.schema.age, [18, 30])
 ```
 
 ### Where Null / Where Not Null
 
 ```dart
 .whereNull('updated_at')
+.whereNull(User.schema.deletedAt) // Type-safe column
 .orWhereNull('deleted_at')
 .whereNotNull('created_at')
 .orWhereNotNull('posted_at')
 ```
 
+### Where Column
+
+The `whereColumn` method allows you to compare two columns in your query.
+
+```dart
+// Basic comparison
+.whereColumn('first_name', 'last_name')
+
+// Comparison with operator
+.whereColumn('updated_at', '>', 'created_at')
+
+// Multiple conditions using an array
+.whereColumn([
+  ['first_name', 'last_name'],
+  ['updated_at', '>', 'created_at']
+])
+```
+
+You can also use `orWhereColumn`:
+
+```dart
+.where('active', 1)
+.orWhereColumn('first_name', 'last_name')
+```
+
 ## Ordering
 
-The `orderBy` method allows you to sort the results.
+The `orderBy` method allows you to sort the results. It supports both string column names and `Column` objects.
 
 ```dart
 .orderBy('name') // ASC by default
-.orderBy('created_at', direction: 'DESC')
+.orderBy(User.schema.createdAt, direction: 'DESC') // Type-safe column
 ```
 
 ## Limit and Offset
@@ -145,12 +194,12 @@ The `orderBy` method allows you to sort the results.
 
 ## Aggregates
 
-The query builder supports various aggregate methods:
+The query builder supports various aggregate methods, which also accept `Column` objects:
 
 ```dart
 final count = await User().query().count();
 final max = await Product().query().max('price');
-final min = await Product().query().min('price');
+final min = await Product().query().min(Product.schema.price); // Type-safe
 final avg = await Product().query().avg('rating');
 final sum = await Order().query().sum('total');
 ```

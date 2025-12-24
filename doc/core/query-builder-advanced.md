@@ -70,23 +70,23 @@ await User().query()
     .get();
 ```
 
-To group by a single column, you can use the convenience method `groupByColumn`:
+To group by a single column, you can use the convenience method `groupByColumn`. Both methods support type-safe `Column` objects:
 
 ```dart
 await User().query()
-    .groupByColumn('account_id')
+    .groupByColumn(User.schema.accountId)
     .get();
 ```
 
 ### Having
 
-The `having` method works similarly to `where` but filters the results after grouping.
+The `having` method works similarly to `where` but filters the results after grouping. It accepts string column names or `Column` objects.
 
 ```dart
 await User().query()
     .groupBy(['account_id'])
     .having('account_id', 100, operator: '>')
-    .orHaving('status', 'active')
+    .orHaving(User.schema.status, 'active')
     .get();
 ```
 
@@ -153,11 +153,14 @@ When querying `BelongsToMany` relationships, you can filter the results based on
 
 ### `wherePivot` / `orWherePivot`
 
-Adds a basic `WHERE` clause on the pivot table.
+Adds a basic `WHERE` clause on the pivot table. Accepts strings or `Column` objects.
 
 ```dart
 // Filter roles where the 'is_admin' column on the pivot table is 1
 final admins = await user.roles().wherePivot('is_admin', 1).get();
+
+// Using type-safe Column object (auto-prefixed with pivot table name)
+final admins = await user.roles().wherePivot(UserRole.schema.isAdmin, 1).get();
 ```
 
 ### `wherePivotIn` / `wherePivotNotIn`
@@ -167,6 +170,7 @@ Adds a `WHERE IN` clause on the pivot table.
 ```dart
 final roles = await user.roles()
     .wherePivotIn('permission_level', [1, 2, 3])
+    .wherePivotIn(UserRole.schema.permissionLevel, [1, 2])
     .get();
 ```
 
@@ -177,6 +181,7 @@ Checks for NULL values on the pivot table.
 ```dart
 final activeRoles = await user.roles()
     .wherePivotNull('expired_at')
+    .orWherePivotNull(UserRole.schema.expiredAt)
     .get();
 ```
 

@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
+import 'package:bavard/schema.dart';
 
 class TestUser extends Model {
   @override
@@ -61,6 +62,22 @@ void main() {
     expect(dbSpy.lastSql, contains('LIMIT 5'));
   });
 
+  test('It handles whereBetween and whereNotBetween', () async {
+    await TestUser().query().whereBetween('age', [18, 30]).get();
+    expect(dbSpy.lastSql, contains('WHERE "age" BETWEEN ? AND ?'));
+    expect(dbSpy.lastArgs, [18, 30]);
+
+    await TestUser().query().whereNotBetween('age', [1, 10]).get();
+    expect(dbSpy.lastSql, contains('WHERE "age" NOT BETWEEN ? AND ?'));
+    expect(dbSpy.lastArgs, [1, 10]);
+  });
+
+  test('whereBetween works with Column object', () async {
+    final col = IntColumn('votes');
+    await TestUser().query().whereBetween(col, [100, 200]).get();
+    expect(dbSpy.lastSql, contains('WHERE "users"."votes" BETWEEN ? AND ?'));
+  });
+
   test('It handles WHERE IN', () async {
     await TestUser().query().whereIn('id', [1, 2, 3]).get();
 
@@ -107,16 +124,17 @@ void main() {
     expect(dbSpy.lastArgs, [1, 'admin@test.com']);
   });
 
-  test('It handles whereNull and whereNotNull', () async {
+  test('It handles whereNull and whereNotNull with dynamic columns (Strings or Column objects)', () async {
+    final col = TextColumn('deleted_at');
     final q = TestUser()
         .query()
-        .whereNull('deleted_at')
+        .whereNull(col)
         .orWhereNotNull('posted_at');
     await q.get();
 
     expect(
       dbSpy.lastSql,
-      contains('WHERE "deleted_at" IS NULL OR "posted_at" IS NOT NULL'),
+      contains('WHERE "users"."deleted_at" IS NULL OR "posted_at" IS NOT NULL'),
     );
     expect(dbSpy.lastArgs, isEmpty);
   });
@@ -220,7 +238,7 @@ void main() {
     expect(countMock.lastSql, contains('WHERE "active" = ?'));
 
     final sumMock = MockDatabaseSpy([], {
-      'SELECT SUM(price) as aggregate': [
+      'SELECT SUM("price") as aggregate': [
         {'aggregate': 100.50},
       ],
     });
@@ -228,7 +246,7 @@ void main() {
 
     final total = await TestUser().query().sum('price');
     expect(total, 100.50);
-    expect(sumMock.lastSql, contains('SELECT SUM(price) as aggregate'));
+    expect(sumMock.lastSql, contains('SELECT SUM("price") as aggregate'));
 
     final existsMock = MockDatabaseSpy([], {
       'LIMIT 1': [
