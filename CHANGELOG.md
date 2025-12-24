@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.7] - 2025-12-24
+
 ### Added
 - **Core:** Added **Dirty Checking** support to `Model` (`isDirty()`, `getDirty()`) for optimized updates.
 - **Relations:** Added `hasManyThroughPolymorphic` to natively support distant polymorphic relations.
