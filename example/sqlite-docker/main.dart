@@ -483,10 +483,7 @@ void main() async {
     final c = Category({'name': 'Edge', 'created_at': isoNow()});
     await c.save();
 
-    db.execute(
-      "INSERT INTO category_post (post_id, category_id, created_at) VALUES (?, ?, ?)",
-      [p!.id, c.id, '2025-01-01'],
-    );
+    await p!.categories().attach(c, {'created_at': '2025-01-01'});
 
     final result = await Post()
         .query()
@@ -550,10 +547,9 @@ void main() async {
       throw 'Soft Deleted record was found by standard query!';
 
     // 3. Verification: Record MUST exist physically in DB with deleted_at set
-    // Use direct adapter to bypass Model filters
-    final raw = await db.select('SELECT * FROM tasks WHERE id = ?', [id]);
-    if (raw.isEmpty) throw 'Record was physically deleted from DB!';
-    if (raw.first['deleted_at'] == null) throw 'deleted_at column is null!';
+    final softDeletedTask = await Task().withTrashed().find(id);
+    if (softDeletedTask == null) throw 'Record was physically deleted from DB!';
+    if (softDeletedTask.attributes['deleted_at'] == null) throw 'deleted_at column is null!';
   });
 
   // TEST 9: JSON Casting
@@ -581,7 +577,7 @@ void main() async {
 
   // TEST 10: Advanced Query (WhereIn, WhereNull)
   await runTest('Advanced Clauses (WhereIn, WhereNull)', () async {
-    db.execute("DELETE FROM posts");
+    await Post().query().delete();
 
     final p1 = Post({
       'title': 'A',
@@ -753,7 +749,7 @@ void main() async {
 
   // TEST 15: Aggregates (Sum, Avg, Max)
   await runTest('Aggregates (Sum, Avg, Max)', () async {
-    db.execute("DELETE FROM posts");
+    await Post().query().delete();
     // Insert dummy posts with views: 10, 20, 30
     await Post({'title': 'P1', 'views': 10, 'created_at': isoNow()}).save();
     await Post({'title': 'P2', 'views': 20, 'created_at': isoNow()}).save();
