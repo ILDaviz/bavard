@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Core:** Allow `Column` objects as keys in `insert` and `update` methods.
+
+### Fixed
+- **Core:** Quote table and column names in SQL queries to prevent syntax errors.
+
+### Changed
+- **Dependencies:** Update project dependencies.
+- **Tests:** Update mocks for database grammar wrap.
+
 ## [0.0.16] - 2025-12-24
 
 ### Changed
