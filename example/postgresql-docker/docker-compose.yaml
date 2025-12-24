@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: bavard
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bavard_test
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bavard -d bavard_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ../..
+      dockerfile: example/postgresql-docker/Dockerfile
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: bavard_test
+      DB_USER: bavard
+      DB_PASS: password
+    depends_on:
+      db:
+        condition: service_healthy

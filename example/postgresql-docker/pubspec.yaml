@@ -1,0 +1,10 @@
+name: bavard_postgres_test
+description: A test environment for Bavard with PostgreSQL in Docker.
+publish_to: 'none'
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  bavard:
+    path: /app/bavard
+  postgres: ^3.0.0
