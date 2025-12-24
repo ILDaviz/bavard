@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.10] - 2025-12-24
+
 ### Added
 - **Core:** Enhanced `QueryBuilder` with comprehensive support for `Column` objects across all methods (`select`, `where`, `groupBy`, `orderBy`, `count`, `sum`, etc.), enabling fully type-safe queries.
 - **Core:** Added automatic table prefixing (e.g., `"users"."id"`) when using `Column` objects to prevent column ambiguity during joins.
