@@ -1,6 +1,7 @@
 import 'relation.dart';
 import '../core/model.dart';
 import '../core/pivot.dart';
+import '../core/query_builder.dart';
 import '../schema/columns.dart';
 import '../core/database_manager.dart';
 
@@ -53,6 +54,71 @@ class BelongsToMany<R extends Model> extends Relation<R> {
     // Ensure we have a pivot creator if not set
     _pivotCreator ??= (map) => GenericPivot(map);
     return this;
+  }
+
+  /// Attaches a related model to the parent by inserting a record into the pivot table.
+  ///
+  /// [id] can be a primary key value or a [Model] instance.
+  /// [attributes] are extra columns to save in the pivot table (e.g. timestamps).
+  Future<void> attach(
+    dynamic id, [
+    Map<String, dynamic> attributes = const {},
+  ]) async {
+    if (parent.id == null) {
+      throw Exception(
+        'Cannot attach to a model with no ID. Save the parent model first.',
+      );
+    }
+
+    final relatedId = _parseId(id);
+
+    final data = {
+      foreignPivotKey: parent.id,
+      relatedPivotKey: relatedId,
+      ...attributes,
+    };
+
+    await DatabaseManager().insert(pivotTable, data);
+  }
+
+  /// Detaches related models from the parent by deleting records from the pivot table.
+  ///
+  /// [ids] can be:
+  /// - `null`: Detach ALL related models.
+  /// - `single value` (ID or Model): Detach specific record.
+  /// - `List` (IDs or Models): Detach multiple records.
+  Future<int> detach([dynamic ids]) async {
+    if (parent.id == null) {
+      throw Exception('Cannot detach from a model with no ID.');
+    }
+
+    final query = QueryBuilder<_PivotHelperModel>(
+      pivotTable,
+          (map) => _PivotHelperModel(pivotTable, map),
+    );
+
+    query.where(foreignPivotKey, parent.id);
+
+    if (ids != null) {
+      final list = (ids is List) ? ids : [ids];
+      final parsedIds = list.map(_parseId).toList();
+      query.whereIn(relatedPivotKey, parsedIds);
+    }
+
+    return await query.delete();
+  }
+
+  /// Helper to extract ID from Model or return raw value.
+  dynamic _parseId(dynamic value) {
+    if (value is Model) {
+      if (value.id == null) {
+        throw Exception(
+          'Cannot use a model with no ID in a relationship operation.',
+        );
+      }
+      return value.id;
+    }
+    return value;
   }
 
   /// Configures the INNER JOIN between the related table and pivot table,
@@ -309,4 +375,16 @@ class BelongsToMany<R extends Model> extends Relation<R> {
       model.relations[relationName] = matches;
     }
   }
+}
+
+class _PivotHelperModel extends Model {
+  final String _table;
+
+  _PivotHelperModel(this._table, [super.attributes]);
+
+  @override
+  String get table => _table;
+
+  @override
+  _PivotHelperModel fromMap(Map<String, dynamic> map) => _PivotHelperModel(_table, map);
 }

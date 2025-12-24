@@ -222,3 +222,35 @@ Available methods:
 - `wherePivotIn(...)` / `wherePivotNotIn(...)`
 - `wherePivotNull(...)` / `wherePivotNotNull(...)`
 - `wherePivotCondition(condition)` / `orWherePivotCondition(condition)`
+
+### Attaching / Detaching
+
+For convenience, you can attach and detach models from a many-to-many relationship using the `attach` and `detach` methods. These methods handle inserting and removing records from the intermediate table.
+
+**Attaching**
+To attach a role to a user, pass the role's ID or the model instance to the `attach` method. You can also pass a map of additional data to be inserted into the intermediate table:
+
+```dart
+final user = await User().query().find(1);
+final role = await Role().query().find(2);
+
+// Attach by ID
+await user.roles().attach(role.id);
+
+// Attach with extra pivot data
+await user.roles().attach(role, {'expires_at': DateTime.now()});
+```
+
+**Detaching**
+To remove a relationship, use the `detach` method. The `detach` method accepts the ID of the related model or the model instance itself.
+
+```dart
+// Detach a single role
+await user.roles().detach(roleId);
+
+// Detach multiple roles
+await user.roles().detach([1, 2, 3]);
+
+// Detach all roles from the user
+await user.roles().detach();
+```
