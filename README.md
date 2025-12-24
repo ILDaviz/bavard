@@ -1,86 +1,39 @@
-# Bavard
+# Bavard ORM 🗣️
 
-[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
+**The Eloquent-style ORM for Dart.**
 
-Bavard is an Eloquent-like ORM for Flutter/Dart, designed to work with SQLite, PostgreSQL, PowerSync or any driver you want.
+> **Work in Progress**: This project is currently under active development. APIs may change.
 
-> [!CAUTION]
-> **This project is under active development. APIs and documentation may change.**
+Bavard brings the elegance and simplicity of Laravel's Eloquent to the Dart ecosystem. It is designed to provide a fluent, expressive interface for database interactions, prioritizing developer experience and readability.
 
 ---
 
-#### Why Bavard?
-- **Fluent syntax:** Write readable queries such as `User().query().where("age", ">", 18).get()`.
-- **Offline-first ready:** Native support for client-side UUIDs and driver-agnostic architecture.
-- **Advanced features:** Already includes Soft Deletes, automatic Timestamps, Global Scopes, and Polymorphic Relationships.
+## 🚀 Key Features
 
-## Installation
+- **Fluent Query Builder** for expressive SQL construction.
+- **Rich Relationship Mapping** (One-to-One, One-to-Many, Many-to-Many, Polymorphic, HasManyThrough).
+- **Eager Loading** to eliminate N+1 query problems.
+- **Dirty Checking** for optimized database updates.
+- **Database Agnostic** supporting SQLite and PostgreSQL.
 
-Add Bavard to your `pubspec.yaml`:
+---
 
-```yaml
-dependencies:
-  bavard: ^0.0.1
-```
+## 📚 Documentation
 
-## Quick Start
+For detailed guides, API references, and usage examples, please visit our documentation:
 
-### 1. Define a Model
+👉 **[Read the Documentation](doc/index.md)**
 
-Extend the `Model` class and define your table name and hydration logic.
+---
 
-```dart
-import 'package:bavard/bavard.dart';
+## 🧪 Examples & Integration
 
-class User extends Model {
-  @override
-  String get table => 'users';
+To see Bavard in action with a real database environment, check the integration suite:
 
-  User([super.attributes]);
+*   [SQLite + Docker Integration Test](example/sqlite-docker/)
 
-  @override
-  User fromMap(Map<String, dynamic> map) => User(map);
-}
-```
+---
 
-### 2. Querying
+## 🤝 Contributing
 
-Use the fluent query builder to retrieve data.
-
-```dart
-// Get all users over 18
-final users = await User().query()
-    .where('age', 18, operator: '>')
-    .orderBy('name')
-    .get();
-
-// Find a specific user
-final user = await User().query()
-    .where('email', 'mario@example.com')
-    .first();
-```
-
-### 3. CRUD Operations
-
-Easily create, update, and delete records.
-
-```dart
-// Create
-final newUser = User();
-newUser['name'] = 'Luigi';
-newUser['email'] = 'luigi@example.com';
-await newUser.save();
-
-// Update
-final user = await User().query().first();
-if (user != null) {
-  user['active'] = true;
-  await user.save();
-}
-
-// Delete
-await user?.delete();
-```
-
-### Documentation
-See [Official Documentation](https://ildaviz.github.io/bavard/)
+Bavard is open-source. Feel free to explore the code, report issues, or submit pull requests.
