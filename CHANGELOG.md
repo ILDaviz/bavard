@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Relations:** Added `attach()` and `detach()` methods to `BelongsToMany` for easy management of many-to-many relationships.
+- **Examples:** Added a comprehensive **PostgreSQL + Docker integration test suite** in `example/postgresql-docker`.
 - **Core:** Allow `Column` objects as keys in `insert` and `update` methods.
+- **Tests:** Added dedicated unit tests for `BelongsToMany` attach/detach operations.
+
+### Improved
+- **Core:** Enhanced `QueryBuilder.avg()` to robustly handle numeric string results, improving compatibility with PostgreSQL numeric types.
+- **Examples:** Refactored `sqlite-docker` and `postgresql-docker` examples to eliminate raw SQL queries in favor of ORM-native methods.
 
 ### Fixed
 - **Core:** Quote table and column names in SQL queries to prevent syntax errors.
