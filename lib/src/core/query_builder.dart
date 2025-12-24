@@ -432,6 +432,71 @@ class QueryBuilder<T extends Model> {
     return whereRaw(sql, bindings: bindings, boolean: 'OR');
   }
 
+  /// Adds a comparison between two columns to the query.
+  ///
+  /// Example:
+  /// ```dart
+  /// query.whereColumn('first_name', 'last_name')
+  /// // Generates: ... AND "first_name" = "last_name"
+  ///
+  /// query.whereColumn('updated_at', 'created_at', '>')
+  /// // Generates: ... AND "updated_at" > "created_at"
+  ///
+  /// query.whereColumn([['first_name', 'last_name'], ['updated_at', '>', 'created_at']])
+  /// ```
+  QueryBuilder<T> whereColumn(
+    dynamic first, [
+    dynamic second,
+    String? operator,
+    String boolean = 'AND',
+  ]) {
+    if (first is List) {
+      for (final condition in first) {
+        if (condition is List) {
+          if (condition.length == 2) {
+            whereColumn(condition[0], condition[1], '=', boolean);
+          } else if (condition.length >= 3) {
+            whereColumn(condition[0], condition[2], condition[1], boolean);
+          }
+        }
+      }
+      return this;
+    }
+
+    final targetFirst = first.toString();
+    final targetSecond = second?.toString();
+    final targetOperator = operator ?? '=';
+
+    if (targetSecond == null) {
+      throw ArgumentError('whereColumn requires at least two columns.');
+    }
+
+    _assertIdent(targetFirst, dotted: true, what: 'column name');
+    _assertIdent(targetSecond, dotted: true, what: 'column name');
+
+    final finalOp = _operator(targetOperator);
+    if (!_allowedWhereOps.contains(finalOp)) {
+      throw InvalidQueryException(
+        'Invalid operator for whereColumn: $targetOperator',
+      );
+    }
+
+    final sqlString =
+        '${_grammar.wrap(targetFirst)} $finalOp ${_grammar.wrap(targetSecond)}';
+    _wheres.add({'type': boolean, 'sql': sqlString});
+
+    return this;
+  }
+
+  /// Adds an OR comparison between two columns to the query.
+  QueryBuilder<T> orWhereColumn(
+    dynamic first, [
+    dynamic second,
+    String? operator,
+  ]) {
+    return whereColumn(first, second, operator, 'OR');
+  }
+
   // ---------------------------------------------------------------------------
   // GROUP BY / HAVING CLAUSES
   // ---------------------------------------------------------------------------

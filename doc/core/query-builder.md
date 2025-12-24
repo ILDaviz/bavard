@@ -127,6 +127,31 @@ To join clauses with an `OR` operator, use `orWhere`:
 .orWhereNotNull('posted_at')
 ```
 
+### Where Column
+
+The `whereColumn` method allows you to compare two columns in your query.
+
+```dart
+// Basic comparison
+.whereColumn('first_name', 'last_name')
+
+// Comparison with operator
+.whereColumn('updated_at', '>', 'created_at')
+
+// Multiple conditions using an array
+.whereColumn([
+  ['first_name', 'last_name'],
+  ['updated_at', '>', 'created_at']
+])
+```
+
+You can also use `orWhereColumn`:
+
+```dart
+.where('active', 1)
+.orWhereColumn('first_name', 'last_name')
+```
+
 ## Ordering
 
 The `orderBy` method allows you to sort the results.
