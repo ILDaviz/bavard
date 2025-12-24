@@ -24,7 +24,7 @@ Bavard brings the elegance and simplicity of Laravel's Eloquent to the Dart ecos
 
 For detailed guides, API references, and usage examples, please visit our documentation:
 
-👉 **[Read the Documentation](doc/index.md)**
+👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
 
 ---
 
