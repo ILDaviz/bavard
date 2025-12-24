@@ -6,20 +6,38 @@ All notable changes to this project will be documented in this file.
 
 ## [0.0.16] - 2025-12-24
 
+### Changed
+- **Dependencies:** Update dependencies
+
 ## [0.0.15] - 2025-12-24
+
+### Changed
+- **Dependencies:** Update dependencies
 
 ## [0.0.14] - 2025-12-24
 
+### Changed
+- **Dependencies:** Update dependencies
+
 ## [0.0.13] - 2025-12-24
+
+### Changed
+- **Dependencies:** Update dependencies
 
 ## [0.0.12] - 2025-12-24
 
-## [0.0.11] - 2025-12-24
+### Changed
+- **Dependencies:** Update dependencies
 
 ## [0.0.11] - 2025-12-24
 
 ### Changed
-- **Documentation:** Update doc.
+- **Dependencies:** Update dependencies
+
+## [0.0.11] - 2025-12-24
+
+### Changed
+- **Dependencies:** Update dependencies
 
 ## [0.0.10] - 2025-12-24
 
