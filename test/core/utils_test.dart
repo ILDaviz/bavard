@@ -42,8 +42,8 @@ void main() {
     });
 
     test('handles -es suffix for certain words', () {
-      expect(Utils.singularize('boxes'), 'boxe'); // Simple implementation
-      expect(Utils.singularize('watches'), 'watche');
+      expect(Utils.singularize('boxes'), 'box');
+      expect(Utils.singularize('watches'), 'watch');
     });
 
     test('handles already singular words', () {
