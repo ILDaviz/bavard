@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Core:** Added **Dirty Checking** support to `Model` (`isDirty()`, `getDirty()`) for optimized updates.
+- **Relations:** Added `hasManyThroughPolymorphic` to natively support distant polymorphic relations.
+- **Utils:** Improved `singularize` utility to handle common English rules (e.g. `-es`, `-ies`, irregulars) without external dependencies.
+- **Examples:** Added a comprehensive **SQLite + Docker integration test suite** in `examples/sqlite-docker`.
+- **Documentation:** Added detailed guides for "Constraining Relations", "Polymorphic HasManyThrough", and "Dirty Checking".
+
 ## [0.0.6] - 2025-12-23
 
 ### Added
