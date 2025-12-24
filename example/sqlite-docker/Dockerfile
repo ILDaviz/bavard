@@ -13,8 +13,8 @@ COPY . /app/bavard/
 WORKDIR /app/test
 
 # Copy test files from the context
-COPY /examples/sqlite-docker/pubspec.yaml .
-COPY /examples/sqlite-docker/main.dart .
+COPY /example/sqlite-docker/pubspec.yaml .
+COPY /example/sqlite-docker/main.dart .
 
 # Resolve dependencies
 # The pubspec.yaml points to /app/bavard

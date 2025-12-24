@@ -15,13 +15,13 @@ From the **root directory** of the project, run the following command:
 
 ```bash
 // Save persistent data to a local directory
-mkdir -p examples/sqlite-docker/data && \
-docker build -f examples/sqlite-docker/Dockerfile -t bavard-test . && \
-docker run --rm -v $(pwd)/examples/sqlite-docker/data:/app/test/data bavard-test
+mkdir -p example/sqlite-docker/data && \
+docker build -f example/sqlite-docker/Dockerfile -t bavard-test . && \
+docker run --rm -v $(pwd)/example/sqlite-docker/data:/app/test/data bavard-test
 
 or
 // Save persistent data to an in-memory database
-docker build -f examples/sqlite-docker/Dockerfile -t bavard-test . && docker run --rm bavard-test
+docker build -f example/sqlite-docker/Dockerfile -t bavard-test . && docker run --rm bavard-test
 ```
 
 ## Notes
