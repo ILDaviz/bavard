@@ -30,7 +30,7 @@ void main() {
       final user = User();
       await user.save();
 
-      expect(dbSpy.history.any((s) => s.contains('INSERT INTO users')), isTrue);
+      expect(dbSpy.history.any((s) => s.contains('INSERT INTO "users"')), isTrue);
       expect(user.exists, isTrue);
     });
 
@@ -46,7 +46,7 @@ void main() {
       await user.save();
 
       final insertSql = mockDb.history.firstWhere((s) => s.contains('INSERT'));
-      expect(insertSql, contains('id'));
+      expect(insertSql, contains('"id"'));
 
       expect(user.id, 'custom-uuid-123');
     });

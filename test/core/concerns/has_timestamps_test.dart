@@ -75,11 +75,11 @@ void main() {
       await user.save();
 
       final insertSql = dbSpy.history.firstWhere(
-        (sql) => sql.contains('INSERT INTO users'),
+        (sql) => sql.contains('INSERT INTO "users"'),
       );
 
-      expect(insertSql, contains('created_at'));
-      expect(insertSql, contains('updated_at'));
+      expect(insertSql, contains('"created_at"'));
+      expect(insertSql, contains('"updated_at"'));
     });
 
     test('UPDATE updates only updated_at', () async {
