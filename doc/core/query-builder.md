@@ -204,6 +204,54 @@ final avg = await Product().query().avg('rating');
 final sum = await Order().query().sum('total');
 ```
 
+## Inserts, Updates, and Deletes
+
+### Inserts
+
+You can insert records using the `insert` method. It accepts a `Map` of column names and values. It also supports `Column` objects as keys for type safety.
+
+```dart
+await User().query().insert({
+  'email': 'john@example.com',
+  'votes': 0,
+});
+
+// Type-safe insert
+await User().query().insert({
+  User.schema.email: 'jane@example.com',
+  User.schema.votes: 0,
+});
+```
+
+### Updates
+
+The `update` method allows you to update existing records. It also supports `Column` objects as keys.
+
+```dart
+await User().query()
+    .where('id', 1)
+    .update({
+        'votes': 1,
+        'status': 'active',
+    });
+
+// Type-safe update
+await User().query()
+    .where('id', 1)
+    .update({
+        User.schema.votes: 10,
+        User.schema.status: 'archived',
+    });
+```
+
+### Deletes
+
+The `delete` method removes records from the database.
+
+```dart
+await User().query().where('votes', '<', 100).delete();
+```
+
 ## Existence Checking
 
 ```dart

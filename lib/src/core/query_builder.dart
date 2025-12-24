@@ -110,6 +110,19 @@ class QueryBuilder<T extends Model> {
     }
   }
 
+  String _resolveColumnNameForWrite(dynamic column) {
+    if (column is WhereCondition) {
+      throw ArgumentError(
+        'You passed a WhereCondition to a method expecting a Column or String name. '
+        'Did you mean to use the column directly (e.g. User.schema.field)?',
+      );
+    }
+    if (column is Column) {
+      return column.name ?? column.toString();
+    }
+    return column.toString();
+  }
+
   String _resolveColumnName(dynamic column) {
     if (column is WhereCondition) {
       throw ArgumentError(
@@ -1075,16 +1088,20 @@ class QueryBuilder<T extends Model> {
     }
   }
 
-  Future<int> update(Map<String, dynamic> values) async {
+  Future<int> update(Map<dynamic, dynamic> values) async {
     _applyScopes();
 
     if (values.isEmpty) {
       return 0;
     }
 
-    final sql = _grammar.compileUpdate(this, values);
+    final resolvedValues = values.map((key, value) {
+      return MapEntry(_resolveColumnNameForWrite(key), value);
+    });
+
+    final sql = _grammar.compileUpdate(this, resolvedValues);
     final allBindings = _grammar.prepareBindings([
-      ...values.values,
+      ...resolvedValues.values,
       ..._bindings,
     ]);
 
@@ -1103,14 +1120,17 @@ class QueryBuilder<T extends Model> {
   ///
   /// WARNING: Bypasses the Model lifecycle (no events, automatic timestamps, or casts).
   /// Returns the ID of the inserted record (if supported by the driver, e.g., autoincrement).
-  Future<int> insert(Map<String, dynamic> values) async {
+  Future<int> insert(Map<dynamic, dynamic> values) async {
     if (values.isEmpty)
       throw const InvalidQueryException('Insert values cannot be empty');
-    values.keys.forEach(
-      (k) => _assertIdent(k, dotted: false, what: 'column name'),
-    );
 
-    return await DatabaseManager().insert(table, values);
+    final resolvedValues = values.map((key, value) {
+      final colName = _resolveColumnNameForWrite(key);
+      _assertIdent(colName, dotted: false, what: 'column name');
+      return MapEntry(colName, value);
+    });
+
+    return await DatabaseManager().insert(table, resolvedValues);
   }
 
   /// Returns a reactive stream that emits updated results when the table changes.
