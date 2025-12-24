@@ -61,7 +61,7 @@ export default defineConfig({
       },
       {
         text: 'Relationships',
-        collapsed: true,
+        collapsed: false,
         items: [
           { text: 'Overview', link: '/relationships/' },
           { text: 'HasManyThrough', link: '/relationships/has-many-through' },
