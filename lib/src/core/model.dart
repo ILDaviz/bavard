@@ -81,6 +81,31 @@ abstract class Model
     original = _deepCopy(dehydrateAttributes());
   }
 
+  /// Returns a map of attributes that have changed since the last sync.
+  Map<String, dynamic> getDirty() {
+    final dirty = <String, dynamic>{};
+    final current = dehydrateAttributes();
+
+    current.forEach((key, value) {
+      if (!original.containsKey(key) || value != original[key]) {
+        dirty[key] = value;
+      }
+    });
+
+    return dirty;
+  }
+
+  /// Determines if the model or a specific attribute has been modified.
+  bool isDirty([String? attribute]) {
+    final dirty = getDirty();
+
+    if (attribute != null) {
+      return dirty.containsKey(attribute);
+    }
+
+    return dirty.isNotEmpty;
+  }
+
   /// Container for eager-loaded data (e.g., `user.relations['posts']`).
   @override
   Map<String, dynamic> relations = {};

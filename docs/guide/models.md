@@ -108,3 +108,24 @@ user.name = 'Mario';
 user.age = 30;
 print(user.email);
 ```
+
+## Dirty Checking
+
+Bavard tracks changes made to a model's attributes. This allows it to perform optimized `UPDATE` queries that only modify the columns that have actually changed.
+
+- `isDirty([attribute])`: Returns `true` if the model or a specific attribute has been modified.
+- `getDirty()`: Returns a `Map` of all modified attributes and their new values.
+
+```dart
+final user = await User().query().find(1);
+
+user.name = 'Updated Name';
+
+print(user.isDirty()); // true
+print(user.isDirty('name')); // true
+print(user.isDirty('email')); // false
+print(user.getDirty()); // {'name': 'Updated Name'}
+
+await user.save(); // Only 'name' will be updated in the DB
+print(user.isDirty()); // false
+```
