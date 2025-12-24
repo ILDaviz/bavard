@@ -110,6 +110,23 @@ class QueryBuilder<T extends Model> {
     }
   }
 
+  String _resolveColumnName(dynamic column) {
+    if (column is WhereCondition) {
+      throw ArgumentError(
+        'You passed a WhereCondition to a method expecting a Column or String name. '
+        'Did you mean to use the column directly (e.g. User.schema.field)?',
+      );
+    }
+    if (column is Column) {
+      final name = column.name ?? column.toString();
+      if (!name.contains('.') && !name.contains('(')) {
+        return '$table.$name';
+      }
+      return name;
+    }
+    return column.toString();
+  }
+
   // ---------------------------------------------------------------------------
   // DEBUGGING TOOLS
   // ---------------------------------------------------------------------------
@@ -205,11 +222,7 @@ class QueryBuilder<T extends Model> {
       targetValue = column.value;
       targetBoolean = column.boolean;
     } else {
-      if (column is Column) {
-        targetColumn = column.name!;
-      } else {
-        targetColumn = column.toString();
-      }
+      targetColumn = _resolveColumnName(column);
       targetOperator = operator;
       targetValue = value;
     }
@@ -333,26 +346,31 @@ class QueryBuilder<T extends Model> {
     return this;
   }
 
-  QueryBuilder<T> whereNull(String column, {String boolean = 'AND'}) {
-    _assertIdent(column, dotted: true, what: 'column name');
-    _wheres.add({'type': boolean, 'sql': '${_grammar.wrap(column)} IS NULL'});
-    return this;
-  }
-
-  QueryBuilder<T> orWhereNull(String column) {
-    return whereNull(column, boolean: 'OR');
-  }
-
-  QueryBuilder<T> whereNotNull(String column, {String boolean = 'AND'}) {
-    _assertIdent(column, dotted: true, what: 'column name');
+  QueryBuilder<T> whereNull(dynamic column, {String boolean = 'AND'}) {
+    final targetColumn = _resolveColumnName(column);
+    _assertIdent(targetColumn, dotted: true, what: 'column name');
     _wheres.add({
       'type': boolean,
-      'sql': '${_grammar.wrap(column)} IS NOT NULL',
+      'sql': '${_grammar.wrap(targetColumn)} IS NULL',
     });
     return this;
   }
 
-  QueryBuilder<T> orWhereNotNull(String column) {
+  QueryBuilder<T> orWhereNull(dynamic column) {
+    return whereNull(column, boolean: 'OR');
+  }
+
+  QueryBuilder<T> whereNotNull(dynamic column, {String boolean = 'AND'}) {
+    final targetColumn = _resolveColumnName(column);
+    _assertIdent(targetColumn, dotted: true, what: 'column name');
+    _wheres.add({
+      'type': boolean,
+      'sql': '${_grammar.wrap(targetColumn)} IS NOT NULL',
+    });
+    return this;
+  }
+
+  QueryBuilder<T> orWhereNotNull(dynamic column) {
     return whereNotNull(column, boolean: 'OR');
   }
 
@@ -360,11 +378,12 @@ class QueryBuilder<T extends Model> {
   ///
   /// Optimization: If [values] is empty, generates `0 = 1` to short-circuit the query safely.
   QueryBuilder<T> whereIn(
-    String column,
+    dynamic column,
     List<dynamic> values, {
     String boolean = 'AND',
   }) {
-    _assertIdent(column, dotted: true, what: 'column name');
+    final targetColumn = _resolveColumnName(column);
+    _assertIdent(targetColumn, dotted: true, what: 'column name');
     if (values.isEmpty) {
       _wheres.add({'type': boolean, 'sql': '0 = 1'});
       return this;
@@ -376,14 +395,60 @@ class QueryBuilder<T extends Model> {
     ).join(', ');
     _wheres.add({
       'type': boolean,
-      'sql': '${_grammar.wrap(column)} IN ($placeholders)',
+      'sql': '${_grammar.wrap(targetColumn)} IN ($placeholders)',
     });
     _bindings.addAll(values);
     return this;
   }
 
-  QueryBuilder<T> orWhereIn(String column, List<dynamic> values) {
+  QueryBuilder<T> orWhereIn(dynamic column, List<dynamic> values) {
     return whereIn(column, values, boolean: 'OR');
+  }
+
+  /// Adds a "between" where clause to the query.
+  QueryBuilder<T> whereBetween(
+    dynamic column,
+    List<dynamic> values, {
+    String boolean = 'AND',
+    bool not = false,
+  }) {
+    if (values.length != 2) {
+      throw ArgumentError(
+        'whereBetween expects a list with exactly two values [min, max].',
+      );
+    }
+
+    final targetColumn = _resolveColumnName(column);
+    _assertIdent(targetColumn, dotted: true, what: 'column name');
+
+    final type = not ? 'NOT BETWEEN' : 'BETWEEN';
+
+    final sql =
+        '${_grammar.wrap(targetColumn)} $type ${_grammar.parameter(values[0])} AND ${_grammar.parameter(values[1])}';
+
+    _wheres.add({'type': boolean, 'sql': sql});
+    _bindings.addAll(values);
+
+    return this;
+  }
+
+  /// Adds an "or between" where clause to the query.
+  QueryBuilder<T> orWhereBetween(dynamic column, List<dynamic> values) {
+    return whereBetween(column, values, boolean: 'OR');
+  }
+
+  /// Adds a "not between" where clause to the query.
+  QueryBuilder<T> whereNotBetween(
+    dynamic column,
+    List<dynamic> values, {
+    String boolean = 'AND',
+  }) {
+    return whereBetween(column, values, boolean: boolean, not: true);
+  }
+
+  /// Adds an "or not between" where clause to the query.
+  QueryBuilder<T> orWhereNotBetween(dynamic column, List<dynamic> values) {
+    return whereBetween(column, values, boolean: 'OR', not: true);
   }
 
   /// Nested query support via `EXISTS`.
@@ -513,16 +578,17 @@ class QueryBuilder<T extends Model> {
   ///   .groupBy(['role'])
   ///   .get();
   /// ```
-  QueryBuilder<T> groupBy(List<String> columns) {
+  QueryBuilder<T> groupBy(List<dynamic> columns) {
     for (final column in columns) {
-      _assertIdent(column, dotted: true, what: 'groupBy column');
-      _groupBy.add(column); // Grammar wraps these in compileGroups
+      final targetColumn = _resolveColumnName(column);
+      _assertIdent(targetColumn, dotted: true, what: 'groupBy column');
+      _groupBy.add(targetColumn); // Grammar wraps these in compileGroups
     }
     return this;
   }
 
   /// Convenience method for grouping by a single column.
-  QueryBuilder<T> groupByColumn(String column) {
+  QueryBuilder<T> groupByColumn(dynamic column) {
     return groupBy([column]);
   }
 
@@ -540,7 +606,7 @@ class QueryBuilder<T extends Model> {
   ///   .get();
   /// ```
   QueryBuilder<T> having(
-    String column,
+    dynamic column,
     dynamic value, {
     String operator = '=',
     String boolean = 'AND',
@@ -550,7 +616,9 @@ class QueryBuilder<T extends Model> {
       throw InvalidQueryException('Invalid operator for having: $operator');
     }
 
-    final sqlCol = column.contains('(') ? column : _grammar.wrap(column);
+    final targetColumn = _resolveColumnName(column);
+    final sqlCol =
+        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
     _havings.add({
       'type': boolean,
       'sql': '$sqlCol $op ${_grammar.parameter(value)}',
@@ -561,7 +629,7 @@ class QueryBuilder<T extends Model> {
 
   /// Adds an OR HAVING clause.
   QueryBuilder<T> orHaving(
-    String column,
+    dynamic column,
     dynamic value, {
     String operator = '=',
   }) {
@@ -596,16 +664,20 @@ class QueryBuilder<T extends Model> {
   }
 
   /// Adds a HAVING clause that checks for NULL.
-  QueryBuilder<T> havingNull(String column, {String boolean = 'AND'}) {
-    final sqlCol = column.contains('(') ? column : _grammar.wrap(column);
+  QueryBuilder<T> havingNull(dynamic column, {String boolean = 'AND'}) {
+    final targetColumn = _resolveColumnName(column);
+    final sqlCol =
+        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
 
     _havings.add({'type': boolean, 'sql': '$sqlCol IS NULL'});
     return this;
   }
 
   /// Adds a HAVING clause that checks for NOT NULL.
-  QueryBuilder<T> havingNotNull(String column, {String boolean = 'AND'}) {
-    final sqlCol = column.contains('(') ? column : _grammar.wrap(column);
+  QueryBuilder<T> havingNotNull(dynamic column, {String boolean = 'AND'}) {
+    final targetColumn = _resolveColumnName(column);
+    final sqlCol =
+        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
 
     _havings.add({'type': boolean, 'sql': '$sqlCol IS NOT NULL'});
     return this;
@@ -615,12 +687,14 @@ class QueryBuilder<T extends Model> {
   ///
   /// Useful for filtering aggregates within a range.
   QueryBuilder<T> havingBetween(
-    String column,
+    dynamic column,
     dynamic min,
     dynamic max, {
     String boolean = 'AND',
   }) {
-    final sqlCol = column.contains('(') ? column : _grammar.wrap(column);
+    final targetColumn = _resolveColumnName(column);
+    final sqlCol =
+        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
     _havings.add({
       'type': boolean,
       'sql':
@@ -634,8 +708,8 @@ class QueryBuilder<T extends Model> {
   // SELECT & PROJECTION
   // ---------------------------------------------------------------------------
 
-  QueryBuilder<T> select(List<String> columns) {
-    _columns = List<dynamic>.from(columns);
+  QueryBuilder<T> select(List<dynamic> columns) {
+    _columns = columns.map(_resolveColumnName).toList();
     return this;
   }
 
@@ -667,7 +741,10 @@ class QueryBuilder<T extends Model> {
     return !await exists();
   }
 
-  Future<int?> count([String column = '*']) async {
+  Future<int?> count([dynamic column = '*']) async {
+    final targetColumn =
+        column == '*' ? '*' : _grammar.wrap(_resolveColumnName(column));
+
     if (_groupBy.isNotEmpty || _havings.isNotEmpty) {
       final dbManager = DatabaseManager();
       final subQuery = _compileSql();
@@ -693,28 +770,32 @@ class QueryBuilder<T extends Model> {
       }
     }
 
-    return await _scalar<int>('COUNT($column)');
+    return await _scalar<int>('COUNT($targetColumn)');
   }
 
-  Future<num> sum(String column) async {
+  Future<num> sum(dynamic column) async {
     _guardAgainstGrouping('sum');
-    return await _scalar<num>('SUM($column)') ?? 0;
+    final targetColumn = _grammar.wrap(_resolveColumnName(column));
+    return await _scalar<num>('SUM($targetColumn)') ?? 0;
   }
 
-  Future<double?> avg(String column) async {
+  Future<double?> avg(dynamic column) async {
     _guardAgainstGrouping('avg');
-    final result = await _scalar('AVG($column)');
+    final targetColumn = _grammar.wrap(_resolveColumnName(column));
+    final result = await _scalar('AVG($targetColumn)');
     return result != null ? (result as num).toDouble() : null;
   }
 
-  Future<dynamic> max(String column) async {
+  Future<dynamic> max(dynamic column) async {
     _guardAgainstGrouping('max');
-    return await _scalar('MAX($column)');
+    final targetColumn = _grammar.wrap(_resolveColumnName(column));
+    return await _scalar('MAX($targetColumn)');
   }
 
-  Future<dynamic> min(String column) async {
+  Future<dynamic> min(dynamic column) async {
     _guardAgainstGrouping('min');
-    return await _scalar('MIN($column)');
+    final targetColumn = _grammar.wrap(_resolveColumnName(column));
+    return await _scalar('MIN($targetColumn)');
   }
 
   void _guardAgainstGrouping(String method) {
@@ -758,10 +839,13 @@ class QueryBuilder<T extends Model> {
   // JOINS & RELATIONS
   // ---------------------------------------------------------------------------
 
-  QueryBuilder<T> join(String table, String one, String operator, String two) {
+  QueryBuilder<T> join(String table, dynamic one, String operator, dynamic two) {
     _assertIdent(table, dotted: false, what: 'join table name');
-    _assertIdent(one, dotted: true, what: 'join lhs');
-    _assertIdent(two, dotted: true, what: 'join rhs');
+    final targetOne = _resolveColumnName(one);
+    final targetTwo = _resolveColumnName(two);
+    
+    _assertIdent(targetOne, dotted: true, what: 'join lhs');
+    _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
     final op = _operator(operator);
     if (!_allowedJoinOps.contains(op)) {
@@ -769,7 +853,7 @@ class QueryBuilder<T extends Model> {
     }
 
     _joins.add(
-      'JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(one)} $op ${_grammar.wrap(two)}',
+      'JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(targetOne)} $op ${_grammar.wrap(targetTwo)}',
     );
     return this;
   }
@@ -777,13 +861,16 @@ class QueryBuilder<T extends Model> {
   /// Adds a LEFT JOIN clause.
   QueryBuilder<T> leftJoin(
     String table,
-    String one,
+    dynamic one,
     String operator,
-    String two,
+    dynamic two,
   ) {
     _assertIdent(table, dotted: false, what: 'join table name');
-    _assertIdent(one, dotted: true, what: 'join lhs');
-    _assertIdent(two, dotted: true, what: 'join rhs');
+    final targetOne = _resolveColumnName(one);
+    final targetTwo = _resolveColumnName(two);
+    
+    _assertIdent(targetOne, dotted: true, what: 'join lhs');
+    _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
     final op = _operator(operator);
     if (!_allowedJoinOps.contains(op)) {
@@ -791,7 +878,7 @@ class QueryBuilder<T extends Model> {
     }
 
     _joins.add(
-      'LEFT JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(one)} $op ${_grammar.wrap(two)}',
+      'LEFT JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(targetOne)} $op ${_grammar.wrap(targetTwo)}',
     );
     return this;
   }
@@ -799,13 +886,16 @@ class QueryBuilder<T extends Model> {
   /// Adds a RIGHT JOIN clause.
   QueryBuilder<T> rightJoin(
     String table,
-    String one,
+    dynamic one,
     String operator,
-    String two,
+    dynamic two,
   ) {
     _assertIdent(table, dotted: false, what: 'join table name');
-    _assertIdent(one, dotted: true, what: 'join lhs');
-    _assertIdent(two, dotted: true, what: 'join rhs');
+    final targetOne = _resolveColumnName(one);
+    final targetTwo = _resolveColumnName(two);
+    
+    _assertIdent(targetOne, dotted: true, what: 'join lhs');
+    _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
     final op = _operator(operator);
     if (!_allowedJoinOps.contains(op)) {
@@ -813,7 +903,7 @@ class QueryBuilder<T extends Model> {
     }
 
     _joins.add(
-      'RIGHT JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(one)} $op ${_grammar.wrap(two)}',
+      'RIGHT JOIN ${_grammar.wrap(table)} ON ${_grammar.wrap(targetOne)} $op ${_grammar.wrap(targetTwo)}',
     );
     return this;
   }
@@ -830,15 +920,16 @@ class QueryBuilder<T extends Model> {
   // ORDERING & LIMITS
   // ---------------------------------------------------------------------------
 
-  QueryBuilder<T> orderBy(String column, {String direction = 'ASC'}) {
-    _assertIdent(column, dotted: true, what: 'orderBy column');
+  QueryBuilder<T> orderBy(dynamic column, {String direction = 'ASC'}) {
+    final targetColumn = _resolveColumnName(column);
+    _assertIdent(targetColumn, dotted: true, what: 'orderBy column');
 
     final dirUpper = direction.toUpperCase();
     if (dirUpper != 'ASC' && dirUpper != 'DESC') {
       throw InvalidQueryException('Invalid direction for orderBy: $direction');
     }
 
-    _orderBy = '${_grammar.wrap(column)} $dirUpper';
+    _orderBy = '${_grammar.wrap(targetColumn)} $dirUpper';
     return this;
   }
 

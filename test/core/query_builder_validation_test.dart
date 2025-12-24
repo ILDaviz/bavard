@@ -153,18 +153,15 @@ void main() {
   });
 
   group('Aggregates - Extended', () {
-    test('count() with column name', () async {
-      final countMock = MockDatabaseSpy([], {
-        'SELECT COUNT(email) as aggregate': [
-          {'aggregate': 50},
-        ],
+    test('Aggregates - Extended count() with column name', () async {
+      final db = MockDatabaseSpy([], {
+        'SELECT COUNT("email") as aggregate': [{'aggregate': 10}]
       });
-      DatabaseManager().setDatabase(countMock);
-
+      DatabaseManager().setDatabase(db);
+      
       final count = await TestUser().query().count('email');
-
-      expect(count, 50);
-      expect(countMock.lastSql, contains('COUNT(email)'));
+      expect(count, 10);
+      expect(db.lastSql, contains('COUNT("email")'));
     });
 
     test('count() with WHERE clause', () async {
