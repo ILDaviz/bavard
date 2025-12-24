@@ -1,6 +1,6 @@
 # Introduction
 
-Bavard is an Object-Relational Mapping (ORM) library that brings the **Active Record** pattern to Dart. If you're familiar with Laravel's Eloquent, you'll feel right at home.
+Bavard is an Object-Relational Mapping (ORM) library that brings the **Active Record** pattern to Dart. If you're familiar with Eloquent, you'll feel right at home.
 
 The goal is to simplify database interactions with SQLite, PostgreSQL, or PowerSync while keeping your code clean and readable.
 

@@ -6,7 +6,7 @@
 
 > **Work in Progress**: This project is currently under active development. APIs may change.
 
-Bavard brings the elegance and simplicity of Laravel's Eloquent to the Dart ecosystem. It is designed to provide a fluent, expressive interface for database interactions, prioritizing developer experience and readability.
+Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It is designed to provide a fluent, expressive interface for database interactions, prioritizing developer experience and readability.
 
 ---
 
