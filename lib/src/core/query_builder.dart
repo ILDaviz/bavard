@@ -796,7 +796,10 @@ class QueryBuilder<T extends Model> {
     _guardAgainstGrouping('avg');
     final targetColumn = _grammar.wrap(_resolveColumnName(column));
     final result = await _scalar('AVG($targetColumn)');
-    return result != null ? (result as num).toDouble() : null;
+    if (result == null) return null;
+    if (result is num) return result.toDouble();
+    if (result is String) return double.tryParse(result);
+    return null;
   }
 
   Future<dynamic> max(dynamic column) async {
