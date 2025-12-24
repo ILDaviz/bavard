@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Core:** Enhanced `QueryBuilder` with comprehensive support for `Column` objects across all methods (`select`, `where`, `groupBy`, `orderBy`, `count`, `sum`, etc.), enabling fully type-safe queries.
+- **Core:** Added automatic table prefixing (e.g., `"users"."id"`) when using `Column` objects to prevent column ambiguity during joins.
+- **Core:** Added `whereColumn` and `orWhereColumn` methods for comparing two columns.
+- **Core:** Added `whereBetween`, `orWhereBetween`, `whereNotBetween`, and `orWhereNotBetween` methods.
+- **Relations:** Added support for `Column` objects in `BelongsToMany` pivot filters (`wherePivot`, `withPivot`, etc.) with automatic pivot table prefixing.
+- **Security:** Added strict validation and helpful error messages when passing invalid arguments (like `WhereCondition`) to `QueryBuilder` methods.
+
+### Fixed
+- **Documentation:** Fixed 404 error on API index page and improved navigation.
+- **Core:** Fixed identifier quoting in aggregate functions for better dialect compatibility.
+
 ## [0.0.9] - 2025-12-24
 
 ### Changed
