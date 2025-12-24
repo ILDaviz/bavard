@@ -33,6 +33,7 @@ For detailed guides, API references, and usage examples, please visit our docume
 To see Bavard in action with a real database environment, check the integration suite:
 
 *   [SQLite + Docker Integration Test](example/sqlite-docker/)
+*   [PostgreSQL + Docker Integration Test](example/postgresql-docker/)
 
 ---
 
