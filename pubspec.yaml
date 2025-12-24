@@ -17,8 +17,8 @@ dependencies:
   uuid: ^4.5.2
   build_runner: ^2.10.4
   source_gen: ^4.1.1
+  analyzer: ^9.0.0
 
 dev_dependencies:
   test: ^1.24.0
   lints: ^2.0.0
-  analyzer: ^9.0.0
