@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - **Documentation:** Change locations.
 - **Examples:** Change locations.
 
+
 ## [0.0.7] - 2025-12-24
 
 ### Added
