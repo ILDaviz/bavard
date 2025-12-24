@@ -1,5 +1,7 @@
 # Bavard ORM 🗣️
 
+[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
+
 **The Eloquent-style ORM for Dart.**
 
 > **Work in Progress**: This project is currently under active development. APIs may change.
