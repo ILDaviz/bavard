@@ -1,5 +1,7 @@
 # Bavard
 
+[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
+
 Bavard is an Eloquent-like ORM for Flutter/Dart, designed to work with SQLite, PostgreSQL, PowerSync or any driver you want.
 
 > [!CAUTION]
