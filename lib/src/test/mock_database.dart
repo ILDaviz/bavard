@@ -123,9 +123,9 @@ class MockDatabaseSpy implements DatabaseAdapter {
   Future<dynamic> insert(String table, Map<String, dynamic> values) async {
     // Manually reconstructs the SQL string to ensure the repository logic
     // produced the correct keys and structure for logging purposes.
-    final keys = values.keys.join(', ');
+    final keys = values.keys.map(grammar.wrap).join(', ');
     final placeholders = List.filled(values.length, '?').join(', ');
-    final sql = 'INSERT INTO $table ($keys) VALUES ($placeholders)';
+    final sql = 'INSERT INTO ${grammar.wrap(table)} ($keys) VALUES ($placeholders)';
 
     lastSql = sql;
     lastArgs = values.values.toList();
