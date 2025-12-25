@@ -165,6 +165,29 @@ class UserRole extends Pivot with $UserRole {
 }
 ```
 
+#### Manual Pivot (No Code Generation)
+
+Just like regular models, you can implement a `Pivot` class manually. You only need to define the getters/setters and a static list of column names for the query.
+
+```dart
+class UserRole extends Pivot {
+  UserRole(super.attributes);
+
+  // Manual Getters/Setters
+  DateTime? get createdAt => getAttribute<DateTime>('created_at');
+  bool? get isActive => getAttribute<bool>('is_active');
+
+  // List of columns to select from pivot table
+  static const columns = ['created_at', 'is_active'];
+}
+```
+
+When using a manual pivot, pass your custom `columns` list to the `using` method:
+```dart
+return belongsToMany(Role.new, 'user_roles')
+  .using(UserRole.new, UserRole.columns);
+```
+
 **2. Run the Code Generator**
 This will generate the `$UserRole` mixin containing typed accessors (getters and setters).
 ```bash

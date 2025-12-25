@@ -65,6 +65,46 @@ int? age = user.integer('age');
 bool? active = user.boolean('is_active');
 ```
 
+## Manual Implementation (No Code Generation)
+
+While code generation is recommended to reduce boilerplate, you can define your models using standard Dart code. This gives you full control and requires no background processes.
+
+To implement a model manually, you should:
+1. Define explicit **getters and setters** using `getAttribute<T>()` and `setAttribute()`.
+2. Override the `casts` map to define how data should be hydrated.
+3. (Optional) Define `fillable` or `guarded` attributes for mass assignment.
+
+```dart
+class User extends Model {
+  @override
+  String get table => 'users';
+
+  User([super.attributes]);
+
+  @override
+  User fromMap(Map<String, dynamic> map) => User(map);
+
+  // 1. Explicit Getters & Setters
+  String? get name => getAttribute<String>('name');
+  set name(String? value) => setAttribute('name', value);
+
+  int? get age => getAttribute<int>('age');
+  set age(int? value) => setAttribute('age', value);
+
+  // 2. Define Casts
+  @override
+  Map<String, String> get casts => {
+    'age': 'int',
+    'is_active': 'bool',
+    'metadata': 'json',
+  };
+
+  // 3. Mass Assignment Protection
+  @override
+  List<String> get fillable => ['name', 'age'];
+}
+```
+
 ## Model with Code Generation (Recommended)
 
 For full type safety and better IDE support, use the `@fillable` annotation and `build_runner`.

@@ -1,5 +1,10 @@
 # Code Generation
 
+::: info
+**Optional Feature**
+Code generation is **not required** to use Bavard. It is provided purely as a convenience to generate typed getters/setters and reduce boilerplate. You can fully utilize the ORM without it.
+:::
+
 Bavard includes a code generator to create typed accessors, eliminating the need to work with raw `attributes` maps.
 
 ## @fillable
@@ -89,3 +94,7 @@ class UserRole extends Pivot with $UserRole {
 The pivot generator creates:
 1. **Typed Getters/Setters**: `pivot.createdAt`, `pivot.isActive`.
 2. **Static Columns List**: `UserRole.columns`, which can be passed to the `belongsToMany(...).using()` method.
+
+::: tip
+**Pro Tip:** If you don't want to use code generation for pivots, you can manually define getters/setters and the `columns` list. See the [Relationships Guide](/relationships/index#manual-pivot-no-code-generation) for more details.
+:::

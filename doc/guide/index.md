@@ -13,6 +13,7 @@ Core features like relationship resolution, query building, and data hydration a
 - **Fluent Syntax:** Write readable queries such as `User().query().where(User.schema.age.greaterThan(18)).get()`.
 - **Offline-first ready:** Native support for client-side UUIDs (`HasUuids`) and driver-agnostic architecture.
 - **Advanced features:** Already includes soft deletes, Automatic timestamps, Global scopes, and Polymorphic relationships.
+- **No Magic:** Code generation is 100% optional. Bavard leverages Dart's runtime capabilities and mixins to handle relationships and data casting dynamically at runtime, allowing you to iterate without waiting for build processes.
 - **Type Safety:** Optional code generation for fully typed getters and setters.
 
 ## Core Concepts

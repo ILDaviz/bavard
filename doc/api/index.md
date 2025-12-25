@@ -12,6 +12,8 @@ The foundational classes that power the ORM.
 | `QueryBuilder<T>` | Fluent interface for constructing SQL queries safely. Returned by `User().query()`. | [Query Builder](../core/query-builder.md) |
 | `DatabaseManager` | Singleton service locator for managing the active database connection and transactions. | [Initial Setup](../guide/setup.md) |
 | `DatabaseAdapter` | Interface that must be implemented to connect Bavard to a specific database driver (SQLite, Postgres, etc.). | [Adapter](../reference/adapters.md) |
+| `Grammar` | Strategy pattern interface for dialect-specific SQL generation (e.g., SQLite vs Postgres). | [Adapters](../reference/adapters.md) |
+| `Pivot` | Specialized Model for intermediate tables in Many-to-Many relationships. | [Relationships](../relationships/index.md) |
 
 ## Schema Definition
 
@@ -52,13 +54,29 @@ Classes representing the associations between models.
 
 ## Mixins (Concerns)
 
-Traits you can add to your `Model` to enable specific behaviors.
+Traits that compose the `Model` behavior.
+
+### Core Mixins (Included by Default)
+
+These are automatically mixed into `Model` and are always available.
+
+| Mixin | Functionality |
+| :--- | :--- |
+| `HasCasts` | Handles type conversion (hydration/dehydration) of attributes (JSON, DateTime, Bool). |
+| `HasEvents` | Provides lifecycle hooks (`onSaving`, `onDeleted`, etc.). |
+| `HasRelationships` | Manages relation definitions and lazy/eager loading. |
+| `HasAttributeHelpers` | Adds typed accessors like `model.string('name')` or bracket notation `model['name']`. |
+| `HasGuardsAttributes` | Manages mass-assignment protection (`fillable`, `guarded`). |
+
+### Optional Mixins
+
+Add these to your specific models to enable enhanced features.
 
 | Mixin | Functionality |
 | :--- | :--- |
 | `HasTimestamps` | Automatically manages `created_at` and `updated_at`. |
 | `HasSoftDeletes` | Enables "trash" functionality. Records are marked as deleted (via `deleted_at`) instead of removed. |
-| `HasUuids` | Automatically generates UUID v4 strings for the primary key. |
+| `HasUuids` | Automatically generates UUID v4 strings for the primary key (client-side generation). |
 | `HasGlobalScopes` | Allows registering queries that apply to every fetch operation (e.g., Multi-Tenancy). |
 
 ## Exceptions
@@ -78,4 +96,5 @@ Exceptions thrown by the framework that you should handle.
 | Symbol | Description |
 | :--- | :--- |
 | `@fillable` | Annotation to mark a class for [Code Generation](../tooling/code-generation.md). |
-| `MockDatabaseSpy` | A test utility to spy on generated SQL and mock results. |
+| `@bavardPivot` | Annotation to mark a Pivot class for code generation. |
+| `MockDatabaseSpy` | A test utility to spy on generated SQL and mock results. Supports normalized keys for flexible assertions. |

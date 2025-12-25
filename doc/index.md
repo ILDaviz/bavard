@@ -22,4 +22,12 @@ features:
     details: Works with any database driver via the `DatabaseAdapter` interface.
   - title: Powerful relations
     details: HasOne, HasMany, BelongsTo, ManyToMany, and Polymorphic relations supported out of the box.
+  - title: Zero boilerplate
+    details: Code generation is completely optional. Bavard works entirely at runtime, allowing you to use standard Dart syntax without waiting for build_runner.
+  - title: Offline-first ready
+    details: Native support for client-side UUIDs and driver-agnostic architecture, perfect for local-first apps.
+  - title: Production-ready
+    details: Built-in support for soft deletes, automatic timestamps, and global scopes out of the box.
+  - title: Smart Data Casting
+    details: Automatic hydration of complex types like JSON, DateTime, and Booleans between Dart and your database.
 ---
