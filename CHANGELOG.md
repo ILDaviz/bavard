@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **CLI:** Introduced `dart run bavard` CLI tool for scaffolding models and pivots without code generation.
+  - `make:model`: Generates a Model class with schema, accessors, and casts.
+  - `make:pivot`: Generates a Pivot class with accessors and columns list.
+
 ### Documentation
 - **Core:** Clarified that code generation is completely optional; Bavard is designed to work entirely at runtime using standard Dart syntax.
 - **Guides:** Added comprehensive instructions for manual model and pivot class implementation (without `build_runner`).

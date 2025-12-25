@@ -67,6 +67,15 @@ bool? active = user.boolean('is_active');
 
 ## Manual Implementation (No Code Generation)
 
+::: tip
+**Use the CLI!**
+You don't have to type this boilerplate manually. Use the CLI tool to generate it for you:
+```bash
+dart run bavard make:model User --columns=name:string,age:int
+```
+See the [CLI Guide](../tooling/cli.md) for more details.
+:::
+
 While code generation is recommended to reduce boilerplate, you can define your models using standard Dart code. This gives you full control and requires no background processes.
 
 To implement a model manually, you should:

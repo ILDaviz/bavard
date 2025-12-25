@@ -3,6 +3,8 @@
 ::: info
 **Optional Feature**
 Code generation is **not required** to use Bavard. It is provided purely as a convenience to generate typed getters/setters and reduce boilerplate. You can fully utilize the ORM without it.
+
+For a faster alternative without `build_runner`, try the **[CLI Tool](./cli.md)** to generate your model boilerplate instantly.
 :::
 
 Bavard includes a code generator to create typed accessors, eliminating the need to work with raw `attributes` maps.

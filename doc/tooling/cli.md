@@ -1,0 +1,141 @@
+# CLI Tool
+
+Bavard comes with a built-in CLI tool to help you scaffold your models quickly without relying on code generation. This tool generates the "Manual Implementation" code for you, saving you from typing boilerplate getters, setters, and schemas.
+
+## Usage
+
+Run the CLI using `dart run`:
+
+```bash
+dart run bavard <command> [arguments]
+```
+
+## Commands
+
+### `make:model`
+
+Creates a new Model class.
+
+**Syntax:**
+```bash
+dart run bavard make:model <ModelName> [options]
+```
+
+**Options:**
+
+| Option | Description | Example |
+| :--- | :--- | :--- |
+| `--columns` | Comma-separated list of `name:type`. Supported types: `string`, `int`, `double`, `bool`, `datetime`, `json`. | `--columns=name:string,age:int` |
+| `--table` | Explicitly set the table name. Defaults to the snake_case plural of the model name. | `--table=my_users` |
+| `--path` | Specify the output directory. | `--path=lib/data/models` |
+| `--force` | Overwrite the file if it already exists. | `--force` |
+| `--help` | Show detailed usage information and examples. | `--help` |
+
+### Examples
+
+**1. Basic Model**
+Creates a bare-bones model with just `table` and `fromMap`.
+```bash
+dart run bavard make:model Product
+```
+
+**2. Model with Schema & Accessors (Recommended)**
+Creates a full model with `static const schema`, typed getters/setters, and `casts`.
+```bash
+dart run bavard make:model User --columns=name:string,age:int,is_active:bool,metadata:json
+```
+
+**3. Custom Table & Path**
+Creates a model in a specific directory with a custom table name.
+```bash
+dart run bavard make:model Category --table=product_categories --path=lib/features/shop/models
+```
+
+This generates:
+```dart
+class User extends Model {
+  @override
+  String get table => 'users';
+
+  User([super.attributes]);
+
+  @override
+  User fromMap(Map<String, dynamic> map) => User(map);
+
+  // SCHEMA
+  static const schema = (
+    name: TextColumn('name'),
+    age: IntColumn('age'),
+    isActive: BoolColumn('is_active'),
+    metadata: JsonColumn('metadata'),
+  );
+
+  // ACCESSORS
+  String? get name => getAttribute<String>('name');
+  set name(String? value) => setAttribute('name', value);
+
+  int? get age => getAttribute<int>('age');
+  set age(int? value) => setAttribute('age', value);
+
+  // ... (bool and json accessors)
+
+  // CASTS
+  @override
+  Map<String, String> get casts => {
+    'age': 'int',
+    'is_active': 'bool',
+    'metadata': 'json',
+  };
+}
+```
+
+**3. Custom Table Name**
+```bash
+dart run bavard make:model Category --table=product_categories
+```
+
+### `make:pivot`
+
+Creates a new Pivot class for Many-to-Many relationships.
+
+**Syntax:**
+```bash
+dart run bavard make:pivot <PivotName> [options]
+```
+
+**Options:**
+
+| Option | Description | Example |
+| :--- | :--- | :--- |
+| `--columns` | Comma-separated list of `name:type`. | `--columns=is_admin:bool` |
+| `--path` | Specify the output directory. | `--path=lib/models` |
+| `--force` | Overwrite the file if it already exists. | `--force` |
+
+### Examples
+
+**1. Basic Pivot**
+```bash
+dart run bavard make:pivot UserRole --columns=is_active:bool,created_at:datetime
+```
+
+This generates:
+```dart
+import 'package:bavard/bavard.dart';
+
+class UserRole extends Pivot {
+  UserRole(super.attributes);
+
+  // ACCESSORS
+  bool? get isActive => getAttribute<bool>('is_active');
+  set isActive(bool? value) => setAttribute('is_active', value);
+
+  DateTime? get createdAt => getAttribute<DateTime>('created_at');
+  set createdAt(DateTime? value) => setAttribute('created_at', value);
+
+  // COLUMNS
+  static const columns = [
+    'is_active',
+    'created_at',
+  ];
+}
+```

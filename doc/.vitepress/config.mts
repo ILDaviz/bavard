@@ -88,6 +88,7 @@ export default defineConfig({
         text: 'Tooling & Testing',
         collapsed: true,
         items: [
+          { text: 'CLI Tool', link: '/tooling/cli' },
           { text: 'Code Generation', link: '/tooling/code-generation' },
           { text: 'Testing', link: '/tooling/testing' },
           { text: 'Debugging', link: '/tooling/debugging' },

@@ -10,6 +10,9 @@ topics:
   - powersync
   - sqlite
 
+executables:
+  bavard:
+
 environment:
   sdk: ^3.10.1
 
