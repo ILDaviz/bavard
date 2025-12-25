@@ -1,4 +1,4 @@
-# Bavard ORM
+# Bavard ORM 🗣️
 
 [![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
 
@@ -10,7 +10,7 @@ Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It 
 
 ---
 
-## Key Features
+## 🚀 Key Features
 
 - ⚡️ **Runtime-first architecture:** Code generation is 100% optional. Bavard leverages Dart's runtime capabilities and mixins to work entirely without build processes.
 - 🏗️ **Fluent Query Builder:** Construct complex SQL queries using an expressive and type-safe interface.
@@ -24,15 +24,15 @@ Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It 
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 For detailed guides, API references, and usage examples, please visit our documentation:
 
-**[Read the Documentation](https://ildaviz.github.io/bavard/)**
+👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
 
 ---
 
-## Examples & Integration
+## 🧪 Examples & Integration
 
 To see Bavard in action with a real database environment, check the integration suite:
 
@@ -41,6 +41,6 @@ To see Bavard in action with a real database environment, check the integration 
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 Bavard is open-source. Feel free to explore the code, report issues, or submit pull requests.
