@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation
+- **Core:** Clarified that code generation is completely optional; Bavard is designed to work entirely at runtime using standard Dart syntax.
+- **Guides:** Added comprehensive instructions for manual model and pivot class implementation (without `build_runner`).
+- **Home:** Updated features list to highlight "Zero boilerplate", "Offline-first", and "Smart Data Casting".
+- **API Reference:** Reorganized documentation to distinguish between core (included) and optional mixins.
+
 ## [0.0.17] - 2025-12-24
 
 ### Added
