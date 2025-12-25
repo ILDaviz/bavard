@@ -10,6 +10,7 @@ Core features like relationship resolution, query building, and data hydration a
 
 ## Why Bavard?
 
+- **Flutter ready:** Seamlessly integrated with Flutter for mobile, desktop, and web applications.
 - **Fluent Syntax:** Write readable queries such as `User().query().where(User.schema.age.greaterThan(18)).get()`.
 - **Offline-first ready:** Native support for client-side UUIDs (`HasUuids`) and driver-agnostic architecture.
 - **Advanced features:** Already includes soft deletes, Automatic timestamps, Global scopes, and Polymorphic relationships.

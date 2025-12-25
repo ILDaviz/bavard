@@ -12,6 +12,7 @@ Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It 
 
 ## 🚀 Key Features
 
+- 💙 **Flutter ready:** Seamlessly integrated with Flutter for mobile, desktop, and web applications.
 - ⚡️ **Runtime-first architecture:** Code generation is 100% optional. Bavard leverages Dart's runtime capabilities and mixins to work entirely without build processes.
 - 🏗️ **Fluent Query Builder:** Construct complex SQL queries using an expressive and type-safe interface.
 - 🔗 **Rich Relationship Mapping:** Full support for One-to-One, One-to-Many, Many-to-Many, Polymorphic, and HasManyThrough relations.

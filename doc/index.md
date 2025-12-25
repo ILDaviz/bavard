@@ -14,6 +14,8 @@ hero:
       link: https://github.com/ILDaviz/bavard
 
 features:
+  - title: Flutter ready
+    details: Seamlessly integrated with Flutter for mobile, desktop, and web applications.
   - title: Fluent query builder
     details: Write readable queries like `User().query().where(User.schema.age.greaterThan(18)).get()`.
   - title: Active record pattern
