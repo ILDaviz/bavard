@@ -63,6 +63,31 @@ In the schema definition:
 - `isNullable: true`: The Dart getter will be nullable (e.g., `int?`).
 - `isGuarded: true`: The field will be added to the `guarded` list and excluded from `fillable`.
 
+### Standard Columns
+
+You can include standard columns in your schema to enable type-safe queries (e.g., `User.schema.createdAt`). The generator will **not** create duplicate accessors for these, as they are handled by the core mixins (`Model`, `HasTimestamps`, `HasSoftDeletes`).
+
+- **`IdColumn`**: Resolves to the model's `primaryKey`.
+- **`CreatedAtColumn`**: Resolves to `created_at` (or custom name).
+- **`UpdatedAtColumn`**: Resolves to `updated_at` (or custom name).
+- **`DeletedAtColumn`**: Resolves to `deleted_at`.
+
+The column name is optional and will be resolved dynamically from the model's configuration.
+
+```dart
+static const schema = (
+  id: IdColumn(), // Automatically resolves to primaryKey
+  createdAt: CreatedAtColumn(),
+  updatedAt: UpdatedAtColumn(),
+  // ... other columns
+);
+```
+
+::: warning Custom Column Names
+If you have overridden the standard column names in your Model (e.g., `primaryKey => 'uuid'`), you **must** pass the name explicitly to the column constructor: `id: IdColumn('uuid')`.
+This is required for the generator to correctly configure data casting (e.g. converting string UUIDs or timestamps) at runtime.
+:::
+
 ## @bavardPivot
 
 For Many-to-Many relationships, you can create strongly-typed `Pivot` classes to access data on the intermediate table.

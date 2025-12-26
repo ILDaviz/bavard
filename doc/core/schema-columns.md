@@ -17,11 +17,18 @@ The following column types are available in `static const schema`:
 | `ArrayColumn` | `List` | `array` | JSON Array |
 | `ObjectColumn` | `Map` | `object` | JSON Object |
 | `EnumColumn` | `Enum` | `string` | Stored as Enum name string |
+| `IdColumn` | `dynamic` | `id` | Primary Key (int/string). Resolves name automatically. |
+| `CreatedAtColumn` | `DateTime` | `datetime` | Creation timestamp. Resolves name automatically. |
+| `UpdatedAtColumn` | `DateTime` | `datetime` | Update timestamp. Resolves name automatically. |
+| `DeletedAtColumn` | `DateTime` | `datetime` | Soft delete timestamp. Resolves name automatically. |
 
 ## Usage Example
 
 ```dart
 static const schema = (
+  id: IdColumn(), // Default: 'id' or model.primaryKey
+  createdAt: CreatedAtColumn(), // Default: 'created_at'
+  
   name: TextColumn('name'),
   age: IntColumn('age'),
   isActive: BoolColumn('is_active'),

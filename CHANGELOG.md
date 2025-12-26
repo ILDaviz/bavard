@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Schema:** Added `IdColumn`, `CreatedAtColumn`, `UpdatedAtColumn`, and `DeletedAtColumn` to enable fully type-safe queries on standard fields.
+- **Mixins:** Added typed getters/setters (`createdAt`, `updatedAt`, `deletedAt`) directly to `HasTimestamps` and `HasSoftDeletes` mixins.
+- **QueryBuilder:** Implemented dynamic column name resolution. Standard columns in the schema (e.g. `User.schema.id`) now automatically resolve to the model's actual configuration (e.g. `primaryKey`) at runtime.
+
+### Improved
+- **Generator:** The `@fillable` generator now intelligently ignores standard columns if the corresponding mixins are present, preventing code duplication and conflicts.
+- **Schema:** Refactored `Column` hierarchy to support polymorphic column lists via `SchemaColumn` interface, fixing type variance issues in many-to-many pivots.
+- **Documentation:** Updated code generation guide to showcase the new concise schema definition style and explained standard column behavior.
+
 ### Documentation
 - **Core:** Clarified that code generation is completely optional; Bavard is designed to work entirely at runtime using standard Dart syntax.
 - **Guides:** Added comprehensive instructions for manual model and pivot class implementation (without `build_runner`).

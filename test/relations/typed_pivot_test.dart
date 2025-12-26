@@ -74,7 +74,7 @@ class StrictUserRole extends Pivot {
   DateTime get createdAt => get(StrictUserRole.schema.createdAt);
   bool get isActive => get(StrictUserRole.schema.isActive);
 
-  static List<Column> get columns => [
+  static List<SchemaColumn> get columns => [
     StrictUserRole.schema.createdAt,
     StrictUserRole.schema.isActive,
   ];

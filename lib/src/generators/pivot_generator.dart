@@ -55,7 +55,7 @@ class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
     final colList = columnsData
         .map((c) => '$className.schema.${c.propertyName}')
         .join(', ');
-    buffer.writeln('  static List<Column> get columns => [$colList];');
+    buffer.writeln('  static List<SchemaColumn> get columns => [$colList];');
 
     buffer.writeln('}');
     return buffer.toString();

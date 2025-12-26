@@ -5,18 +5,26 @@ class WhereCondition {
   final String operator;
   final dynamic value;
   final String boolean;
+  final Column? sourceColumn;
 
   const WhereCondition(
     this.column,
     this.operator,
     this.value, {
     this.boolean = 'AND',
+    this.sourceColumn,
   });
+}
+
+/// Base interface to allow polymorphic lists of Columns with different generic types.
+abstract class SchemaColumn {
+  String? get name;
 }
 
 /// Abstract definition of a database schema column.
 /// [T] is the Dart type associated with the column's value.
-abstract class Column<T> {
+abstract class Column<T> implements SchemaColumn {
+  @override
   final String? name;
   final bool isNullable;
 
@@ -33,19 +41,23 @@ abstract class Column<T> {
   @override
   String toString() => name ?? '';
 
-  WhereCondition equals(T value) => WhereCondition(toString(), '=', value);
+  WhereCondition equals(T value) =>
+      WhereCondition(toString(), '=', value, sourceColumn: this);
 
-  WhereCondition notEquals(T value) => WhereCondition(toString(), '!=', value);
+  WhereCondition notEquals(T value) =>
+      WhereCondition(toString(), '!=', value, sourceColumn: this);
 
-  WhereCondition isNull() => WhereCondition(toString(), 'IS', null);
+  WhereCondition isNull() =>
+      WhereCondition(toString(), 'IS', null, sourceColumn: this);
 
-  WhereCondition isNotNull() => WhereCondition(toString(), 'IS NOT', null);
+  WhereCondition isNotNull() =>
+      WhereCondition(toString(), 'IS NOT', null, sourceColumn: this);
 
   WhereCondition inList(List<T> values) =>
-      WhereCondition(toString(), 'IN', values);
+      WhereCondition(toString(), 'IN', values, sourceColumn: this);
 
   WhereCondition notInList(List<T> values) =>
-      WhereCondition(toString(), 'NOT IN', values);
+      WhereCondition(toString(), 'NOT IN', values, sourceColumn: this);
 }
 
 /// Maps a Dart [String] to a database TEXT/VARCHAR column.
@@ -56,13 +68,13 @@ class TextColumn extends Column<String> {
   String get schemaType => 'string';
 
   WhereCondition contains(String value) =>
-      WhereCondition(name!, 'LIKE', '%$value%');
+      WhereCondition(name!, 'LIKE', '%$value%', sourceColumn: this);
 
   WhereCondition startsWith(String value) =>
-      WhereCondition(name!, 'LIKE', '$value%');
+      WhereCondition(name!, 'LIKE', '$value%', sourceColumn: this);
 
   WhereCondition endsWith(String value) =>
-      WhereCondition(name!, 'LIKE', '%$value');
+      WhereCondition(name!, 'LIKE', '%$value', sourceColumn: this);
 }
 
 class IntColumn extends Column<int> {
@@ -71,18 +83,20 @@ class IntColumn extends Column<int> {
   @override
   String get schemaType => 'integer';
 
-  WhereCondition greaterThan(int value) => WhereCondition(name!, '>', value);
+  WhereCondition greaterThan(int value) =>
+      WhereCondition(name!, '>', value, sourceColumn: this);
 
-  WhereCondition lessThan(int value) => WhereCondition(name!, '<', value);
+  WhereCondition lessThan(int value) =>
+      WhereCondition(name!, '<', value, sourceColumn: this);
 
   WhereCondition greaterThanOrEqual(int value) =>
-      WhereCondition(name!, '>=', value);
+      WhereCondition(name!, '>=', value, sourceColumn: this);
 
   WhereCondition lessThanOrEqual(int value) =>
-      WhereCondition(name!, '<=', value);
+      WhereCondition(name!, '<=', value, sourceColumn: this);
 
   WhereCondition between(int min, int max) =>
-      WhereCondition(name!, 'BETWEEN', [min, max]);
+      WhereCondition(name!, 'BETWEEN', [min, max], sourceColumn: this);
 }
 
 class DoubleColumn extends Column<double> {
@@ -91,18 +105,20 @@ class DoubleColumn extends Column<double> {
   @override
   String get schemaType => 'doubleType';
 
-  WhereCondition greaterThan(double value) => WhereCondition(name!, '>', value);
+  WhereCondition greaterThan(double value) =>
+      WhereCondition(name!, '>', value, sourceColumn: this);
 
-  WhereCondition lessThan(double value) => WhereCondition(name!, '<', value);
+  WhereCondition lessThan(double value) =>
+      WhereCondition(name!, '<', value, sourceColumn: this);
 
   WhereCondition greaterThanOrEqual(double value) =>
-      WhereCondition(name!, '>=', value);
+      WhereCondition(name!, '>=', value, sourceColumn: this);
 
   WhereCondition lessThanOrEqual(double value) =>
-      WhereCondition(name!, '<=', value);
+      WhereCondition(name!, '<=', value, sourceColumn: this);
 
   WhereCondition between(double min, double max) =>
-      WhereCondition(name!, 'BETWEEN', [min, max]);
+      WhereCondition(name!, 'BETWEEN', [min, max], sourceColumn: this);
 }
 
 /// Maps a Dart [bool] to an integer column (1 for true, 0 for false).
@@ -113,8 +129,8 @@ class BoolColumn extends Column<bool> {
   @override
   String get schemaType => 'boolean';
 
-  WhereCondition isTrue() => WhereCondition(name!, '=', 1);
-  WhereCondition isFalse() => WhereCondition(name!, '=', 0);
+  WhereCondition isTrue() => WhereCondition(name!, '=', 1, sourceColumn: this);
+  WhereCondition isFalse() => WhereCondition(name!, '=', 0, sourceColumn: this);
 }
 
 /// Persists [DateTime] objects as ISO-8601 strings to maintain sorting and comparison capabilities.
@@ -125,13 +141,13 @@ class DateTimeColumn extends Column<DateTime> {
   String get schemaType => 'datetime';
 
   WhereCondition after(DateTime value) =>
-      WhereCondition(name!, '>', value.toIso8601String());
+      WhereCondition(name!, '>', value.toIso8601String(), sourceColumn: this);
 
   WhereCondition before(DateTime value) =>
-      WhereCondition(name!, '<', value.toIso8601String());
+      WhereCondition(name!, '<', value.toIso8601String(), sourceColumn: this);
 
   WhereCondition between(DateTime start, DateTime end) =>
-      WhereCondition(name!, 'BETWEEN', [start, end]);
+      WhereCondition(name!, 'BETWEEN', [start, end], sourceColumn: this);
 }
 
 /// Represents a virtual column extracted from a JSON structure using a specific path.
@@ -152,14 +168,15 @@ class JsonPathColumn<T> extends Column<T> {
   String toString() => "json_extract($rootColumn, '\$.$path')";
 
   WhereCondition greaterThan(num value) =>
-      WhereCondition(toString(), '>', value);
-  WhereCondition lessThan(num value) => WhereCondition(toString(), '<', value);
+      WhereCondition(toString(), '>', value, sourceColumn: this);
+  WhereCondition lessThan(num value) =>
+      WhereCondition(toString(), '<', value, sourceColumn: this);
   WhereCondition greaterThanOrEqual(num value) =>
-      WhereCondition(toString(), '>=', value);
+      WhereCondition(toString(), '>=', value, sourceColumn: this);
   WhereCondition lessThanOrEqual(num value) =>
-      WhereCondition(toString(), '<=', value);
+      WhereCondition(toString(), '<=', value, sourceColumn: this);
   WhereCondition contains(String value) =>
-      WhereCondition(toString(), 'LIKE', '%$value%');
+      WhereCondition(toString(), 'LIKE', '%$value%', sourceColumn: this);
 
   /// Chains a sub-path to the current JSON extraction path.
   JsonPathColumn<R> key<R>(String subPath) {
@@ -181,7 +198,7 @@ class JsonColumn extends Column<dynamic> {
   String get schemaType => 'json';
 
   WhereCondition containsPattern(String value) =>
-      WhereCondition(name!, 'LIKE', '%$value%');
+      WhereCondition(name!, 'LIKE', '%$value%', sourceColumn: this);
 
   /// Creates a virtual column pointing to a specific key within this JSON object.
   JsonPathColumn<T> key<T>(String path) => JsonPathColumn<T>(name!, path);
@@ -195,7 +212,7 @@ class ArrayColumn extends Column<List<dynamic>> {
   String get schemaType => 'array';
 
   WhereCondition containsPattern(String value) =>
-      WhereCondition(name!, 'LIKE', '%$value%');
+      WhereCondition(name!, 'LIKE', '%$value%', sourceColumn: this);
 
   /// Creates a virtual column pointing to a specific index within this array.
   JsonPathColumn<T> index<T>(int index) => JsonPathColumn<T>(name!, '[$index]');
@@ -209,7 +226,7 @@ class ObjectColumn extends Column<Map<String, dynamic>> {
   String get schemaType => 'object';
 
   WhereCondition containsPattern(String value) =>
-      WhereCondition(name!, 'LIKE', '%$value%');
+      WhereCondition(name!, 'LIKE', '%$value%', sourceColumn: this);
 
   JsonPathColumn<T> key<T>(String path) => JsonPathColumn<T>(name!, path);
 }
@@ -222,16 +239,67 @@ class EnumColumn<T extends Enum> extends Column<T> {
   String get schemaType => 'string';
 
   @override
-  WhereCondition equals(T value) => WhereCondition(name!, '=', value.name);
+  WhereCondition equals(T value) =>
+      WhereCondition(name!, '=', value.name, sourceColumn: this);
 
   @override
-  WhereCondition notEquals(T value) => WhereCondition(name!, '!=', value.name);
+  WhereCondition notEquals(T value) =>
+      WhereCondition(name!, '!=', value.name, sourceColumn: this);
 
   @override
   WhereCondition inList(List<T> values) =>
-      WhereCondition(name!, 'IN', values.map((e) => e.name).toList());
+      WhereCondition(
+        name!,
+        'IN',
+        values.map((e) => e.name).toList(),
+        sourceColumn: this,
+      );
 
   @override
   WhereCondition notInList(List<T> values) =>
-      WhereCondition(name!, 'NOT IN', values.map((e) => e.name).toList());
+      WhereCondition(
+        name!,
+        'NOT IN',
+        values.map((e) => e.name).toList(),
+        sourceColumn: this,
+      );
+}
+
+/// Represents the Primary Key column.
+///
+/// Can be mapped to an [int] (auto-increment) or [String] (UUID).
+/// Usage: `IdColumn()` implies default 'id' name, or `IdColumn('uuid')`.
+class IdColumn extends Column<dynamic> {
+  const IdColumn([String? name, bool isNullable = false, bool isGuarded = true])
+      : super(name, isNullable: isNullable, isGuarded: isGuarded);
+
+  @override
+  String get schemaType => 'id';
+}
+
+/// Represents the 'created_at' timestamp column.
+class CreatedAtColumn extends DateTimeColumn {
+  const CreatedAtColumn([
+    String? name,
+    bool isNullable = true,
+    bool isGuarded = true,
+  ]) : super(name, isNullable: isNullable, isGuarded: isGuarded);
+}
+
+/// Represents the 'updated_at' timestamp column.
+class UpdatedAtColumn extends DateTimeColumn {
+  const UpdatedAtColumn([
+    String? name,
+    bool isNullable = true,
+    bool isGuarded = true,
+  ]) : super(name, isNullable: isNullable, isGuarded: isGuarded);
+}
+
+/// Represents the 'deleted_at' timestamp column for Soft Deletes.
+class DeletedAtColumn extends DateTimeColumn {
+  const DeletedAtColumn([
+    String? name,
+    bool isNullable = true,
+    bool isGuarded = true,
+  ]) : super(name, isNullable: isNullable, isGuarded: isGuarded);
 }

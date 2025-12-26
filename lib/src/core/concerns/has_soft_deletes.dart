@@ -6,6 +6,10 @@ import '../query_builder.dart';
 /// Modifies the model's behavior so that "deletion" updates a timestamp rather
 /// than removing the row. Automatically filters out these rows from standard queries.
 mixin HasSoftDeletes on Model {
+  /// Typed accessor for the soft-deletion timestamp.
+  DateTime? get deletedAt => getAttribute<DateTime>('deleted_at');
+  set deletedAt(DateTime? value) => setAttribute('deleted_at', value);
+
   bool get trashed => attributes['deleted_at'] != null;
 
   @override

@@ -14,6 +14,7 @@ class QueryBuilder<T extends Model> {
 
   /// Internal factory for empty instances (used during generic casting or hydration).
   final T Function() _instanceFactory;
+  late final T _modelInstance;
 
   final List<Map<String, dynamic>> _wheres = [];
   final List<dynamic> _bindings = [];
@@ -37,6 +38,7 @@ class QueryBuilder<T extends Model> {
     : _instanceFactory =
           instanceFactory ?? (() => creator(const {}).newInstance() as T) {
     _assertIdent(table, dotted: false, what: 'table name');
+    _modelInstance = _instanceFactory();
   }
 
   /// Helper to access the current database grammar.
@@ -131,13 +133,33 @@ class QueryBuilder<T extends Model> {
       );
     }
     if (column is Column) {
-      final name = column.name ?? column.toString();
+      final name = column.name ?? _resolveDefaultColumnName(column);
+
       if (!name.contains('.') && !name.contains('(')) {
         return '$table.$name';
       }
       return name;
     }
     return column.toString();
+  }
+
+  String _resolveDefaultColumnName(Column column) {
+    if (column is IdColumn) {
+      return _modelInstance.primaryKey;
+    } else if (column is CreatedAtColumn) {
+      if (_modelInstance is HasTimestamps) {
+        return (_modelInstance as HasTimestamps).createdAtColumn;
+      }
+      return 'created_at';
+    } else if (column is UpdatedAtColumn) {
+      if (_modelInstance is HasTimestamps) {
+        return (_modelInstance as HasTimestamps).updatedAtColumn;
+      }
+      return 'updated_at';
+    } else if (column is DeletedAtColumn) {
+      return 'deleted_at';
+    }
+    return '';
   }
 
   // ---------------------------------------------------------------------------
@@ -231,6 +253,11 @@ class QueryBuilder<T extends Model> {
 
     if (column is WhereCondition) {
       targetColumn = column.column;
+      // If the column name is empty (due to optional name in Schema), resolve it now using the sourceColumn
+      if (targetColumn.isEmpty && column.sourceColumn != null) {
+        targetColumn = _resolveColumnName(column.sourceColumn);
+      }
+
       targetOperator = column.operator;
       targetValue = column.value;
       targetBoolean = column.boolean;

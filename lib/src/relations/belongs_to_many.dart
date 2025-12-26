@@ -15,7 +15,7 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   final String relatedPivotKey;
 
   Pivot Function(Map<String, dynamic>)? _pivotCreator;
-  List<Column> _pivotColumns = [];
+  List<SchemaColumn> _pivotColumns = [];
 
   BelongsToMany(
     super.parent,
@@ -33,7 +33,7 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   /// [columns]: List of columns to retrieve from the pivot table (e.g. `UserRole.columns`).
   BelongsToMany<R> using<P extends Pivot>(
     P Function(Map<String, dynamic>) factory,
-    List<Column> columns,
+    List<SchemaColumn> columns,
   ) {
     _pivotCreator = factory;
     _pivotColumns = columns;
@@ -47,7 +47,7 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   BelongsToMany<R> withPivot(List<dynamic> columns) {
     _pivotColumns.addAll(
       columns.map((c) {
-        if (c is Column) return c;
+        if (c is SchemaColumn) return c;
         return TextColumn(c.toString());
       }),
     );

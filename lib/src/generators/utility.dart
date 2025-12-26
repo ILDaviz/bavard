@@ -34,6 +34,24 @@ Future<void> getColumnFromSchema(
                 dbName = (args.first as SimpleStringLiteral).value;
               }
 
+              // Apply default column names if not provided
+              if (dbName == null) {
+                switch (typeName) {
+                  case 'IdColumn':
+                    dbName = 'id';
+                    break;
+                  case 'CreatedAtColumn':
+                    dbName = 'created_at';
+                    break;
+                  case 'UpdatedAtColumn':
+                    dbName = 'updated_at';
+                    break;
+                  case 'DeletedAtColumn':
+                    dbName = 'deleted_at';
+                    break;
+                }
+              }
+
               bool isNullable = false;
               bool isGuarded = false;
 
@@ -74,6 +92,20 @@ Future<void> getColumnFromSchema(
                   baseType = 'DateTime';
                   castType = 'datetime';
                   break;
+                case 'CreatedAtColumn':
+                case 'UpdatedAtColumn':
+                case 'DeletedAtColumn':
+                  baseType = 'DateTime';
+                  castType = 'datetime';
+                  // Defaults for these columns
+                  isNullable = true; 
+                  isGuarded = true;
+                  break;
+                case 'IdColumn':
+                  baseType = 'dynamic';
+                  castType = 'id';
+                  isGuarded = true;
+                  break;
                 case 'JsonColumn':
                   baseType = 'dynamic';
                   castType = 'json';
@@ -100,6 +132,7 @@ Future<void> getColumnFromSchema(
                     dartType: dartType,
                     castType: castType!,
                     isGuarded: isGuarded,
+                    columnType: typeName ?? 'Column',
                   ),
                 );
               }
@@ -117,6 +150,7 @@ class ColumnInfo {
   final String dartType;
   final String castType;
   final bool isGuarded;
+  final String columnType;
 
   ColumnInfo({
     required this.propertyName,
@@ -124,5 +158,6 @@ class ColumnInfo {
     required this.dartType,
     required this.castType,
     required this.isGuarded,
+    required this.columnType,
   });
 }

@@ -68,8 +68,20 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
     }
     buffer.writeln('  };');
 
+    // Check for mixins
+    final supertypes = element.allSupertypes.map((t) => t.element.name).toSet();
+    final hasTimestamps = supertypes.contains('HasTimestamps');
+    final hasSoftDeletes = supertypes.contains('HasSoftDeletes');
+
     // Generate type-safe accessors that proxy to the underlying dynamic `getAttribute` / `setAttribute`.
     for (var col in columnsData) {
+      // Skip accessors if handled by mixins or base Model
+      if (col.columnType == 'IdColumn') continue;
+      if (hasTimestamps &&
+          (col.columnType == 'CreatedAtColumn' ||
+              col.columnType == 'UpdatedAtColumn')) continue;
+      if (hasSoftDeletes && col.columnType == 'DeletedAtColumn') continue;
+
       buffer.writeln();
       buffer.writeln(
         '  /// Accessor for [${col.propertyName}] (DB: ${col.dbName})',

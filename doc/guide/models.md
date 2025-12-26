@@ -124,6 +124,8 @@ class User extends Model with $UserFillable {
   String get table => 'users';
 
   static const schema = (
+    id: IdColumn(),
+    createdAt: CreatedAtColumn(),
     name: TextColumn('name'),
     email: TextColumn('email'),
     age: IntColumn('age'),
