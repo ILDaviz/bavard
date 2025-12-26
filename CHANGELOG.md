@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.18] - 2025-12-26
+
 ### Added
 - **Schema:** Added `IdColumn`, `CreatedAtColumn`, `UpdatedAtColumn`, and `DeletedAtColumn` to enable fully type-safe queries on standard fields.
 - **Mixins:** Added typed getters/setters (`createdAt`, `updatedAt`, `deletedAt`) directly to `HasTimestamps` and `HasSoftDeletes` mixins.
