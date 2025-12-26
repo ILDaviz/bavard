@@ -1,6 +1,6 @@
 # CLI Tool
 
-Bavard comes with a built-in CLI tool to help you scaffold your models quickly without relying on code generation. This tool generates the "Manual Implementation" code for you, saving you from typing boilerplate getters, setters, and schemas.
+Bavard comes with a built-in CLI tool to help you scaffold your models and pivot tables quickly. The CLI features colored output for better readability and supports generating complete, ready-to-use code.
 
 ## Usage
 
@@ -89,14 +89,9 @@ class User extends Model {
 }
 ```
 
-**3. Custom Table Name**
-```bash
-dart run bavard make:model Category --table=product_categories
-```
-
 ### `make:pivot`
 
-Creates a new Pivot class for Many-to-Many relationships.
+Creates a new Pivot class for Many-to-Many relationships. This generates a single, self-contained file with the class, schema, and typed accessors.
 
 **Syntax:**
 ```bash
@@ -108,6 +103,7 @@ dart run bavard make:pivot <PivotName> [options]
 | Option | Description | Example |
 | :--- | :--- | :--- |
 | `--columns` | Comma-separated list of `name:type`. | `--columns=is_admin:bool` |
+| `--model` | Optional path to the parent model to import. Defaults to checking the sibling file. | `--model=./user.dart` |
 | `--path` | Specify the output directory. | `--path=lib/models` |
 | `--force` | Overwrite the file if it already exists. | `--force` |
 
@@ -121,21 +117,27 @@ dart run bavard make:pivot UserRole --columns=is_active:bool,created_at:datetime
 This generates:
 ```dart
 import 'package:bavard/bavard.dart';
+import 'package:bavard/schema.dart';
 
 class UserRole extends Pivot {
   UserRole(super.attributes);
 
-  // ACCESSORS
-  bool? get isActive => getAttribute<bool>('is_active');
-  set isActive(bool? value) => setAttribute('is_active', value);
+  static const schema = (
+    isActive: BoolColumn('is_active'),
+    createdAt: DateTimeColumn('created_at'),
+  );
 
-  DateTime? get createdAt => getAttribute<DateTime>('created_at');
-  set createdAt(DateTime? value) => setAttribute('created_at', value);
+  /// Accessor for [isActive] (DB: is_active)
+  bool get isActive => get(UserRole.schema.isActive);
+  set isActive(bool value) => set(UserRole.schema.isActive, value);
 
-  // COLUMNS
-  static const columns = [
-    'is_active',
-    'created_at',
+  /// Accessor for [createdAt] (DB: created_at)
+  DateTime get createdAt => get(UserRole.schema.createdAt);
+  set createdAt(DateTime value) => set(UserRole.schema.createdAt, value);
+
+  static List<Column> get columns => [
+    UserRole.schema.isActive,
+    UserRole.schema.createdAt,
   ];
 }
 ```
