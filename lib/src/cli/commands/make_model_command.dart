@@ -18,7 +18,7 @@ class MakeModelCommand extends BaseCommand {
 
     final className = args[0];
     if (className.startsWith('-')) {
-      print('Error: Model name must be the first argument.');
+      printError('Model name must be the first argument.');
       printUsage();
       return 1;
     }
@@ -70,51 +70,44 @@ class MakeModelCommand extends BaseCommand {
     // Ensure directory exists
     final dir = Directory(outputDir);
     if (!dir.existsSync()) {
-      print("Creating directory: $outputDir");
+      printInfo("Creating directory: $outputDir");
       dir.createSync(recursive: true);
     }
     
     final filePath = '${dir.path}/$fileName';
 
     if (File(filePath).existsSync() && !force) {
-      print('Error: File "$filePath" already exists. Use --force to overwrite.');
+      printError('File "$filePath" already exists. Use --force to overwrite.');
       return 1;
     }
 
     final content = _generateModelContent(className, tableName, columns);
 
     File(filePath).writeAsStringSync(content);
-    print('✅ Model created successfully: $filePath');
+    printSuccess('✅ Model created successfully: $filePath');
     return 0;
   }
 
   @override
   void printUsage() {
-    print('''
-Description:
-  $description
-
-Usage:
-  dart run bavard $name <Name> [options]
-
-Options:
-  --table=<name>      Specify the database table name.
-  --columns=<list>    Comma-separated list of columns (name:type).
-                      Types: string, int, double, bool, datetime, json.
-  --path=<path>       Specify the output directory (e.g., --path=lib/data/models).
-  --force             Overwrite existing file.
-  -h, --help          Show this help message.
-
-Examples:
-  1. Basic Model:
-     dart run bavard $name Product
-
-  2. Model with Schema:
-     dart run bavard $name User --columns=name:string,age:int,active:bool
-
-  3. Custom Table & Path:
-     dart run bavard $name Category --table=product_categories --path=lib/features/shop/models
-''');
+    print('${colorized('Description:', bold)}');
+    print('  $description\n');
+    print('${colorized('Usage:', bold)}');
+    print('  dart run bavard $name <Name> [options]\n');
+    print('${colorized('Options:', bold)}');
+    print('  ${colorized('--table=<name>', green)}      Specify the database table name.');
+    print('  ${colorized('--columns=<list>', green)}    Comma-separated list of columns (name:type).');
+    print('                      Types: string, int, double, bool, datetime, json.');
+    print('  ${colorized('--path=<path>', green)}       Specify the output directory (e.g., --path=lib/data/models).');
+    print('  ${colorized('--force', green)}             Overwrite existing file.');
+    print('  ${colorized('-h, --help', green)}          Show this help message.\n');
+    print('${colorized('Examples:', bold)}');
+    print('  1. Basic Model:');
+    print('     dart run bavard $name Product\n');
+    print('  2. Model with Schema:');
+    print('     dart run bavard $name User --columns=name:string,age:int,active:bool\n');
+    print('  3. Custom Table & Path:');
+    print('     dart run bavard $name Category --table=product_categories --path=lib/features/shop/models');
   }
 
   String _generateModelContent(String className, String tableName, Map<String, String> columns) {

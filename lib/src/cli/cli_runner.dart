@@ -2,6 +2,7 @@ import 'dart:io';
 import 'commands/base_command.dart';
 import 'commands/make_model_command.dart';
 import 'commands/make_pivot_command.dart';
+import 'utils.dart';
 
 class CliRunner {
   final Map<String, BaseCommand> _commands = {};
@@ -27,7 +28,7 @@ class CliRunner {
     final command = _commands[commandName];
 
     if (command == null) {
-      print('Error: Unknown command "$commandName".');
+      printError('Unknown command "$commandName".');
       printUsage();
       exit(1);
     }
@@ -36,16 +37,13 @@ class CliRunner {
   }
 
   void printUsage() {
-    print('''
-Bavard CLI Tool
-
-Usage:
-  dart run bavard <command> [arguments]
-
-Available Commands:''');
+    print('${colorized('Bavard CLI Tool', bold + cyan)}\n');
+    print('${colorized('Usage:', bold)}');
+    print('  dart run bavard <command> [arguments]\n');
+    print('${colorized('Available Commands:', bold)}');
 
     _commands.forEach((name, command) {
-      print('  ${name.padRight(15)} ${command.description}');
+      print('  ${colorized(name.padRight(15), green)} ${command.description}');
     });
     
     print('');
