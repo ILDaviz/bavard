@@ -6,13 +6,11 @@ mixin HasTimestamps on Model {
 
   String get updatedAtColumn => 'updated_at';
 
-  /// Typed accessor for the creation timestamp.
-  DateTime? get createdAt => getAttribute<DateTime>(createdAtColumn);
-  set createdAt(DateTime? value) => setAttribute(createdAtColumn, value);
+  DateTime get createdAt => attributes['createdAtColumn'];
+  set createdAt(dynamic value) => attributes['createdAtColumn'] = value;
 
-  /// Typed accessor for the update timestamp.
-  DateTime? get updatedAt => getAttribute<DateTime>(updatedAtColumn);
-  set updatedAt(DateTime? value) => setAttribute(updatedAtColumn, value);
+  DateTime get updatedAt => attributes['updatedAtColumn'];
+  set updatedAt(DateTime value) => attributes['updatedAtColumn'] = value;
 
   /// Master toggle to disable auto-timestamping (e.g., for legacy tables or bulk imports).
   bool get timestamps => true;
