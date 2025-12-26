@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.19] - 2025-12-26
+
 ### Fixed
 - **Core:** Fixed type created_at, updated_at and cancel_at
 
