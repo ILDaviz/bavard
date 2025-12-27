@@ -71,6 +71,14 @@ await User().query()
     .get();
 ```
 
+### Distinct
+
+The `distinct` method forces the query to return unique results:
+
+```dart
+await User().query().distinct().select(['role']).get();
+```
+
 ## Where Clauses
 
 ### Basic Where

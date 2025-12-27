@@ -34,6 +34,11 @@ void main() {
     expect(dbSpy.lastSql, 'SELECT "users".* FROM "users"');
   });
 
+  test('It generates SELECT DISTINCT', () async {
+    await TestUser().query().distinct().get();
+    expect(dbSpy.lastSql, startsWith('SELECT DISTINCT "users".* FROM "users"'));
+  });
+
   test('It generates WHERE clauses with bindings', () async {
     await TestUser().where('email', 'david@test.com').get();
 
@@ -271,6 +276,7 @@ void main() {
     final originalQuery = TestUser()
         .query()
         .select(['name', 'role'])
+        .distinct()
         .join('roles', 'users.role_id', '=', 'roles.id')
         .where('active', 1)
         .whereRaw('age > ?', bindings: [21])
@@ -289,7 +295,7 @@ void main() {
 
     expect(
       sql,
-      startsWith('SELECT "users"."name", "users"."role" FROM "users"'),
+      startsWith('SELECT DISTINCT "users"."name", "users"."role" FROM "users"'),
     );
     expect(sql, contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'));
     expect(sql, contains('WHERE "active" = ? AND age > ?'));

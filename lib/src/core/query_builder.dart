@@ -25,6 +25,7 @@ class QueryBuilder<T extends Model> {
   final List<String> _groupBy = [];
   final List<Map<String, dynamic>> _havings = [];
   final List<dynamic> _havingBindings = [];
+  bool _distinct = false;
 
   final Map<String, ScopeCallback> _globalScopes = {};
   bool _ignoreGlobalScopes = false;
@@ -50,6 +51,7 @@ class QueryBuilder<T extends Model> {
   List<String> get joins => _joins;
   List<String> get groups => _groupBy;
   List<Map<String, dynamic>> get havings => _havings;
+  bool get distinctValue => _distinct;
   String? get orders => _orderBy;
   int? get limitValue => _limit;
   int? get offsetValue => _offset;
@@ -986,6 +988,12 @@ class QueryBuilder<T extends Model> {
     return this;
   }
 
+  /// Forces the query to return distinct results.
+  QueryBuilder<T> distinct() {
+    _distinct = true;
+    return this;
+  }
+
   // ---------------------------------------------------------------------------
   // INTERNALS
   // ---------------------------------------------------------------------------
@@ -1017,6 +1025,7 @@ class QueryBuilder<T extends Model> {
     qb._orderBy = _orderBy;
     qb._limit = _limit;
     qb._offset = _offset;
+    qb._distinct = _distinct;
 
     return qb;
   }
