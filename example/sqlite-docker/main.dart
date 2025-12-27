@@ -22,6 +22,7 @@ class SqliteAdapter implements DatabaseAdapter {
     return args.map((arg) {
       if (arg is DateTime) return arg.toIso8601String();
       if (arg is bool) return arg ? 1 : 0;
+      if (arg is List<int>) return arg; // Blob support
       if (arg is Map || arg is List) return jsonEncode(arg);
 
       return arg;
@@ -148,7 +149,7 @@ void main() async {
 
   // Create Schema
   db.execute('''
-    CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, address TEXT, created_at TEXT, updated_at TEXT);
+    CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, address TEXT, avatar BLOB, created_at TEXT, updated_at TEXT);
     CREATE TABLE profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, bio TEXT, website TEXT, created_at TEXT, updated_at TEXT);
     CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, title TEXT, content TEXT, views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT);
     CREATE TABLE comments (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, commentable_type TEXT, commentable_id INTEGER, body TEXT, created_at TEXT, updated_at TEXT);
@@ -161,4 +162,8 @@ void main() async {
   print('✅ Database & Schema Initialized.');
 
   await runIntegrationTests();
+
+  print('🛑 Closing database connection...');
+  db.dispose();
+  print('👋 Test process finished.');
 }

@@ -483,5 +483,104 @@ Future<void> runIntegrationTests() async {
     }
   });
 
+  // TEST 17: Concurrency (Parallel Saves)
+  await runTest('Concurrency (Parallel Saves)', () async {
+    final futures = List.generate(10, (i) {
+      return User({
+        'name': 'Concurrent $i',
+        'email': 'concurrent$i@test.com',
+        'created_at': isoNow(),
+      }).save();
+    });
+
+    await Future.wait(futures);
+    
+    final count = await User().query().where('name', 'Concurrent%', 'LIKE').count();
+    if (count != 10) throw 'Concurrency failed. Expected 10, got $count';
+  });
+
+  // TEST 18: Blob / Binary Data
+  await runTest('Blob / Binary Data (Avatar)', () async {
+    final bytes = [0x1, 0x2, 0x3, 0xFF];
+    final user = User({
+      'name': 'Blob User',
+      'email': 'blob@test.com',
+      'created_at': isoNow(),
+    });
+    user.avatar = bytes;
+    
+    await user.save();
+    
+    final fetched = await User().query().find(user.id);
+    final fetchedBytes = fetched?.avatar;
+    if (fetchedBytes == null) throw 'Avatar is null';
+    if (fetchedBytes.length != 4) {
+      throw 'Avatar length mismatch';
+    }
+    if (fetchedBytes[3] != 0xFF) throw 'Avatar data mismatch';
+  });
+  
+  // TEST 19: Dirty Checking Optimization
+  await runTest('Dirty Checking (No Query on No Change)', () async {
+    final user = await User().query().first();
+    if (user == null) throw 'No user found';
+    
+    final oldUpdatedAt = user.updatedAt;
+    
+    // Save without changes
+    await user.save();
+    
+    if (user.updatedAt != oldUpdatedAt) {
+       throw 'Model was updated even though no attributes changed!';
+    }
+    
+    user.attributes['name'] = user.attributes['name'] + ' Changed';
+    await user.save();
+    
+    if (user.updatedAt == oldUpdatedAt) {
+      throw 'Model was NOT updated after attribute change!';
+    }
+  });
+
+  // TEST 20: Date Handling (UTC vs Local)
+  await runTest('Date Handling (UTC Persistence)', () async {
+    final now = DateTime.now().toUtc();
+    final user = User({
+      'name': 'Time User',
+      'email': 'time@test.com',
+      'created_at': now.toIso8601String(),
+    });
+    
+    await user.save();
+    
+    final fetched = await User().query().find(user.id);
+    final created = fetched?.createdAt; 
+    
+    if (created == null) throw 'Created At is null';
+    
+    // Using tolerance for microsecond differences across DBs
+    if (created.difference(now).inMilliseconds.abs() > 1000) {
+      throw 'Date mismatch. Original: $now, Fetched: $created';
+    }
+  });
+
+  // TEST 21: Unique Constraint
+  await runTest('Error Handling (Unique Constraint)', () async {
+    final email = 'unique@test.com';
+    await User({'name': 'U1', 'email': email, 'created_at': isoNow()}).save();
+    
+    try {
+      await User({'name': 'U2', 'email': email, 'created_at': isoNow()}).save();
+      throw 'Duplicate entry did NOT throw exception!';
+    } catch (e) {
+      final msg = e.toString().toLowerCase();
+      if (!msg.contains('unique') && 
+          !msg.contains('constraint') &&
+          !msg.contains('23505')) { // Postgres specific
+         throw 'Caught unexpected error instead of constraint violation: $e';
+      }
+    }
+  });
+
   print('\n🎉 --- ALL SYSTEMS GO: CORE IS STABLE --- 🎉');
 }

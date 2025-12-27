@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bavard/bavard.dart';
+import 'package:bavard/schema.dart';
 
 // ==========================================
 // MODELS (With Dispatcher)
@@ -36,6 +37,18 @@ class AddressCast implements AttributeCast<Address, String> {
 class User extends Model with HasTimestamps {
   @override
   String get table => 'users';
+
+  @override
+  List<SchemaColumn> get columns => [
+    IdColumn(),
+    TextColumn('name'),
+    TextColumn('email'),
+    // Address handled by custom cast
+    // Avatar handled raw
+    CreatedAtColumn(),
+    UpdatedAtColumn(),
+  ];
+
   User([super.attributes]);
   @override
   User fromMap(Map<String, dynamic> map) => User(map);
@@ -59,6 +72,9 @@ class User extends Model with HasTimestamps {
 
   Address? get address => getAttribute<Address>('address');
   set address(Address? value) => setAttribute('address', value);
+
+  List<int>? get avatar => getAttribute<List<int>>('avatar');
+  set avatar(List<int>? value) => setAttribute('avatar', value);
 
   @override
   Relation? getRelation(String name) {

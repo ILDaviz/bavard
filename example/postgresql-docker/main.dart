@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:postgres/postgres.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/src/grammars/postgres_grammar.dart';
@@ -33,6 +34,9 @@ class PostgresAdapter implements DatabaseAdapter {
 
   List<dynamic> _prepareArgs(List<dynamic> args) {
     return args.map((arg) {
+      if (arg is List<int>) {
+        return TypedValue(Type.byteArray, Uint8List.fromList(arg));
+      }
       if (arg is Map || arg is List) return jsonEncode(arg);
       // Postgres driver handles DateTime, bool, int, double, String.
       return arg;
@@ -220,7 +224,7 @@ void main() async {
 
   // Create Schema (Adapted for Postgres)
   // SERIAL PRIMARY KEY replaces INTEGER PRIMARY KEY AUTOINCREMENT
-  await db.execute(Sql.named('CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT, email TEXT, address TEXT, created_at TEXT, updated_at TEXT)'));
+  await db.execute(Sql.named('CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT, email TEXT UNIQUE, address TEXT, avatar BYTEA, created_at TEXT, updated_at TEXT)'));
   await db.execute(Sql.named('CREATE TABLE profiles (id SERIAL PRIMARY KEY, user_id INTEGER, bio TEXT, website TEXT, created_at TEXT, updated_at TEXT)'));
   await db.execute(Sql.named('CREATE TABLE posts (id SERIAL PRIMARY KEY, user_id INTEGER, title TEXT, content TEXT, views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)'));
   await db.execute(Sql.named('CREATE TABLE comments (id SERIAL PRIMARY KEY, user_id INTEGER, commentable_type TEXT, commentable_id INTEGER, body TEXT, created_at TEXT, updated_at TEXT)'));
@@ -232,4 +236,8 @@ void main() async {
   print('✅ Database & Schema Initialized.');
 
   await runIntegrationTests();
+
+  print('🛑 Closing database connection...');
+  await db.close();
+  print('👋 Test process finished.');
 }
