@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Core:** Added support for **Custom Attribute Casts**. Users can now define custom transformation logic by implementing the `AttributeCast<T, R>` interface and registering it in the `casts` map.
+- **Core:** Support for **Custom Attribute Casts** via the `AttributeCast<T, R>` interface.
+- **Core:** Added smart **Dirty Checking for Timestamps**. `updated_at` is now only updated if the model has other dirty attributes, preventing redundant queries.
+- **Schema:** Standard columns (`IdColumn`, `CreatedAtColumn`, etc.) now have **default names**, enabling zero-config automatic casting.
+- **Testing:** New **Shared Integration Test Suite** in `example/shared_test_suite`.
+- **Testing:** Added 5 new integration scenarios: Concurrency, Blob support, Unique constraints, UTC Date handling, and Dirty Checking optimization.
+- **Tooling:** Added `make test-all` to the `Makefile` for a full one-shot test execution (Unit + SQLite + Postgres).
+
+### Improved
+- **Adapters:** Enhanced `PostgresAdapter` to handle binary data (Blobs) using `TypedValue` and fixed SQL placeholder interpolation.
+- **Core:** Refactored `HasTimestamps` to use the internal casting system instead of raw attribute access.
 
 ## [0.0.22] - 2025-12-27
 

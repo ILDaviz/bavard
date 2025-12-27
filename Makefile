@@ -1,4 +1,4 @@
-.PHONY: help release check-git
+.PHONY: help release check-git test-all
 
 CURRENT_VERSION := $(shell python3 -c "print(next(line.split(':')[1].strip() for line in open('pubspec.yaml') if line.startswith('version:')))")
 
@@ -7,12 +7,32 @@ help:
 	@echo "ℹ️  Current Version: $(CURRENT_VERSION)"
 	@echo "Usage: make release v=X.Y.Z"
 	@echo "Example: make release v=0.0.2"
+	@echo "--------------------------------------"
+	@echo "🧪 Testing"
+	@echo "  make test-all      : Run Unit Tests + SQLite (Docker) + Postgres (Docker One-shot)"
 
 check-git:
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		echo "❌ Error: Working directory is dirty. Please commit or stash your changes first."; \
 		exit 1; \
 	fi
+
+test-all:
+	@echo "🧪 Running Unit Tests..."
+	dart test
+	@echo "✅ Unit Tests Passed"
+	@echo "--------------------------------------"
+	@echo "🐳 Running SQLite Integration Tests..."
+	docker build -f example/sqlite-docker/Dockerfile -t bavard-sqlite-test . && docker run --rm bavard-sqlite-test
+	@echo "✅ SQLite Tests Passed"
+	@echo "--------------------------------------"
+	@echo "🐳 Running PostgreSQL Integration Tests (One-shot)..."
+	docker compose -f example/postgresql-docker/docker-compose.yaml up --build --abort-on-container-exit --exit-code-from app
+	@echo "🧹 Cleaning up Postgres containers and volumes..."
+	docker compose -f example/postgresql-docker/docker-compose.yaml down -v
+	@echo "✅ PostgreSQL Tests Passed"
+	@echo "--------------------------------------"
+	@echo "🎉 ALL TESTS PASSED SUCCESSFULLY! 🎉"
 
 release: check-git
 	@if [ -z "$(v)" ]; then \
