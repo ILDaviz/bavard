@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.21] - 2025-12-27
+
 ### Added
 - **Core:** Added `distinct()` method to `QueryBuilder` to support `SELECT DISTINCT` queries.
 
