@@ -54,7 +54,7 @@ dart run build_runner build
 The generator creates:
 1. **Typed Getters/Setters**: `user.name`, `user.age`.
 2. **Fillable/Guarded Lists**: Automatically derived from the schema (using `isGuarded`).
-3. **Casts Map**: Automatically derived from the column types.
+3. **Casting Rules**: Automatically derived from the column types, ensuring correct hydration of types like `DateTime`, `bool`, and `JSON`.
 4. **Static Schema**: Enables type-safe queries like `User().query().where(User.schema.age.greaterThan(18))`.
 
 ### Type Modifiers

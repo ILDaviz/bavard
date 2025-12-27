@@ -202,14 +202,28 @@ The `orderBy` method allows you to sort the results. It supports both string col
 
 ## Aggregates
 
-The query builder supports various aggregate methods, which also accept `Column` objects:
+The query builder supports various aggregate methods, all of which accept both string column names and `Column` objects:
 
 ```dart
+// Count
 final count = await User().query().count();
-final max = await Product().query().max('price');
-final min = await Product().query().min(Product.schema.price); // Type-safe
-final avg = await Product().query().avg('rating');
-final sum = await Order().query().sum('total');
+final countActive = await User().query().where('active', 1).count();
+
+// Max
+final maxPrice = await Product().query().max('price');
+final maxScore = await User().query().max(User.schema.score); // Type-safe
+
+// Min
+final minPrice = await Product().query().min('price');
+final minAge = await User().query().min(User.schema.age); // Type-safe
+
+// Avg
+final avgRating = await Product().query().avg('rating');
+final avgScore = await User().query().avg(User.schema.score); // Type-safe
+
+// Sum
+final totalSales = await Order().query().sum('total');
+final totalPoints = await User().query().sum(User.schema.points); // Type-safe
 ```
 
 ## Inserts, Updates, and Deletes

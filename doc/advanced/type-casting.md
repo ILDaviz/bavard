@@ -4,22 +4,34 @@ Bavard manages data conversion through the HasCasts mixin, acting as a bridge be
 
 ## Defining Casts
 
-Override the `casts` getter in your model:
+The recommended way to define casts is by overriding the `columns` getter with a list of `SchemaColumn` objects. This provides both runtime type conversion and the foundation for type-safe queries.
 
 ```dart
 class User extends Model {
   @override
-  Map<String, String> get casts => {
-    'age': 'int',
-    'score': 'double',
-    'is_active': 'bool',
-    'created_at': 'datetime',
-    'settings': 'json',
-    'tags': 'array',
-    'metadata': 'object',
-  };
+  List<SchemaColumn> get columns => [
+    IntColumn('age'),
+    DoubleColumn('score'),
+    BoolColumn('is_active'),
+    DateTimeColumn('created_at'),
+    JsonColumn('settings'),
+    ArrayColumn('tags'),
+    ObjectColumn('metadata'),
+  ];
 }
 ```
+
+### Advanced: Explicit Overrides
+
+If you need to define a cast without adding a full schema column, or to override a schema-derived cast, you can still use the `casts` map:
+
+```dart
+@override
+Map<String, String> get casts => {
+  'legacy_field': 'int',
+};
+```
+
 
 ## Supported Types
 

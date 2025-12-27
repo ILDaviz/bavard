@@ -8,10 +8,19 @@ At a minimum, you must override `table` and `fromMap`.
 
 ```dart
 import 'package:bavard/bavard.dart';
+import 'package:bavard/schema.dart';
 
 class User extends Model {
   @override
   String get table => 'users';
+
+  // Define schema for query safety and automatic casting
+  @override
+  List<SchemaColumn> get columns => [
+    IdColumn(),
+    TextColumn('name'),
+    BoolColumn('is_active'),
+  ];
 
   // Constructor that passes attributes to the super class
   User([super.attributes]);
@@ -24,7 +33,12 @@ class User extends Model {
 
 ### Relationships & `getRelation`
 
-If the model defines relationships, it is **necessary** to override the `getRelation` method. This method maps relationship names (used in lazy loading) to the corresponding definition methods. For this ORM to function correctly, it must always be defined for each model.
+::: danger Mandatory for Relationships
+If your model defines relationships (e.g., `hasMany`, `belongsTo`), you **must** override the `getRelation` method. 
+This method is critical for eager loading and relationship resolution. Without it, Bavard will not be able to find and load related models dynamically.
+:::
+
+This method maps relationship names to their corresponding definition methods:
 ```dart
 class User extends Model {
   HasMany<Post> posts() => hasMany(Post.new);
@@ -71,7 +85,7 @@ While code generation is recommended to reduce boilerplate, you can define your 
 
 To implement a model manually, you should:
 1. Define explicit **getters and setters** using `getAttribute<T>()` and `setAttribute()`.
-2. Override the `casts` map to define how data should be hydrated.
+2. Override the **`columns`** list to define the schema and automatic casting.
 3. (Optional) Define `fillable` or `guarded` attributes for mass assignment.
 
 ```dart
@@ -91,13 +105,13 @@ class User extends Model {
   int? get age => getAttribute<int>('age');
   set age(int? value) => setAttribute('age', value);
 
-  // 2. Define Casts
+  // 2. Define Schema (Enables automatic casting)
   @override
-  Map<String, String> get casts => {
-    'age': 'int',
-    'is_active': 'bool',
-    'metadata': 'json',
-  };
+  List<SchemaColumn> get columns => [
+    IntColumn('age'),
+    BoolColumn('is_active'),
+    JsonColumn('metadata'),
+  ];
 
   // 3. Mass Assignment Protection
   @override

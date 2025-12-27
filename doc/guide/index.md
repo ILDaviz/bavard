@@ -73,5 +73,5 @@ user.name = 'Mario';
 user.email = 'mario@example.com';
 await user.save();
 
-final users = await User().query().where('active', 1).get();
+final users = await User().query().where(User.schema.name.equals('Mario')).get();
 ```
