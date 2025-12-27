@@ -270,7 +270,7 @@ class EnumColumn<T extends Enum> extends Column<T> {
 /// Can be mapped to an [int] (auto-increment) or [String] (UUID).
 /// Usage: `IdColumn()` implies default 'id' name, or `IdColumn('uuid')`.
 class IdColumn extends Column<dynamic> {
-  const IdColumn([String? name, bool isNullable = false, bool isGuarded = true])
+  const IdColumn([String? name = 'id', bool isNullable = false, bool isGuarded = true])
       : super(name, isNullable: isNullable, isGuarded: isGuarded);
 
   @override
@@ -280,7 +280,7 @@ class IdColumn extends Column<dynamic> {
 /// Represents the 'created_at' timestamp column.
 class CreatedAtColumn extends DateTimeColumn {
   const CreatedAtColumn([
-    String? name,
+    String? name = 'created_at',
     bool isNullable = true,
     bool isGuarded = true,
   ]) : super(name, isNullable: isNullable, isGuarded: isGuarded);
@@ -289,7 +289,7 @@ class CreatedAtColumn extends DateTimeColumn {
 /// Represents the 'updated_at' timestamp column.
 class UpdatedAtColumn extends DateTimeColumn {
   const UpdatedAtColumn([
-    String? name,
+    String? name = 'updated_at',
     bool isNullable = true,
     bool isGuarded = true,
   ]) : super(name, isNullable: isNullable, isGuarded: isGuarded);
@@ -298,7 +298,7 @@ class UpdatedAtColumn extends DateTimeColumn {
 /// Represents the 'deleted_at' timestamp column for Soft Deletes.
 class DeletedAtColumn extends DateTimeColumn {
   const DeletedAtColumn([
-    String? name,
+    String? name = 'deleted_at',
     bool isNullable = true,
     bool isGuarded = true,
   ]) : super(name, isNullable: isNullable, isGuarded: isGuarded);
