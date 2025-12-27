@@ -7,4 +7,6 @@ environment:
 dependencies:
   bavard:
     path: /app/bavard
-  postgres: ^3.0.0
+  postgres: ^3.1.0
+  shared_test_suite:
+    path: ../shared_test_suite

@@ -6,10 +6,7 @@ WORKDIR /app
 
 COPY . /app/bavard/
 
-WORKDIR /app/test
-
-COPY /example/postgresql-docker/pubspec.yaml .
-COPY /example/postgresql-docker/main.dart .
+WORKDIR /app/bavard/example/postgresql-docker
 
 RUN dart pub get
 

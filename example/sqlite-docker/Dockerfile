@@ -9,15 +9,11 @@ WORKDIR /app
 # Context is expected to be the project root
 COPY . /app/bavard/
 
-# Create a clean directory for the test app
-WORKDIR /app/test
-
-# Copy test files from the context
-COPY /example/sqlite-docker/pubspec.yaml .
-COPY /example/sqlite-docker/main.dart .
+# Work inside the example directory within the copied repo
+WORKDIR /app/bavard/example/sqlite-docker
 
 # Resolve dependencies
-# The pubspec.yaml points to /app/bavard
+# The pubspec.yaml here uses relative paths which are now valid
 RUN dart pub get
 
 # Run the test
