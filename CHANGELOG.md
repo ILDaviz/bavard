@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Core:** Refactored `HasCasts` to automatically derive casting rules from the `columns` list (Schema), eliminating the need for a manual `casts` map in most cases.
+- **Documentation:** Updated "Type Casting" and "Model" guides to prioritize schema-driven casting and added examples for manual implementations.
+
+### Improved
+- **Core:** Enhanced internal type mapping between SQL schema types (`integer`, `boolean`, `doubleType`) and Dart runtime types (`int`, `bool`, `double`).
+
 ## [0.0.21] - 2025-12-27
 
 ### Added

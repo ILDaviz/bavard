@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../../schema/columns.dart';
+
 /// Encapsulates type conversion logic for hydrating models from raw data.
 ///
 /// Centralizes parsing rules (String -> int, String -> DateTime, JSON decoding)
@@ -16,15 +18,53 @@ mixin HasCasts {
   /// This acts as the schema definition for the model's dynamic data.
   Map<String, String> get casts => {};
 
+  /// Defines the schema columns for the model.
+  ///
+  /// Used as a fallback to derive casting rules if [casts] is not explicitly defined.
+  List<SchemaColumn> get columns => [];
+
+  Map<String, String>? _cachedCasts;
+
+  Map<String, String> get _totalCasts {
+    if (_cachedCasts != null) return _cachedCasts!;
+
+    final combined = <String, String>{};
+
+    for (final col in columns) {
+      if (col is Column && col.name != null) {
+        combined[col.name!] = col.schemaType;
+      }
+    }
+
+    combined.addAll(casts);
+
+    _cachedCasts = combined;
+    return combined;
+  }
+
   /// Strips modifiers (nullability `?`, `!`) and metadata (suffixes after `:`) to resolve the base type.
+  /// Also maps schema types to internal cast types.
   String? _normalizeType(String? value) {
     if (value == null) return null;
-    return value.split(':').first.replaceAll('!', '').replaceAll('?', '');
+    final raw = value.split(':').first.replaceAll('!', '').replaceAll('?', '');
+
+    switch (raw) {
+      case 'integer':
+        return 'int';
+      case 'boolean':
+        return 'bool';
+      case 'doubleType':
+        return 'double';
+      case 'string':
+        return 'string';
+      default:
+        return raw;
+    }
   }
 
   void hydrateAttributes(Map<String, dynamic> rawData) {
     attributes.addAll(rawData);
-    casts.forEach((key, rawType) {
+    _totalCasts.forEach((key, rawType) {
       if (!attributes.containsKey(key)) return; // Se nullo, lasciamo nullo
       setAttribute(key, attributes[key]);
     });
@@ -33,7 +73,7 @@ mixin HasCasts {
   Map<String, dynamic> dehydrateAttributes() {
     final dehydrateData = Map<String, dynamic>.from(attributes);
 
-    casts.forEach((key, rawType) {
+    _totalCasts.forEach((key, rawType) {
       if (!dehydrateData.containsKey(key) || dehydrateData[key] == null) return;
 
       final type = _normalizeType(rawType);
@@ -65,7 +105,7 @@ mixin HasCasts {
     final value = attributes[key];
     if (value == null) return null;
 
-    final rawType = casts[key];
+    final rawType = _totalCasts[key];
     final type = _normalizeType(rawType);
 
     switch (type) {
@@ -145,7 +185,7 @@ mixin HasCasts {
   /// - Bool -> integer (1/0) for broad SQL compatibility.
   /// - DateTime -> ISO-8601 string.
   void setAttribute(String key, dynamic value) {
-    final rawType = casts[key];
+    final rawType = _totalCasts[key];
     final type = _normalizeType(rawType);
 
     if (value == null) {
