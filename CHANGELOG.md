@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.22] - 2025-12-27
+
 ### Added
 - **Core:** Refactored `HasCasts` to automatically derive casting rules from the `columns` list (Schema), eliminating the need for a manual `casts` map in most cases.
 - **Documentation:** Updated "Type Casting" and "Model" guides to prioritize schema-driven casting and added examples for manual implementations.

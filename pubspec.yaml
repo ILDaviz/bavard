@@ -1,6 +1,6 @@
 name: bavard
 description: An Eloquent-inspired ORM for Flutter. Supports SQLite, PostgreSQL and PowerSync with fluent queries, relationships, soft deletes, timestamps, casts and more.
-version: 0.0.21
+version: 0.0.22
 homepage: https://ildaviz.github.io/bavard/
 repository: https://github.com/ILDaviz/bavard
 topics:
