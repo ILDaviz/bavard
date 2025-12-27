@@ -8,8 +8,8 @@ import '../query_builder.dart';
 mixin HasSoftDeletes on Model {
   bool get trashed => attributes['deleted_at'] != null;
 
-  DateTime? get deletedAt => attributes['delete_at'];
-  set deletedAt(DateTime value) => attributes['delete_at'] = value;
+  DateTime? get deletedAt => attributes['deleted_at'];
+  set deletedAt(DateTime? value) => attributes['deleted_at'] = value;
 
   @override
   void registerGlobalScopes(QueryBuilder<Model> builder) {
