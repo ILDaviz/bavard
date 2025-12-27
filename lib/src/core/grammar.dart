@@ -41,7 +41,8 @@ abstract class Grammar {
   /// Subclasses can override this to change the order or components.
   List<String> compileComponents(QueryBuilder query) {
     return [
-      'SELECT' + (query.distinctValue ? ' DISTINCT' : ''),
+      'SELECT',
+      if (query.distinctValue) 'DISTINCT',
       compileColumns(query, query.columns),
       'FROM',
       wrap(query.table),

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Core:** Added `distinct()` method to `QueryBuilder` to support `SELECT DISTINCT` queries.
+
+### Fixed
+- **Core:** Fixed `HasSoftDeletes` mixin to correctly handle `deletedAt` type compatibility (getter `DateTime?`, setter `DateTime?`) and corrected internal key typo (`delete_at` -> `deleted_at`).
+
 ## [0.0.20] - 2025-12-26
 
 ### Fixed
