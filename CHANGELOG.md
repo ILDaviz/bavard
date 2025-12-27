@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.23] - 2025-12-27
+
 ### Added
 - **Core:** Support for **Custom Attribute Casts** via the `AttributeCast<T, R>` interface.
 - **Core:** Added smart **Dirty Checking for Timestamps**. `updated_at` is now only updated if the model has other dirty attributes, preventing redundant queries.
