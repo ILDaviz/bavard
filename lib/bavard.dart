@@ -11,6 +11,7 @@ export 'src/generators/orm_cast_type.dart';
 export 'src/core/pivot.dart';
 export 'src/core/model.dart';
 export 'src/core/utils.dart';
+export 'src/core/attribute_cast.dart';
 export 'src/core/typed_query.dart';
 
 /// Custom exception types for error handling.

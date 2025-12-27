@@ -10,6 +10,34 @@ import 'package:bavard/schema.dart';
 // 1. ADAPTER & INFRASTRUCTURE
 // ==========================================
 
+class Address {
+  final String street;
+  final String city;
+
+  Address(this.street, this.city);
+
+  factory Address.fromJson(Map<String, dynamic> json) {
+    return Address(json['street'], json['city']);
+  }
+
+  Map<String, dynamic> toJson() => {'street': street, 'city': city};
+
+  @override
+  String toString() => '$street, $city';
+}
+
+class AddressCast implements AttributeCast<Address, String> {
+  @override
+  Address get(String rawValue, Map<String, dynamic> attributes) {
+    return Address.fromJson(jsonDecode(rawValue));
+  }
+
+  @override
+  String set(Address value, Map<String, dynamic> attributes) {
+    return jsonEncode(value.toJson());
+  }
+}
+
 class SqliteAdapter implements DatabaseAdapter {
   final Database _db;
 
@@ -150,6 +178,14 @@ class User extends Model with HasTimestamps {
       type: 'posts',
     );
   }
+
+  @override
+  Map<String, dynamic> get casts => {
+    'address': AddressCast(),
+  };
+
+  Address? get address => getAttribute<Address>('address');
+  set address(Address? value) => setAttribute('address', value);
 
   @override
   Relation? getRelation(String name) {
@@ -320,7 +356,7 @@ void main() async {
 
   // Create Schema
   db.execute('''
-    CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, created_at TEXT, updated_at TEXT);
+    CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, address TEXT, created_at TEXT, updated_at TEXT);
     CREATE TABLE profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, bio TEXT, website TEXT, created_at TEXT, updated_at TEXT);
     CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, title TEXT, content TEXT, views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT);
     CREATE TABLE comments (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, commentable_type TEXT, commentable_id INTEGER, body TEXT, created_at TEXT, updated_at TEXT);
@@ -766,6 +802,36 @@ void main() async {
 
     final min = await Post().query().min('views');
     if (min != 10) throw 'Min failed: Expected 10, got $min';
+  });
+
+  // TEST 16: Custom Attribute Cast (Address)
+  await runTest('Custom Attribute Cast (Address)', () async {
+    final user = User({
+      'name': 'Custom Cast User',
+      'email': 'cast@test.com',
+      'created_at': isoNow(),
+    });
+    
+    // Assign Address object
+    user.address = Address('123 Cast St', 'Cast City');
+    
+    await user.save();
+    
+    // Read back
+    final fetched = await User().query().find(user.id);
+    
+    if (fetched == null) throw 'User not found';
+    
+    final addr = fetched.address;
+    
+    if (addr == null) throw 'Address is null';
+    if (addr is! Address) throw 'Address is not of type Address';
+    if (addr.street != '123 Cast St') throw 'Address street mismatch';
+    if (addr.city != 'Cast City') throw 'Address city mismatch';
+
+    if (fetched.attributes['address'] is! String) {
+       throw 'Raw attribute should be String (JSON), got ${fetched.attributes['address'].runtimeType}';
+    }
   });
 
   print('\n🎉 --- ALL SYSTEMS GO: CORE IS STABLE --- 🎉');

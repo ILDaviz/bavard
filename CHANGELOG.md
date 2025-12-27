@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Core:** Added support for **Custom Attribute Casts**. Users can now define custom transformation logic by implementing the `AttributeCast<T, R>` interface and registering it in the `casts` map.
+
 ## [0.0.22] - 2025-12-27
 
 ### Added

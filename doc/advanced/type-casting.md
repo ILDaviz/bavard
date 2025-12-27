@@ -45,6 +45,82 @@ Map<String, String> get casts => {
 | `array` | `List` | JSON string <-> `List` |
 | `object` | `Map` | JSON string <-> `Map` |
 
+## Custom Attribute Casting
+
+For complex types not covered by the standard casts, you can define your own transformation logic by implementing the `AttributeCast<T, R>` interface.
+
+This allows you to seamlessly transform raw database values into custom Dart objects and vice versa.
+
+### Implementation
+
+1.  Create a class that implements `AttributeCast<T, R>`, where:
+    *   `T`: The runtime type (e.g., `Address`).
+    *   `R`: The raw database type (e.g., `String`).
+2.  Implement the `get` method to transform from the database value to the runtime value.
+3.  Implement the `set` method to transform from the runtime value to the database value.
+
+```dart
+import 'dart:convert';
+import 'package:bavard/bavard.dart';
+
+class Address {
+  final String street;
+  final String city;
+
+  Address(this.street, this.city);
+
+  factory Address.fromJson(Map<String, dynamic> json) {
+    return Address(json['street'], json['city']);
+  }
+
+  Map<String, dynamic> toJson() => {'street': street, 'city': city};
+}
+
+class AddressCast implements AttributeCast<Address, String> {
+  @override
+  Address get(String rawValue, Map<String, dynamic> attributes) {
+    return Address.fromJson(jsonDecode(rawValue));
+  }
+
+  @override
+  String set(Address value, Map<String, dynamic> attributes) {
+    return jsonEncode(value.toJson());
+  }
+}
+```
+
+### Usage
+
+Register your custom cast in the `casts` map of your model.
+
+```dart
+class User extends Model {
+  // ...
+
+  @override
+  Map<String, dynamic> get casts => {
+    'address': AddressCast(),
+  };
+  
+  // Typed accessor
+  Address? get address => getAttribute<Address>('address');
+  set address(Address? value) => setAttribute('address', value);
+}
+```
+
+Now you can work with `Address` objects directly:
+
+```dart
+final user = User();
+user.address = Address('123 Main St', 'New York');
+
+// Automatically serialized to JSON string for the DB
+await user.save(); 
+
+// Automatically deserialized back to Address object
+print(user.address?.city); // "New York"
+```
+
 ## Enum Casting
 
 Bavard provides a helper to cast attributes to Dart Enums.

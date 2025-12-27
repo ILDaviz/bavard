@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../schema/columns.dart';
+import '../attribute_cast.dart';
 
 /// Encapsulates type conversion logic for hydrating models from raw data.
 ///
@@ -14,21 +15,21 @@ mixin HasCasts {
   /// Configuration map defining how to cast specific attributes.
   ///
   /// Key: Attribute name.
-  /// Value: Type identifier (e.g., 'int', 'bool', 'json', 'datetime').
+  /// Value: Type identifier (e.g., 'int', 'bool', 'json', 'datetime') or [AttributeCast] instance.
   /// This acts as the schema definition for the model's dynamic data.
-  Map<String, String> get casts => {};
+  Map<String, dynamic> get casts => {};
 
   /// Defines the schema columns for the model.
   ///
   /// Used as a fallback to derive casting rules if [casts] is not explicitly defined.
   List<SchemaColumn> get columns => [];
 
-  Map<String, String>? _cachedCasts;
+  Map<String, dynamic>? _cachedCasts;
 
-  Map<String, String> get _totalCasts {
+  Map<String, dynamic> get _totalCasts {
     if (_cachedCasts != null) return _cachedCasts!;
 
-    final combined = <String, String>{};
+    final combined = <String, dynamic>{};
 
     for (final col in columns) {
       if (col is Column && col.name != null) {
@@ -44,8 +45,8 @@ mixin HasCasts {
 
   /// Strips modifiers (nullability `?`, `!`) and metadata (suffixes after `:`) to resolve the base type.
   /// Also maps schema types to internal cast types.
-  String? _normalizeType(String? value) {
-    if (value == null) return null;
+  String? _normalizeType(dynamic value) {
+    if (value is! String) return null;
     final raw = value.split(':').first.replaceAll('!', '').replaceAll('?', '');
 
     switch (raw) {
@@ -65,7 +66,10 @@ mixin HasCasts {
   void hydrateAttributes(Map<String, dynamic> rawData) {
     attributes.addAll(rawData);
     _totalCasts.forEach((key, rawType) {
-      if (!attributes.containsKey(key)) return; // Se nullo, lasciamo nullo
+      if (!attributes.containsKey(key)) return;
+
+      if (rawType is AttributeCast) return;
+
       setAttribute(key, attributes[key]);
     });
   }
@@ -99,13 +103,19 @@ mixin HasCasts {
   /// - Primitives: strict type checks with fallback to `tryParse`.
   /// - Boolean: lenient parsing (supports `true`, `1`, `'true'`, `'1'`).
   /// - JSON: automatically decodes String -> Map/List if type is 'json'/'array'.
+  /// - Custom Casts: delegates to [AttributeCast.get].
   ///
   /// Returns `null` if the key is missing or parsing fails.
   T? getAttribute<T>(String key) {
     final value = attributes[key];
+    final rawType = _totalCasts[key];
+
+    if (rawType is AttributeCast) {
+      return rawType.get(value, attributes) as T?;
+    }
+
     if (value == null) return null;
 
-    final rawType = _totalCasts[key];
     final type = _normalizeType(rawType);
 
     switch (type) {
@@ -180,12 +190,19 @@ mixin HasCasts {
   /// Writes data to [attributes], applying transformations for persistence.
   ///
   /// Key transformations:
+  /// - Custom Casts: delegates to [AttributeCast.set].
   /// - Enums -> name string.
   /// - Complex objects/collections -> JSON encoded string (tries `.toJson()` first).
   /// - Bool -> integer (1/0) for broad SQL compatibility.
   /// - DateTime -> ISO-8601 string.
   void setAttribute(String key, dynamic value) {
     final rawType = _totalCasts[key];
+
+    if (rawType is AttributeCast) {
+      attributes[key] = rawType.set(value, attributes);
+      return;
+    }
+
     final type = _normalizeType(rawType);
 
     if (value == null) {

@@ -62,7 +62,7 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
     buffer.writeln();
     buffer.writeln('  /// CASTS');
     buffer.writeln('  @override');
-    buffer.writeln('  Map<String, String> get casts => {');
+    buffer.writeln('  Map<String, dynamic> get casts => {');
     for (var col in columnsData) {
       buffer.writeln("    '${col.dbName}': '${col.castType}',");
     }
