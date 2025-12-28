@@ -116,9 +116,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // HAS ONE
-  // ===========================================================================
   group('HasOne Extended', () {
     test('returns null when no related model exists', () async {
       final emptyMock = MockDatabaseSpy([], {});
@@ -182,9 +179,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // HAS MANY
-  // ===========================================================================
   group('HasMany Extended', () {
     test('returns empty list when no children', () async {
       final emptyMock = MockDatabaseSpy([], {});
@@ -248,9 +242,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // BELONGS TO
-  // ===========================================================================
   group('BelongsTo Extended', () {
     test('returns null when foreign key is null', () async {
       final post = Post({'id': 1, 'user_id': null});

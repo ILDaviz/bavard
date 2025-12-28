@@ -47,8 +47,6 @@ void main() {
       ];
       await users.first.roles().match(users, 'roles');
 
-      // Quando non ci sono pivot entries, la relazione potrebbe non essere settata
-      // Usa l'accessor sicuro getRelationList
       final roles = users.first.getRelationList<Role>('roles');
       expect(roles, isEmpty);
     });

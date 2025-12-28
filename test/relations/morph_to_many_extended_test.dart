@@ -48,7 +48,6 @@ void main() {
       ];
       await posts.first.tags().match(posts, 'tags');
 
-      // Usa getRelationList per gestire il caso null
       final tags = posts.first.getRelationList<Tag>('tags');
       expect(tags, isEmpty);
     });
@@ -108,7 +107,6 @@ void main() {
       final post = Post({'id': 1});
       await post.tags().get();
 
-      // Should use 'taggables' (name + 's')
       expect(dbSpy.lastSql, contains('taggables'));
     });
   });
