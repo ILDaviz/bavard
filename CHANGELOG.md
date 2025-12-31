@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Refactor
+- **Core:** Implemented database-agnostic `watch()` functionality. The logic for tracking table changes and notifying listeners has been moved from individual adapters to the central `DatabaseManager`.
+- **Core:** `DatabaseManager` now handles notification buffering during transactions. Table changes are only emitted to `watch` streams after a transaction is successfully committed, preventing dirty reads.
+- **Adapters:** Simplified `DatabaseAdapter` interface by removing watch-specific methods, making it easier to implement new database drivers.
+
+### Added
+- **Testing:** Added comprehensive tests for `watch` behavior within transactions (commit/rollback scenarios) in `transaction_test.dart` and `watch_test.dart`.
+
 ## [0.0.23] - 2025-12-27
 
 ### Added
