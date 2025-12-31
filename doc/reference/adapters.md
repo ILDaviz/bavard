@@ -71,7 +71,7 @@ class SqliteAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
     _db.execute(sql, _sanitize(arguments ?? []));
     return _db.getUpdatedRows();
   }
@@ -84,11 +84,6 @@ class SqliteAdapter implements DatabaseAdapter {
 
     _db.execute(sql, _sanitize(values.values.toList()));
     return _db.lastInsertRowId;
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> watch(String sql, {List<dynamic>? parameters}) {
-    return Stream.fromFuture(getAll(sql, parameters));
   }
 
   @override
@@ -128,7 +123,7 @@ class _SqliteTransactionContext implements TransactionContext {
   }
 
   @override
-  Future<int> execute(String sql, [List? arguments]) async {
+  Future<int> execute(String table, String sql, [List? arguments]) async {
     _db.execute(sql, _sanitize(arguments ?? []));
     return _db.getUpdatedRows();
   }
@@ -222,10 +217,10 @@ class PowerSyncDatabaseAdapter with _PowerSyncExecutor implements DatabaseAdapte
   Grammar get grammar => SQLiteGrammar();
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
     return db.writeTransaction((tx) async {
       final context = _PowerSyncTransactionContext(tx);
-      return context.execute(sql, arguments);
+      return context.execute(table, sql, arguments);
     });
   }
 
@@ -235,16 +230,6 @@ class PowerSyncDatabaseAdapter with _PowerSyncExecutor implements DatabaseAdapte
       final context = _PowerSyncTransactionContext(tx);
       return context.insert(table, values);
     });
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> watch(
-    String sql, {
-      List<dynamic>? parameters,
-    }) {
-    return db.watch(sql, parameters: parameters ?? []).map(
-        (rows) => rows.map((r) => Map<String, dynamic>.from(r)).toList(),
-    );
   }
 
   @override
@@ -271,7 +256,7 @@ class _PowerSyncTransactionContext with _PowerSyncExecutor implements Transactio
     _txn.execute(sql, arguments ?? []);
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) =>
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) =>
     _executeInternal(sql, arguments);
 
   @override

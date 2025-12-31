@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:test/test.dart';
 import 'package:bavard/bavard.dart';
 import 'package:bavard/testing.dart';
@@ -94,7 +95,6 @@ void main() {
         return null;
       });
 
-      // Verify both inserts happened within transaction
       final insertCount = dbSpy.transactionHistory
           .where((s) => s.contains('INSERT'))
           .length;
@@ -106,7 +106,7 @@ void main() {
 
       try {
         await DatabaseManager().transaction((txn) async {
-          await txn.execute('INVALID SQL');
+          await txn.execute('users', 'INVALID SQL');
         });
         fail('Should have thrown');
       } catch (e) {
@@ -115,6 +115,82 @@ void main() {
         expect(txnError.wasRolledBack, isTrue);
         expect(txnError.originalError, isNotNull);
       }
+    });
+
+    test('Transaction commit updates UI correctly', () async {
+      final mockDb = MockDatabaseSpy();
+      DatabaseManager().setDatabase(mockDb);
+
+      mockDb.setMockData({
+        'FROM "users"': [{'id': 1, 'name': 'Old Name'}],
+      });
+
+      final stream = User().query().watch();
+
+      final expectation = expectLater(
+        stream,
+        emitsInOrder([
+          isA<List<User>>().having((l) => l.first.attributes['name'], 'initial', 'Old Name'),
+          isA<List<User>>().having((l) => l.first.attributes['name'], 'updated', 'New Name'),
+        ]),
+      );
+
+      await Future.delayed(Duration.zero);
+
+      await DatabaseManager().transaction((txn) async {
+        mockDb.setMockData({
+          'FROM "users"': [{'id': 1, 'name': 'New Name'}],
+        });
+        await txn.execute('users', 'UPDATE users SET name = "New Name"');
+        return true;
+      });
+
+      await expectation;
+    });
+
+    test('Transaction rollback does NOT update UI with temp data', () async {
+      final mockDb = MockDatabaseSpy();
+      DatabaseManager().setDatabase(mockDb);
+
+      mockDb.setMockData({
+        'FROM "users"': [{'id': 1, 'name': 'Old Name'}],
+      });
+
+      final stream = User().query().watch();
+      final history = <String>[];
+
+      final subscription = stream.listen((users) {
+        if (users.isNotEmpty) {
+          history.add(users.first.attributes['name']);
+        }
+      });
+
+      await Future.delayed(Duration.zero);
+
+      try {
+        await DatabaseManager().transaction((txn) async {
+          mockDb.setMockData({
+            'FROM "users"': [{'id': 1, 'name': 'Temporary Name'}],
+          });
+
+          await txn.execute('users', 'UPDATE users SET name = "Temporary Name"');
+
+          throw Exception('Rollback Trigger');
+        });
+      } catch (e) {
+        // Expected
+      }
+
+      mockDb.setMockData({
+        'FROM "users"': [{'id': 1, 'name': 'Old Name'}],
+      });
+
+      await Future.delayed(Duration.zero);
+      await subscription.cancel();
+
+      expect(history, isNot(contains('Temporary Name')),
+          reason: 'UI should never see uncommitted data');
+      expect(history.first, 'Old Name');
     });
   });
 }

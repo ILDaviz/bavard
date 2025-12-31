@@ -49,7 +49,7 @@ class SqliteAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
     _db.execute(sql, _sanitize(arguments ?? []));
     return _db.getUpdatedRows();
   }
@@ -62,14 +62,6 @@ class SqliteAdapter implements DatabaseAdapter {
 
     _db.execute(sql, _sanitize(values.values.toList()));
     return _db.lastInsertRowId;
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> watch(
-    String sql, {
-    List<dynamic>? parameters,
-  }) {
-    return Stream.fromFuture(getAll(sql, parameters));
   }
 
   @override
@@ -114,7 +106,7 @@ class _SqliteTransactionContext implements TransactionContext {
   }
 
   @override
-  Future<int> execute(String sql, [List? arguments]) async {
+  Future<int> execute(String table, String sql, [List? arguments]) async {
     _db.execute(sql, _sanitize(arguments ?? []));
     return _db.getUpdatedRows();
   }

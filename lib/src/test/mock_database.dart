@@ -91,7 +91,7 @@ class MockDatabaseSpy implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
     lastSql = sql;
     lastArgs = arguments;
     history.add(sql);
@@ -111,14 +111,6 @@ class MockDatabaseSpy implements DatabaseAdapter {
   /// Returns a static stream of [_defaultData].
   ///
   /// Does not simulate actual database updates or reactive stream behavior.
-  @override
-  Stream<List<Map<String, dynamic>>> watch(
-    String sql, {
-    List<dynamic>? parameters,
-  }) {
-    return Stream.value(_defaultData);
-  }
-
   @override
   Future<dynamic> insert(String table, Map<String, dynamic> values) async {
     // Manually reconstructs the SQL string to ensure the repository logic
@@ -199,8 +191,8 @@ class MockTransactionContext implements TransactionContext {
   }
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) {
-    return _db.execute(sql, arguments);
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) {
+    return _db.execute(table, sql, arguments);
   }
 
   @override

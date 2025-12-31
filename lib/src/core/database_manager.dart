@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'database_adapter.dart';
 import 'exceptions.dart';
 
@@ -12,6 +13,12 @@ class DatabaseManager {
 
   /// Tracks the current transaction context for nested operations.
   TransactionContext? _activeTransaction;
+
+  /// Broadcasts table names whenever a table is modified (insert, update, delete).
+  final _tableChangesController = StreamController<String>.broadcast();
+
+  /// Stream of table names that have been modified.
+  Stream<String> get tableChanges => _tableChangesController.stream;
 
   factory DatabaseManager() => _instance;
 
@@ -76,15 +83,21 @@ class DatabaseManager {
 
     try {
       return await db.transaction<T>((txn) async {
-        // Store the transaction context for Model operations
+        // This logic is proxy for get a modified tables to add to the stream.
+        final trackingTxn = _TrackingTransactionContext(txn);
+        
         final previousTransaction = _activeTransaction;
-        _activeTransaction = txn;
+        _activeTransaction = trackingTxn;
 
         try {
-          final result = await callback(txn);
+          final result = await callback(trackingTxn);
+          
+          for (final table in trackingTxn.modifiedTables) {
+            _tableChangesController.add(table);
+          }
+          
           return result;
         } finally {
-          // Restore the previous transaction context (for nested transactions)
           _activeTransaction = previousTransaction;
         }
       });
@@ -102,12 +115,15 @@ class DatabaseManager {
   /// Executes SQL using the active transaction if available, otherwise uses the main connection.
   ///
   /// Returns the number of rows affected (if supported by the adapter).
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
+    int result;
     if (_activeTransaction != null) {
-      return await _activeTransaction!.execute(sql, arguments);
+      result = await _activeTransaction!.execute(table, sql, arguments);
     } else {
-      return await db.execute(sql, arguments);
+      result = await db.execute(table, sql, arguments);
+      _tableChangesController.add(table);
     }
+    return result;
   }
 
   /// Fetches all results using the active transaction if available.
@@ -134,9 +150,49 @@ class DatabaseManager {
 
   /// Inserts a record using the active transaction if available.
   Future<dynamic> insert(String table, Map<String, dynamic> values) async {
+    dynamic result;
     if (_activeTransaction != null) {
-      return await _activeTransaction!.insert(table, values);
+      result = await _activeTransaction!.insert(table, values);
+    } else {
+      result = await db.insert(table, values);
+      _tableChangesController.add(table);
     }
-    return await db.insert(table, values);
+    return result;
+  }
+}
+
+/// A wrapper around [TransactionContext] that tracks which tables were modified.
+///
+/// This allows [DatabaseManager] to delay change notifications until the transaction
+/// is successfully committed, preventing "dirty reads" by watchers and ensuring
+/// UI consistency on rollback.
+class _TrackingTransactionContext implements TransactionContext {
+  final TransactionContext _inner;
+  final Set<String> modifiedTables = {};
+
+  _TrackingTransactionContext(this._inner);
+
+  @override
+  Future<int> execute(String table, String sql, [List? arguments]) async {
+    final result = await _inner.execute(table, sql, arguments);
+    modifiedTables.add(table);
+    return result;
+  }
+
+  @override
+  Future<Map<String, dynamic>> get(String sql, [List? arguments]) {
+    return _inner.get(sql, arguments);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAll(String sql, [List? arguments]) {
+    return _inner.getAll(sql, arguments);
+  }
+
+  @override
+  Future insert(String table, Map<String, dynamic> values) async {
+    final result = await _inner.insert(table, values);
+    modifiedTables.add(table);
+    return result;
   }
 }

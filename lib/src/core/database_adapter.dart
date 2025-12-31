@@ -17,26 +17,15 @@ abstract class DatabaseAdapter {
   ]);
 
   /// Executes non-selecting commands (UPDATE, DELETE) or schema changes (DDL).
-  Future<int> execute(String sql, [List<dynamic>? arguments]);
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]);
 
-  /// Convenience wrapper to fetch the first result of a query.
+  /// Fetches the first result of a query.
   Future<Map<String, dynamic>> get(String sql, [List<dynamic>? arguments]);
 
-  /// Inserts a record and returns the auto-generated primary key (if applicable).
+  /// Inserts a record and returns the ID (if applicable).
   Future<dynamic> insert(String table, Map<String, dynamic> values);
 
-  /// Exposes a reactive stream of query results.
-  ///
-  /// Critical for Flutter integration: implementations should emit a new event
-  /// whenever the data targeted by [sql] is modified, triggering UI rebuilds.
-  Stream<List<Map<String, dynamic>>> watch(
-    String sql, {
-    List<dynamic>? parameters,
-  });
-
-  // ---------------------------------------------------------------------------
-  // TRANSACTION SUPPORT
-  // ---------------------------------------------------------------------------
+  /// Helper getter for the SQL grammar (dialect).
 
   /// Executes a callback within a database transaction.
   ///
@@ -77,7 +66,7 @@ abstract class TransactionContext {
   ]);
 
   /// Executes non-selecting commands within the transaction.
-  Future<int> execute(String sql, [List<dynamic>? arguments]);
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]);
 
   /// Fetches the first result within the transaction.
   Future<Map<String, dynamic>> get(String sql, [List<dynamic>? arguments]);

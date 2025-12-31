@@ -36,16 +36,8 @@ class MockDatabaseAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
     return 1;
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> watch(
-    String sql, {
-    List<dynamic>? parameters,
-  }) {
-    return Stream.value(_mockData);
   }
 
   @override
@@ -84,8 +76,8 @@ class _MockTransactionContext implements TransactionContext {
   }
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) {
-    return _adapter.execute(sql, arguments);
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) {
+    return _adapter.execute(table, sql, arguments);
   }
 
   @override

@@ -1144,7 +1144,7 @@ class QueryBuilder<T extends Model> {
       ..._bindings,
     ]);
 
-    return await DatabaseManager().execute(sql, allBindings);
+    return await DatabaseManager().execute(table, sql, allBindings);
   }
 
   Future<int> delete() async {
@@ -1152,7 +1152,7 @@ class QueryBuilder<T extends Model> {
     final sql = _grammar.compileDelete(this);
     final bindings = _grammar.prepareBindings(_bindings);
 
-    return await DatabaseManager().execute(sql, bindings);
+    return await DatabaseManager().execute(table, sql, bindings);
   }
 
   /// Executes a raw INSERT into the database.
@@ -1174,18 +1174,34 @@ class QueryBuilder<T extends Model> {
 
   /// Returns a reactive stream that emits updated results when the table changes.
   ///
-  /// Leverages the underlying database adapter's change notifications (e.g., SQLite triggers).
   /// Essential for Flutter reactive UIs (StreamBuilder).
   Stream<List<T>> watch() {
     _applyScopes();
-    final db = DatabaseManager().db;
-    final sql = _compileSql();
-    final allBindings = _grammar.prepareBindings([
-      ..._bindings,
-      ..._havingBindings,
-    ]);
+    final manager = DatabaseManager();
+    final controller = StreamController<List<T>>();
 
-    return db.watch(sql, parameters: allBindings).asyncMap(_hydrate);
+    get().then((data) {
+      if (!controller.isClosed) controller.add(data);
+    }).catchError((e) {
+      if (!controller.isClosed) controller.addError(e);
+    });
+
+    // Listen for changes on this table
+    final subscription = manager.tableChanges.where((t) => t == table).listen((_) async {
+      try {
+        final data = await get();
+        if (!controller.isClosed) controller.add(data);
+      } catch (e) {
+        if (!controller.isClosed) controller.addError(e);
+      }
+    });
+
+    controller.onCancel = () {
+      subscription.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
   }
 
   /// Helper for aggregate queries (Count, Sum, etc).

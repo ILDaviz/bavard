@@ -582,5 +582,36 @@ Future<void> runIntegrationTests() async {
     }
   });
 
+  // TEST 22: Watch logic
+  await runTest('Reactivity (Watch)', () async {
+    final stream = User().query().watch();
+    final completer = Completer<List<User>>();
+    
+    int emissionCount = 0;
+    final subscription = stream.listen((users) {
+      emissionCount++;
+      final hasMarker = users.any((u) => u.attributes['name'] == 'Watcher');
+      if (hasMarker) {
+        if (!completer.isCompleted) completer.complete(users);
+      }
+    });
+
+    await Future.delayed(Duration(milliseconds: 50));
+
+    await User({
+      'name': 'Watcher',
+      'email': 'watch@test.com',
+      'created_at': isoNow(),
+    }).save();
+
+    try {
+      await completer.future.timeout(Duration(seconds: 2));
+    } catch (e) {
+      throw 'Watch stream did not emit updated data within timeout. Emissions: $emissionCount';
+    } finally {
+      await subscription.cancel();
+    }
+  });
+
   print('\n🎉 --- ALL SYSTEMS GO: CORE IS STABLE --- 🎉');
 }

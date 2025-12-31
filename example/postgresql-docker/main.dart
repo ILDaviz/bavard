@@ -71,7 +71,7 @@ class PostgresAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
     final transformedSql = _transformSql(sql);
     final result = await _conn.execute(
       Sql(transformedSql),
@@ -99,16 +99,6 @@ class PostgresAdapter implements DatabaseAdapter {
       return result.first.toColumnMap()['id'];
     }
     return null;
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> watch(
-      String sql,
-      {
-        List<dynamic>? parameters,
-      }) {
-    // Polling fallback or similar, for now just simple fetch
-    return Stream.fromFuture(getAll(sql, parameters));
   }
 
   @override
@@ -152,7 +142,7 @@ class _PostgresTransactionContext implements TransactionContext {
   }
 
   @override
-  Future<int> execute(String sql, [List? arguments]) async {
+  Future<int> execute(String table, String sql, [List? arguments]) async {
     final result = await _session.execute(
       Sql(_transformer(sql)),
       parameters: _preparer(arguments ?? []),

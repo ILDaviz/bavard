@@ -13,53 +13,15 @@ class WatchUser extends Model {
   WatchUser fromMap(Map<String, dynamic> map) => WatchUser(map);
 }
 
-class StreamingMockDatabase extends MockDatabaseSpy {
-  final StreamController<List<Map<String, dynamic>>> _controller =
-      StreamController.broadcast();
-
-  StreamingMockDatabase() : super();
-
-  void emit(List<Map<String, dynamic>> data) {
-    _controller.add(data);
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> watch(
-    String sql, {
-    List<dynamic>? parameters,
-  }) {
-    lastSql = sql;
-    lastArgs = parameters;
-    return _controller.stream;
-  }
-
-  void dispose() {
-    _controller.close();
-  }
-}
-
 void main() {
   group('Watch/Stream Tests', () {
-    test('watch() returns stream of typed models', () async {
-      final mockDb = MockDatabaseSpy([
-        {'id': 1, 'name': 'David'},
-        {'id': 2, 'name': 'Romolo'},
-      ]);
-      DatabaseManager().setDatabase(mockDb);
-
-      final stream = WatchUser().query().watch();
-
-      expect(stream, isA<Stream<List<WatchUser>>>());
-    });
-
     test('watch() applies where clauses', () async {
       final mockDb = MockDatabaseSpy([]);
       DatabaseManager().setDatabase(mockDb);
 
       final query = WatchUser().query().where('active', 1);
-      final sql = query.toSql();
 
-      expect(sql, contains('WHERE "active" = ?'));
+      expect(query.toSql(), contains('WHERE "active" = ?'));
     });
 
     test('watch() hydrates models correctly', () async {
@@ -76,65 +38,93 @@ void main() {
       expect(users.first.exists, isTrue);
     });
 
-    test('watch() stream emits on data change', () async {
-      final streamingDb = StreamingMockDatabase();
-      DatabaseManager().setDatabase(streamingDb);
+    test('watch() returns stream of typed models and emits initial data', () async {
+      final mockDb = MockDatabaseSpy([
+        {'id': 1, 'name': 'David'},
+      ]);
+      DatabaseManager().setDatabase(mockDb);
 
       final stream = WatchUser().query().watch();
-      final results = <List<WatchUser>>[];
 
-      final subscription = stream.listen((users) {
-        results.add(users);
+      expect(stream, isA<Stream<List<WatchUser>>>());
+
+      final users = await stream.first;
+      expect(users.length, 1);
+      expect(users.first.attributes['name'], 'David');
+    });
+
+    test('watch() stream emits new data when table changes', () async {
+      final mockDb = MockDatabaseSpy();
+      DatabaseManager().setDatabase(mockDb);
+
+      mockDb.setMockData({
+        'FROM "users"': [{'id': 1, 'name': 'David'}],
       });
 
-      // Emit first batch
-      streamingDb.emit([
-        {'id': 1, 'name': 'David'},
-      ]);
+      final stream = WatchUser().query().watch();
+
+      final expectation = expectLater(
+        stream,
+        emitsInOrder([
+          isA<List<WatchUser>>().having((l) => l.length, 'initial length', 1),
+          isA<List<WatchUser>>()
+              .having((l) => l.length, 'updated length', 2)
+              .having((l) => l.last.attributes['name'], 'last name', 'Romolo'),
+        ]),
+      );
+
+      await Future.delayed(Duration.zero);
+
+      mockDb.setMockData({
+        'FROM "users"': [
+          {'id': 1, 'name': 'David'},
+          {'id': 2, 'name': 'Romolo'},
+        ],
+      });
+
+      await DatabaseManager().execute('users', 'UPDATE users SET name = "changed"');
+
+      await expectation;
+    });
+
+    test('watch() does not emit for other tables', () async {
+      final mockDb = MockDatabaseSpy();
+      DatabaseManager().setDatabase(mockDb);
+
+      mockDb.setMockData({
+        'FROM "users"': [{'id': 1, 'name': 'David'}],
+      });
+
+      final stream = WatchUser().query().watch();
+      int emitCount = 0;
+      stream.listen((_) => emitCount++);
 
       await Future.delayed(const Duration(milliseconds: 50));
+      expect(emitCount, 1);
 
-      // Emit second batch
-      streamingDb.emit([
-        {'id': 1, 'name': 'David'},
-        {'id': 2, 'name': 'Romolo'},
-      ]);
+      await DatabaseManager().execute('other_table', 'UPDATE other_table SET x = 1');
 
       await Future.delayed(const Duration(milliseconds: 50));
-
-      expect(results.length, 2);
-      expect(results[0].length, 1);
-      expect(results[1].length, 2);
-
-      await subscription.cancel();
-      streamingDb.dispose();
+      expect(emitCount, 1, reason: 'Should not emit for other table changes');
     });
 
     test('watch() can be cancelled', () async {
-      final streamingDb = StreamingMockDatabase();
-      DatabaseManager().setDatabase(streamingDb);
+      final mockDb = MockDatabaseSpy();
+      DatabaseManager().setDatabase(mockDb);
 
       final stream = WatchUser().query().watch();
-      var emitCount = 0;
+      int emitCount = 0;
+      final subscription = stream.listen((_) => emitCount++);
 
-      final subscription = stream.listen((_) {
-        emitCount++;
-      });
-
-      streamingDb.emit([
-        {'id': 1},
-      ]);
-      await Future.delayed(const Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 50));
+      expect(emitCount, 1);
 
       await subscription.cancel();
 
-      streamingDb.emit([
-        {'id': 2},
-      ]); // Should not be received
-      await Future.delayed(const Duration(milliseconds: 10));
+      await DatabaseManager().execute('users', 'DELETE FROM users');
 
+      await Future.delayed(const Duration(milliseconds: 50));
       expect(emitCount, 1);
-      streamingDb.dispose();
     });
   });
 }
