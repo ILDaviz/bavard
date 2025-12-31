@@ -97,6 +97,37 @@ StreamBuilder<List<User>>(
 
 ---
 
+## 🔗 Relationships
+
+Defining relationships is easy, but requires overriding `getRelation` for proper dispatching.
+
+```dart
+class User extends Model {
+  // ... (table, columns, etc.)
+
+  // Define the relationship
+  HasMany<Post> posts() => hasMany(Post.new);
+
+  // REGISTER the relationship (Mandatory!)
+  @override
+  Relation? getRelation(String name) {
+    if (name == 'posts') return posts();
+    return super.getRelation(name);
+  }
+}
+
+// Usage
+final user = await User().query().find(1);
+
+// Lazy Load
+final posts = await user.posts().get();
+
+// Eager Load (Avoid N+1)
+final usersWithPosts = await User().query().withRelations(['posts']).get();
+```
+
+---
+
 ## 🧪 Examples & Integration
 
 To see Bavard in action with a real database environment, check the integration suite:
