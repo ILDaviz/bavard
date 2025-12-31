@@ -35,6 +35,24 @@ For detailed guides, API references, and usage examples, please visit our docume
 
 ## 🏁 Quick Start
 
+### 0. Initialize Database
+
+Bavard is driver-agnostic. You just need to provide an implementation of `DatabaseAdapter` (see [Adapters documentation](https://ildaviz.github.io/bavard/reference/adapters.html) for reference implementations).
+
+```dart
+import 'package:bavard/bavard.dart';
+import 'your_project/my_database_adapter.dart'; // Your custom implementation
+
+void main() async {
+  // Initialize your custom adapter (SQLite, Postgres, PowerSync, etc.)
+  final adapter = MyDatabaseAdapter();
+  await adapter.connect();
+  
+  // Register it as the default connection
+  DatabaseManager().setDatabase(adapter);
+}
+```
+
 ### 1. Define a Model
 
 Bavard models use a schema-first approach. For the best experience, use code generation to get full type safety.
