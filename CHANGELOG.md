@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.24] - 2025-12-31
+
 ### Refactor
 - **Core:** Implemented database-agnostic `watch()` functionality. The logic for tracking table changes and notifying listeners has been moved from individual adapters to the central `DatabaseManager`.
 - **Core:** `DatabaseManager` now handles notification buffering during transactions. Table changes are only emitted to `watch` streams after a transaction is successfully committed, preventing dirty reads.
