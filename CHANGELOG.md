@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation
+- **Reference:** Updated "Database Adapters" guide to reflect the new simplified `DatabaseAdapter` interface and explained that `watch` logic is now handled by the core.
+- **Readme:** Enhanced the project README with a comprehensive "Quick Start" guide, database initialization steps, and a dedicated "Relationships" section.
+
 ## [0.0.24] - 2025-12-31
 
 ### Refactor
