@@ -33,6 +33,70 @@ For detailed guides, API references, and usage examples, please visit our docume
 
 ---
 
+## 🏁 Quick Start
+
+### 1. Define a Model
+
+Bavard models use a schema-first approach. For the best experience, use code generation to get full type safety.
+
+```dart
+import 'package:bavard/bavard.dart';
+
+part 'user.fillable.g.dart';
+
+@fillable
+class User extends Model with $UserFillable {
+  @override
+  String get table => 'users';
+
+  // Define schema for query safety and automatic casting
+  static const schema = (
+    id: IdColumn(),
+    name: TextColumn('name'),
+    email: TextColumn('email'),
+    isActive: BoolColumn('is_active'),
+  );
+
+  User([super.attributes]);
+  
+  @override
+  User fromMap(Map<String, dynamic> map) => User(map);
+}
+```
+
+### 2. Use it!
+
+Enjoy a fluent, expressive, and type-safe API.
+
+```dart
+// Create
+final user = User();
+user.name = 'Mario'; // Typed setter
+user.isActive = true;
+await user.save();
+
+// Read (Type-Safe)
+final users = await User().query()
+    .where(User.schema.isActive, true) // Uses generated schema
+    .orderBy(User.schema.name)
+    .get();
+
+// Update (with Dirty Checking)
+final mario = await User().query().find(1);
+mario.name = 'Super Mario';
+await mario.save(); // Only updates the 'name' column
+
+// Reactive Streams (Flutter friendly)
+StreamBuilder<List<User>>(
+  stream: User().query().watch(), // Auto-updates on DB changes
+  builder: (context, snapshot) {
+    // ...
+  },
+);
+```
+
+---
+
 ## 🧪 Examples & Integration
 
 To see Bavard in action with a real database environment, check the integration suite:
