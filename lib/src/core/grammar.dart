@@ -99,7 +99,7 @@ abstract class Grammar {
   }
 
   List<String> compileJoins(QueryBuilder query, List<String> joins) {
-    return joins; // Joins are currently stored as raw strings in QueryBuilder
+    return joins;
   }
 
   String compileWheres(QueryBuilder query) {
@@ -113,7 +113,6 @@ abstract class Grammar {
         })
         .join(' ');
 
-    // Remove the leading logic operator (AND/OR)
     return 'WHERE ' + sql.replaceFirst(RegExp(r'^(AND|OR)\s+'), '');
   }
 

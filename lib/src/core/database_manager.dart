@@ -83,7 +83,6 @@ class DatabaseManager {
 
     try {
       return await db.transaction<T>((txn) async {
-        // This logic is proxy for get a modified tables to add to the stream.
         final trackingTxn = _TrackingTransactionContext(txn);
         
         final previousTransaction = _activeTransaction;

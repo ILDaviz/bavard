@@ -48,7 +48,6 @@ class QueryBuilder<T extends Model> {
   /// Helper to access the current database grammar.
   Grammar get _grammar => DatabaseManager().db.grammar;
 
-  // Public getters for Grammar access
   List<Map<String, dynamic>> get wheres => _wheres;
   List<dynamic> get columns => _columns;
   List<String> get joins => _joins;
@@ -289,7 +288,6 @@ class QueryBuilder<T extends Model> {
     }
 
     String sqlString;
-    // We use _grammar.wrap for columns and _grammar.parameter for values
 
     if (finalOp == 'IN' || finalOp == 'NOT IN') {
       if (targetValue is! List) {
@@ -378,7 +376,6 @@ class QueryBuilder<T extends Model> {
     final nestedClause = _grammar.compileWheres(nestedBuilder);
 
     if (nestedClause.isNotEmpty) {
-      // Remove 'WHERE ' from the compiled string
       final sqlInside = nestedClause.substring(6);
 
       _wheres.add({'type': boolean, 'sql': '($sqlInside)'});
@@ -625,7 +622,7 @@ class QueryBuilder<T extends Model> {
     for (final column in columns) {
       final targetColumn = _resolveColumnName(column);
       _assertIdent(targetColumn, dotted: true, what: 'groupBy column');
-      _groupBy.add(targetColumn); // Grammar wraps these in compileGroups
+      _groupBy.add(targetColumn);
     }
     return this;
   }
@@ -863,7 +860,6 @@ class QueryBuilder<T extends Model> {
   Future<T> findOrFail(dynamic id) async {
     final result = await find(id);
     if (result == null) {
-      // Use the table name as a proxy for model name
       throw ModelNotFoundException(model: table, id: id);
     }
     return result;
@@ -1122,7 +1118,6 @@ class QueryBuilder<T extends Model> {
       }
     });
 
-    // Eager load related models parallel
     await Future.wait(
       uniqueRoots.map((relationName) async {
         final relation = models.first.getRelation(relationName);
@@ -1244,7 +1239,6 @@ class QueryBuilder<T extends Model> {
       if (!controller.isClosed) controller.addError(e);
     });
 
-    // Listen for changes on this table
     final subscription = manager.tableChanges.where((t) => t == table).listen((_) async {
       try {
         final data = await get();
