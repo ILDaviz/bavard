@@ -1285,7 +1285,6 @@ class QueryBuilder<T extends Model> {
       batchQuery.limit(batchSize);
       batchQuery.offset(currentOffset);
 
-      // Execute the query for the current batch
       final batch = await batchQuery.get();
 
       if (batch.isEmpty) {
@@ -1296,7 +1295,6 @@ class QueryBuilder<T extends Model> {
         yield model;
       }
 
-      // Optimization: If we fetched fewer items than requested, we've reached the end.
       if (batch.length < batchSize) {
         break;
       }
