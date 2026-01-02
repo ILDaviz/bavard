@@ -165,10 +165,8 @@ void main() {
         'created_at': existingDate.toIso8601String(),
       });
 
-      // Verifica che created_at sia preservato dopo onSaving
       await user.onSaving();
 
-      // created_at dovrebbe essere quello originale, non uno nuovo
       final createdAtValue = user.attributes['created_at'];
       expect(createdAtValue, existingDate.toIso8601String());
     });
@@ -178,7 +176,6 @@ void main() {
 
       await user.onSaving();
 
-      // updated_at should be set to current time
       expect(user.attributes.containsKey('updated_at'), isTrue);
       expect(user.attributes['updated_at'], isNotNull);
     });
@@ -188,7 +185,6 @@ void main() {
 
       await user.onSaving();
 
-      // Con timestamps disabilitato, non dovrebbero essere aggiunti
       expect(user.attributes.containsKey('created_at'), isFalse);
       expect(user.attributes.containsKey('updated_at'), isFalse);
     });
@@ -198,7 +194,6 @@ void main() {
 
       await user.onSaving();
 
-      // Dovrebbe usare i nomi custom
       expect(user.attributes.containsKey('date_created'), isTrue);
       expect(user.attributes.containsKey('date_modified'), isTrue);
       expect(user.attributes.containsKey('created_at'), isFalse);
@@ -221,7 +216,6 @@ void main() {
       user.attributes['name'] = 'Updated';
       await user.onSaving();
 
-      // updated_at dovrebbe essere più recente
       final updatedAt = user.attributes['updated_at'];
       expect(updatedAt, isNot(equals(originalDate.toIso8601String())));
     });

@@ -60,7 +60,7 @@ void main() {
             'tag_id': 11,
             'taggable_id': 1,
             'taggable_type': 'videos',
-          }, // Different type
+          },
         ],
         'FROM tags': [
           {'id': 10, 'name': 'Flutter'},
@@ -76,7 +76,6 @@ void main() {
 
       final tags = posts.first.relations['tags'] as List;
 
-      // Should only include tags for 'posts' type
       expect(tags.length, 1);
       expect((tags.first as Tag).attributes['name'], 'Flutter');
     });

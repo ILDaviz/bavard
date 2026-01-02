@@ -148,7 +148,6 @@ void main() {
       final mockDb = MockDatabaseSpy([], {
         'FROM profiles': [
           {'id': 100, 'user_id': 1, 'bio': 'Bio 1'},
-          // No profile for user 2
         ],
       });
       DatabaseManager().setDatabase(mockDb);

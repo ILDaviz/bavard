@@ -59,7 +59,6 @@ class ModifyingHookUser extends Model {
 
   @override
   Future<bool> onSaving() async {
-    // Modify attributes before save
     attributes['modified_by_hook'] = true;
     attributes['slug'] = (attributes['name'] as String?)
         ?.toLowerCase()

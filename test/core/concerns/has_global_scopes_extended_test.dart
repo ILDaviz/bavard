@@ -64,12 +64,9 @@ void main() {
     test('multiple scopes applied in order', () async {
       await MultiScopeUser().query().get();
 
-      // All three scopes should be applied
       expect(dbSpy.lastSql, contains('"tenant_id" = ?'));
       expect(dbSpy.lastSql, contains('"is_active" = ?'));
       expect(dbSpy.lastSql, contains('"age" >= ?'));
-
-      // Bindings should be in order
       expect(dbSpy.lastArgs, equals([42, 1, 18]));
     });
 
@@ -82,26 +79,21 @@ void main() {
     test('withoutGlobalScopes() with no scopes defined', () async {
       await NoScopeUser().withoutGlobalScopes().get();
 
-      // Should work without error, no scopes applied
       expect(dbSpy.lastSql, isNot(contains('tenant_id')));
       expect(dbSpy.lastSql, isNot(contains('is_active')));
     });
 
     test('withoutGlobalScope<T>() with non-existent scope type', () async {
-      // Trying to exclude a scope that doesn't exist
       await NoScopeUser().withoutGlobalScope<TenantScope>().get();
 
-      // Should work without error
       expect(dbSpy.history, isNotEmpty);
     });
 
     test('withoutGlobalScope<T>() excludes only specific scope', () async {
       await MultiScopeUser().withoutGlobalScope<TenantScope>().get();
 
-      // TenantScope should be excluded
       expect(dbSpy.lastSql, isNot(contains('tenant_id')));
 
-      // Other scopes should still be applied
       expect(dbSpy.lastSql, contains('"is_active" = ?'));
       expect(dbSpy.lastSql, contains('"age" >= ?'));
     });
@@ -117,7 +109,6 @@ void main() {
     test('scopes combined with additional where clauses', () async {
       await MultiScopeUser().query().where('name', 'David').get();
 
-      // Scopes + manual where
       expect(dbSpy.lastSql, contains('"tenant_id" = ?'));
       expect(dbSpy.lastSql, contains('"name" = ?'));
     });

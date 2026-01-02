@@ -55,7 +55,7 @@ void main() {
       final mockDb = MockDatabaseSpy([], {
         'FROM role_user': [
           {'user_id': 1, 'role_id': 10},
-          {'user_id': 1, 'role_id': 10}, // Duplicate
+          {'user_id': 1, 'role_id': 10},
           {'user_id': 1, 'role_id': 11},
         ],
         'FROM roles': [
@@ -70,7 +70,6 @@ void main() {
       ];
       await users.first.roles().match(users, 'roles');
 
-      // Should have 3 entries (including duplicate)
       final roles = users.first.relations['roles'] as List;
       expect(roles.length, 3);
     });

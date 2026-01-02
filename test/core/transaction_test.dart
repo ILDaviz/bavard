@@ -178,7 +178,6 @@ void main() {
           throw Exception('Rollback Trigger');
         });
       } catch (e) {
-        // Expected
       }
 
       mockDb.setMockData({

@@ -45,7 +45,6 @@ void main() {
     test('query() preserves model query overrides', () async {
       await TypedUser().query().get();
 
-      // SoftDeletes should add WHERE deleted_at IS NULL
       expect(dbSpy.lastSql, contains('"deleted_at" IS NULL'));
     });
 

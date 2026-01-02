@@ -32,8 +32,6 @@ class TotallyGuardedUser extends Model {
   @override
   String get table => 'users';
 
-  // Default: guarded => ['*']
-
   TotallyGuardedUser([super.attributes]);
 
   @override
@@ -49,7 +47,7 @@ class MixedUser extends Model {
   List<String> get fillable => ['name', 'email'];
 
   @override
-  List<String> get guarded => ['is_admin']; // Should be ignored when fillable is set
+  List<String> get guarded => ['is_admin'];
 
   MixedUser([super.attributes]);
 
@@ -124,13 +122,12 @@ void main() {
       user.fill({
         'name': 'David',
         'email': 'david@test.com',
-        'is_admin': true, // In guarded, but fillable takes precedence
-        'other': 'value', // Not in fillable
+        'is_admin': true,
+        'other': 'value',
       });
 
       expect(user.attributes['name'], 'David');
       expect(user.attributes['email'], 'david@test.com');
-      // fillable whitelist means only those keys are allowed
       expect(user.attributes.containsKey('is_admin'), isFalse);
       expect(user.attributes.containsKey('other'), isFalse);
     });
@@ -195,7 +192,7 @@ void main() {
       user.fill({
         'name': 'David',
         'bio': 'Developer',
-        'nested': {'key': 'value'}, // Not in fillable
+        'nested': {'key': 'value'},
       });
 
       expect(user.attributes['name'], 'David');

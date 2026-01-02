@@ -53,7 +53,7 @@ void main() {
       'roles', 
       TestUser.schema.roleId, 
       '=', 
-      'roles.id', // String still works
+      'roles.id',
     ).get();
 
     expect(dbSpy.lastSql, contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'));
@@ -73,7 +73,7 @@ void main() {
     await TestUser().query().select([
       TestUser.schema.id,
       TestUser.schema.name,
-      'email', // String still works
+      'email',
     ]).get();
 
     expect(

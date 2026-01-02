@@ -194,11 +194,8 @@ void main() {
       expect(sql, contains('ORDER BY "total_spent" DESC'));
       expect(sql, contains('LIMIT 10'));
 
-      // Verify WHERE comes before GROUP BY
       expect(sql.indexOf('WHERE'), lessThan(sql.indexOf('GROUP BY')));
-      // Verify GROUP BY comes before HAVING
       expect(sql.indexOf('GROUP BY'), lessThan(sql.indexOf('HAVING')));
-      // Verify HAVING comes before ORDER BY
       expect(sql.indexOf('HAVING'), lessThan(sql.indexOf('ORDER BY')));
     });
 

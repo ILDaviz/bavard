@@ -79,10 +79,7 @@ void main() {
     });
     
     test('Mixed usage: casts overrides schema', () {
-      // Define a model that has both but overrides one
       final hybrid = HybridUser({'age': '25'});
-      // Schema says Int, Casts says String (hypothetically, though illogical)
-      // Or Schema says Int, Casts says Double
       expect(hybrid.getAttribute<double>('age'), 25.0);
     });
   });

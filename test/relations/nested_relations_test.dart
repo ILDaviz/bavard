@@ -87,11 +87,9 @@ void main() {
 
       final user = users.first;
 
-      // Verify posts loaded
       expect(user.postsList, isNotEmpty);
       expect(user.postsList.first.id, 100);
 
-      // Verify nested comments loaded on the post
       final post = user.postsList.first;
       expect(post.commentsList, isNotEmpty);
       expect(post.commentsList, hasLength(2));
@@ -139,7 +137,7 @@ void main() {
 
         final users = await User()
             .query()
-            .withRelations(['posts.comments']) // 'posts' is implicit
+            .withRelations(['posts.comments'])
             .get();
 
         final user = users.first;
@@ -229,7 +227,7 @@ void main() {
       'FROM "users"': [
         {'id': 1, 'name': 'User No Posts'},
       ],
-      'FROM "posts"': [], // Missing posts
+      'FROM "posts"': [],
     });
     DatabaseManager().setDatabase(mockDb);
 
@@ -244,7 +242,6 @@ void main() {
       'FROM "comments"': [
         {'id': 1, 'content': 'Orphan', 'post_id': null},
       ],
-      // Posts is null
     });
     DatabaseManager().setDatabase(mockDb);
 

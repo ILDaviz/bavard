@@ -97,10 +97,8 @@ void main() {
       try {
         await user.save();
       } catch (e) {
-        // Ignore errors.
       }
 
-      // Model is still dirty.
       expect(user.attributes['name'], isNot(equals(user.original['name'])));
 
       final workingDb = MockDatabaseSpy([], {

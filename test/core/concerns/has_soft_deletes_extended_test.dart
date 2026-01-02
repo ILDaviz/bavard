@@ -60,10 +60,7 @@ void main() {
 
     test('delete() on new model (exists=false, no id) does nothing', () async {
       final user = SoftUser({'name': 'David'});
-      // id is null, exists is false
-
       await user.delete();
-
       expect(dbSpy.history, isEmpty);
     });
 
@@ -99,7 +96,6 @@ void main() {
 
       await user.restore();
 
-      // Should still attempt to save (no-op due to no dirty fields)
       expect(user.trashed, isFalse);
     });
 

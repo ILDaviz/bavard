@@ -7,7 +7,6 @@ class MockDatabaseAdapter implements DatabaseAdapter {
 
   MockDatabaseAdapter(this._mockData);
 
-  // Default grammar
   final Grammar _grammar = SQLiteGrammar();
 
   @override

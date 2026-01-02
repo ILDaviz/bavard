@@ -84,8 +84,6 @@ void main() {
       expect(model.attributes['address'], isA<String>());
       expect(model.attributes['address'], contains('456 Market St'));
       expect(model.attributes['address'], contains('San Francisco'));
-      
-      // Verify we can get it back
       expect(model.address, equals(address));
     });
 

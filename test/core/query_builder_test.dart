@@ -334,7 +334,6 @@ void main() {
     expect(results[1].getAttribute('name'), 'User 2');
     expect(results[2].getAttribute('name'), 'User 3');
 
-    // test Cast! Verify generated SQLs WHERE clauses were preserved
     expect(dbSpy.lastSql, contains('WHERE "active" = ?'));
   });
 
@@ -368,7 +367,6 @@ void main() {
      final query1 = TestUser().query().where('id', 1);
     final query2 = TestUser().query().where('id', 2);
 
-    // Mock response for aggregate
     dbSpy.setMockData({
       'SELECT COUNT(*) as aggregate': [{'aggregate': 10}],
     });
