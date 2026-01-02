@@ -40,14 +40,6 @@ class PostgresGrammar extends Grammar {
 
   @override
   String parameter(dynamic value) {
-    // Note: Parameter binding for Postgres ($1, $2...) is typically handled
-    // by the driver (e.g. 'postgres' package) or needs stateful compilation.
-    // For this implementation, we rely on the driver transforming ? or @
-    // or we return '?' and let the adapter handle substitution if needed.
-    // Standard SQL uses '?' or named parameters.
-    // If strict $1 is needed during string generation, this method would
-    // need a counter. For now, we assume the underlying driver or a
-    // post-processing step handles ? -> $i conversion if the driver doesn't support ?.
     return '?';
   }
 
