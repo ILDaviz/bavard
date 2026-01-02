@@ -50,10 +50,22 @@ abstract class Grammar {
       compileWheres(query),
       compileGroups(query, query.groups),
       compileHavings(query),
+      compileUnions(query),
       compileOrders(query, query.orders),
       compileLimit(query, query.limitValue),
       compileOffset(query, query.offsetValue),
     ];
+  }
+
+  String compileUnions(QueryBuilder query) {
+    if (query.unions.isEmpty) return '';
+
+    return query.unions.map((union) {
+      final type = union['type'];
+      final childQuery = union['query'] as QueryBuilder;
+      final sql = childQuery.toSql();
+      return '$type $sql';
+    }).join(' ');
   }
 
   String compileColumns(QueryBuilder query, List<dynamic> columns) {

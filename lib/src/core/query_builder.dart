@@ -25,6 +25,7 @@ class QueryBuilder<T extends Model> {
   final List<String> _groupBy = [];
   final List<Map<String, dynamic>> _havings = [];
   final List<dynamic> _havingBindings = [];
+  final List<Map<String, dynamic>> _unions = [];
   bool _distinct = false;
 
   final Map<String, ScopeCallback> _globalScopes = {};
@@ -51,6 +52,7 @@ class QueryBuilder<T extends Model> {
   List<String> get joins => _joins;
   List<String> get groups => _groupBy;
   List<Map<String, dynamic>> get havings => _havings;
+  List<Map<String, dynamic>> get unions => _unions;
   bool get distinctValue => _distinct;
   String? get orders => _orderBy;
   int? get limitValue => _limit;
@@ -170,10 +172,7 @@ class QueryBuilder<T extends Model> {
 
   String toRawSql() {
     String sql = _compileSql();
-    final allBindings = _grammar.prepareBindings([
-      ..._bindings,
-      ..._havingBindings,
-    ]);
+    final allBindings = _grammar.prepareBindings(_getAllBindings());
 
     int index = 0;
     return sql.replaceAllMapped('?', (match) {
@@ -199,7 +198,7 @@ class QueryBuilder<T extends Model> {
 
   QueryBuilder<T> printQueryAndBindings() {
     print('\x1B[34m[QUERY]\x1B[0m ${_compileSql()}');
-    print('\x1B[33m[BINDINGS]\x1B[0m ${[..._bindings, ..._havingBindings]}');
+    print('\x1B[33m[BINDINGS]\x1B[0m ${_getAllBindings()}');
     return this;
   }
 
@@ -787,13 +786,10 @@ class QueryBuilder<T extends Model> {
     final targetColumn =
         column == '*' ? '*' : _grammar.wrap(_resolveColumnName(column));
 
-    if (_groupBy.isNotEmpty || _havings.isNotEmpty) {
+    if (_groupBy.isNotEmpty || _havings.isNotEmpty || _unions.isNotEmpty) {
       final dbManager = DatabaseManager();
       final subQuery = _compileSql();
-      final bindings = _grammar.prepareBindings([
-        ..._bindings,
-        ..._havingBindings,
-      ]);
+      final bindings = _grammar.prepareBindings(_getAllBindings());
       final wrapperSql =
           'SELECT COUNT(*) as aggregate FROM ($subQuery) as temp_table';
       try {
@@ -806,7 +802,7 @@ class QueryBuilder<T extends Model> {
         throw QueryException(
           sql: wrapperSql,
           bindings: bindings,
-          message: 'Failed to execute count with group by: ${e.toString()}',
+          message: 'Failed to execute count with group by or unions: ${e.toString()}',
           originalError: e,
         );
       }
@@ -995,6 +991,34 @@ class QueryBuilder<T extends Model> {
   }
 
   // ---------------------------------------------------------------------------
+  // UNIONS
+  // ---------------------------------------------------------------------------
+
+  /// Combines the result with another query using UNION.
+  QueryBuilder<T> union(QueryBuilder query) {
+    _unions.add({'type': 'UNION', 'query': query});
+    return this;
+  }
+
+  /// Combines the result with another query using UNION ALL.
+  QueryBuilder<T> unionAll(QueryBuilder query) {
+    _unions.add({'type': 'UNION ALL', 'query': query});
+    return this;
+  }
+
+  /// Combines the result with another query using INTERSECT.
+  QueryBuilder<T> intersect(QueryBuilder query) {
+    _unions.add({'type': 'INTERSECT', 'query': query});
+    return this;
+  }
+
+  /// Combines the result with another query using EXCEPT.
+  QueryBuilder<T> except(QueryBuilder query) {
+    _unions.add({'type': 'EXCEPT', 'query': query});
+    return this;
+  }
+
+  // ---------------------------------------------------------------------------
   // INTERNALS
   // ---------------------------------------------------------------------------
 
@@ -1020,6 +1044,7 @@ class QueryBuilder<T extends Model> {
     qb._groupBy.addAll(_groupBy);
     qb._havings.addAll(_havings);
     qb._havingBindings.addAll(_havingBindings);
+    qb._unions.addAll(_unions);
     qb._globalScopes.addAll(_globalScopes);
     qb._ignoreGlobalScopes = _ignoreGlobalScopes;
     qb._orderBy = _orderBy;
@@ -1035,6 +1060,16 @@ class QueryBuilder<T extends Model> {
   /// Note: [bindings] remain separate to be passed to the driver's prepared statement.
   String _compileSql() {
     return _grammar.compileSelect(this);
+  }
+
+  /// Recursively collects bindings from this query and all attached unions.
+  List<dynamic> _getAllBindings() {
+    final bindings = [..._bindings, ..._havingBindings];
+    for (final union in _unions) {
+      final query = union['query'] as QueryBuilder;
+      bindings.addAll(query._getAllBindings());
+    }
+    return bindings;
   }
 
   /// Resolves eager loads by delegating to the Model's relation definition.
@@ -1109,10 +1144,7 @@ class QueryBuilder<T extends Model> {
     _applyScopes();
     final dbManager = DatabaseManager();
     final sql = _compileSql();
-    final allBindings = _grammar.prepareBindings([
-      ..._bindings,
-      ..._havingBindings,
-    ]);
+    final allBindings = _grammar.prepareBindings(_getAllBindings());
 
     try {
       final resultRows = await dbManager.getAll(sql, allBindings);
@@ -1204,12 +1236,79 @@ class QueryBuilder<T extends Model> {
     return controller.stream;
   }
 
+  /// Lazily streams results in chunks to minimize memory usage for large datasets.
+  ///
+  /// Uses offset-based pagination to fetch [batchSize] records at a time.
+  /// Yields individual [Model] instances as they are retrieved.
+  ///
+  /// Example:
+  /// ```dart
+  /// await for (final user in User().query().cursor(batchSize: 50)) {
+  ///   print(user.name);
+  /// }
+  /// ```
+  Stream<T> cursor({int batchSize = 100}) async* {
+    int currentOffset = _offset ?? 0;
+
+    while (true) {
+      // Create a fresh clone for each batch to ensure isolation.
+      // This prevents state accumulation (like duplicate scope applications)
+      // and keeps the original builder pristine.
+      final batchQuery = cast<T>(creator, instanceFactory: _instanceFactory);
+
+      batchQuery.limit(batchSize);
+      batchQuery.offset(currentOffset);
+
+      // Execute the query for the current batch
+      final batch = await batchQuery.get();
+
+      if (batch.isEmpty) {
+        break;
+      }
+
+      for (final model in batch) {
+        yield model;
+      }
+
+      // Optimization: If we fetched fewer items than requested, we've reached the end.
+      if (batch.length < batchSize) {
+        break;
+      }
+
+      currentOffset += batchSize;
+    }
+  }
+
   /// Helper for aggregate queries (Count, Sum, etc).
   ///
   /// Modifies the SELECT clause to return a single scalar value.
   Future<T?> _scalar<T>(String expression) async {
     _applyScopes();
     final dbManager = DatabaseManager();
+
+    if (_unions.isNotEmpty) {
+      final subQuery = _compileSql();
+      final bindings = _grammar.prepareBindings(_getAllBindings());
+      final wrapperSql =
+          'SELECT $expression as aggregate FROM ($subQuery) as temp_table';
+      
+      try {
+        final row = await dbManager.get(wrapperSql, bindings);
+        if (row.isEmpty || row['aggregate'] == null) return null;
+        
+        final value = row['aggregate'];
+         if (T == int && value is num) return value.toInt() as T;
+         if (T == double && value is num) return value.toDouble() as T;
+         return value as T;
+      } catch (e) {
+         throw QueryException(
+          sql: wrapperSql,
+          bindings: bindings,
+          message: 'Failed to execute scalar query with unions: ${e.toString()}',
+          originalError: e,
+        );
+      }
+    }
 
     // Use a temporary modification of columns to compile the scalar query
     final originalColumns = _columns;
@@ -1224,10 +1323,7 @@ class QueryBuilder<T extends Model> {
     final sql = _compileSql();
     _columns = originalColumns; // Restore
 
-    final allBindings = _grammar.prepareBindings([
-      ..._bindings,
-      ..._havingBindings,
-    ]);
+    final allBindings = _grammar.prepareBindings(_getAllBindings());
 
     try {
       final row = await dbManager.get(sql, allBindings);

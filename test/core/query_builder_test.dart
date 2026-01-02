@@ -314,4 +314,70 @@ void main() {
 
     expect(castedQuery, isNotNull);
   });
+
+  test('It streams results via cursor()', () async {
+    dbSpy.setMockData({
+      'OFFSET 0': [
+        {'id': 1, 'name': 'User 1'},
+        {'id': 2, 'name': 'User 2'},
+      ],
+      'OFFSET 2': [
+        {'id': 3, 'name': 'User 3'},
+      ],
+    });
+
+    final stream = TestUser().query().where('active', 1).cursor(batchSize: 2);
+    final results = await stream.toList();
+
+    expect(results.length, 3);
+    expect(results[0].getAttribute('name'), 'User 1');
+    expect(results[1].getAttribute('name'), 'User 2');
+    expect(results[2].getAttribute('name'), 'User 3');
+
+    // test Cast! Verify generated SQLs WHERE clauses were preserved
+    expect(dbSpy.lastSql, contains('WHERE "active" = ?'));
+  });
+
+  test('It generates UNION queries', () async {
+    final query1 = TestUser().query().where('id', 1);
+    final query2 = TestUser().query().where('id', 2);
+
+    await query1.union(query2).get();
+
+    expect(
+      dbSpy.lastSql,
+      'SELECT "users".* FROM "users" WHERE "id" = ? UNION SELECT "users".* FROM "users" WHERE "id" = ?',
+    );
+    expect(dbSpy.lastArgs, [1, 2]);
+  });
+
+  test('It generates UNION ALL queries with ORDER BY', () async {
+    final query1 = TestUser().query().where('active', 1);
+    final query2 = TestUser().query().where('active', 0);
+
+    await query1.unionAll(query2).orderBy('created_at', direction: 'DESC').get();
+
+    expect(
+      dbSpy.lastSql,
+      'SELECT "users".* FROM "users" WHERE "active" = ? UNION ALL SELECT "users".* FROM "users" WHERE "active" = ? ORDER BY "created_at" DESC',
+    );
+    expect(dbSpy.lastArgs, [1, 0]);
+  });
+
+  test('It calculates COUNT with UNION', () async {
+     final query1 = TestUser().query().where('id', 1);
+    final query2 = TestUser().query().where('id', 2);
+
+    // Mock response for aggregate
+    dbSpy.setMockData({
+      'SELECT COUNT(*) as aggregate': [{'aggregate': 10}],
+    });
+
+    final count = await query1.union(query2).count();
+
+    expect(count, 10);
+    expect(dbSpy.lastSql, contains('SELECT COUNT(*) as aggregate FROM ('));
+    expect(dbSpy.lastSql, contains('UNION'));
+    expect(dbSpy.lastSql, endsWith(') as temp_table'));
+  });
 }
