@@ -128,18 +128,15 @@ class _SqliteTransactionContext implements TransactionContext {
 void main() async {
   print('\n🧪 --- STARTING BAVARD CORE & EDGE CASE TESTS (SQLite) --- 🧪\n');
 
-  // --- SETUP ---
   final dataDir = Directory('data');
   if (!dataDir.existsSync()) dataDir.createSync();
 
-  // Use a fresh DB name to avoid stale schema issues
   final dbPath = 'data/test_v2.db';
   if (File(dbPath).existsSync()) File(dbPath).deleteSync();
 
   final db = sqlite3.open(dbPath);
   DatabaseManager().setDatabase(SqliteAdapter(db));
 
-  // Create Schema
   db.execute('''
     CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, address TEXT, avatar BLOB, created_at TEXT, updated_at TEXT);
     CREATE TABLE profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, bio TEXT, website TEXT, created_at TEXT, updated_at TEXT);

@@ -43,8 +43,6 @@ class User extends Model with HasTimestamps {
     IdColumn(),
     TextColumn('name'),
     TextColumn('email'),
-    // Address handled by custom cast
-    // Avatar handled raw
     CreatedAtColumn(),
     UpdatedAtColumn(),
   ];

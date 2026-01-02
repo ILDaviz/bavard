@@ -94,7 +94,6 @@ class PostgresAdapter implements DatabaseAdapter {
       parameters: _prepareArgs(values.values.toList()),
     );
 
-    // Return the id if it exists
     if (result.isNotEmpty) {
       return result.first.toColumnMap()['id'];
     }
@@ -174,8 +173,6 @@ class _PostgresTransactionContext implements TransactionContext {
 void main() async {
   print('\n🧪 --- STARTING BAVARD CORE & EDGE CASE TESTS (PostgreSQL) --- 🧪\n');
 
-  // --- SETUP ---
-  // Get ENV vars
   final host = Platform.environment['DB_HOST'] ?? 'localhost';
   final port = int.parse(Platform.environment['DB_PORT'] ?? '5432');
   final dbName = Platform.environment['DB_NAME'] ?? 'bavard_test';
@@ -196,8 +193,6 @@ void main() async {
 
   DatabaseManager().setDatabase(PostgresAdapter(db));
 
-  // Clean Schema
-  // Postgres requires CASCADE to drop tables with dependencies
   try {
     await db.execute(Sql.named('DROP TABLE IF EXISTS users CASCADE'));
     await db.execute(Sql.named('DROP TABLE IF EXISTS profiles CASCADE'));
@@ -212,8 +207,6 @@ void main() async {
     print('Warning cleaning tables: $e');
   }
 
-  // Create Schema (Adapted for Postgres)
-  // SERIAL PRIMARY KEY replaces INTEGER PRIMARY KEY AUTOINCREMENT
   await db.execute(Sql.named('CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT, email TEXT UNIQUE, address TEXT, avatar BYTEA, created_at TEXT, updated_at TEXT)'));
   await db.execute(Sql.named('CREATE TABLE profiles (id SERIAL PRIMARY KEY, user_id INTEGER, bio TEXT, website TEXT, created_at TEXT, updated_at TEXT)'));
   await db.execute(Sql.named('CREATE TABLE posts (id SERIAL PRIMARY KEY, user_id INTEGER, title TEXT, content TEXT, views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)'));

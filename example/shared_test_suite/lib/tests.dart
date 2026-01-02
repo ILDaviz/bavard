@@ -20,7 +20,6 @@ Future<void> runTest(String name, Future<void> Function() testBody) async {
 Future<void> runIntegrationTests() async {
   // TEST 1: Basic CRUD & Validation
   await runTest('CRUD Operations', () async {
-    // Create
     final user = User({
       'name': 'David',
       'email': 'david@test.com',
@@ -29,27 +28,21 @@ Future<void> runIntegrationTests() async {
     await user.save();
     if (user.id == null) throw 'User ID is null after save';
 
-    // Read
     final fetched = await User().query().find(user.id);
     if (fetched == null || fetched.attributes['name'] != 'David')
       throw 'Fetch failed or data mismatch';
 
-    // Update
     fetched.attributes['name'] = 'David Updated';
     await fetched.save();
 
-    // Read again
     final updated = await User().query().find(user.id);
     if (updated!.attributes['name'] != 'David Updated') throw 'Update failed';
 
-    // Delete
     await updated.delete();
 
-    // Check deletion
     final deleted = await User().query().find(user.id);
     if (deleted != null) throw 'Delete failed (User still exists)';
 
-    // Restore for next tests
     await User({
       'name': 'David',
       'email': 'david@test.com',
@@ -59,7 +52,6 @@ Future<void> runIntegrationTests() async {
 
   // TEST 2: Query Builder (Where, Order, Limit)
   await runTest('Query Builder Capabilities', () async {
-    // Setup dummy data
     for (var i = 1; i <= 5; i++) {
       await Post({
         'title': 'Post $i',
@@ -68,16 +60,13 @@ Future<void> runIntegrationTests() async {
       }).save();
     }
 
-    // Where
     final p3 = await Post().query().where('views', 30).first();
     if (p3?.attributes['title'] != 'Post 3') throw 'Where clause failed';
 
-    // Greater Than
     final popular = await Post().query().where('views', 30, '>').get();
     if (popular.length != 2)
       throw 'Where operator (>) failed. Expected 2, got ${popular.length}';
 
-    // Order By & Limit
     final top = await Post()
         .query()
         .orderBy('views', direction: 'desc')
@@ -89,7 +78,6 @@ Future<void> runIntegrationTests() async {
 
   // TEST 3: Edge Case - Orphan Relations
   await runTest('Orphan Relation Handling (Null Safety)', () async {
-    // Post without user
     final orphanPost = Post({
       'title': 'Orphan',
       'user_id': 9999,
@@ -112,11 +100,9 @@ Future<void> runIntegrationTests() async {
     final u = await User().query().first();
     final p = await Post().query().first();
 
-    // Assign post to user
     p!.attributes['user_id'] = u!.id;
     await p.save();
 
-    // Add comment to post
     await Comment({
       'body': 'Nested test',
       'commentable_type': 'posts',
@@ -124,7 +110,6 @@ Future<void> runIntegrationTests() async {
       'user_id': u.id,
     }).save();
 
-    // Load User with Posts
     final userWithPosts = await User()
         .query()
         .withRelations(['posts'])
@@ -133,7 +118,6 @@ Future<void> runIntegrationTests() async {
 
     if (posts.isEmpty) throw 'Failed to load posts';
 
-    // Now load comments for that post
     final postWithComments = await Post()
         .query()
         .withRelations(['comments'])
@@ -154,9 +138,7 @@ Future<void> runIntegrationTests() async {
         await User({'name': 'Rollback User', 'email': 'fail@test.com'}).save();
         throw Exception('Simulated Crash');
       });
-    } catch (e) {
-      // Expected
-    }
+    } catch (e) {}
 
     final endCount = await User().query().count();
     if (startCount != endCount)
@@ -196,7 +178,7 @@ Future<void> runIntegrationTests() async {
 
     final c = Comment({
       'body': 'Video Comment',
-      'commentable_type': 'videos', // Matches MorphToTyped map key
+      'commentable_type': 'videos',
       'commentable_id': v.id,
     });
     await c.save();
@@ -224,15 +206,12 @@ Future<void> runIntegrationTests() async {
     await t.save();
     final id = t.id;
 
-    // 1. Logical Delete
     await t.delete();
 
-    // 2. Verification: Standard query should NOT find it
     final search = await Task().query().find(id);
     if (search != null)
       throw 'Soft Deleted record was found by standard query!';
 
-    // 3. Verification: Record MUST exist physically in DB with deleted_at set
     final softDeletedTask = await Task().withTrashed().find(id);
     if (softDeletedTask == null) throw 'Record was physically deleted from DB!';
     if (softDeletedTask.attributes['deleted_at'] == null)
@@ -245,7 +224,7 @@ Future<void> runIntegrationTests() async {
 
     final t = Task({
       'title': 'Config Task',
-      'metadata': config, // Passing a Map, ORM should serialize it
+      'metadata': config,
       'created_at': isoNow(),
       'updated_at': isoNow(),
     });
@@ -254,7 +233,6 @@ Future<void> runIntegrationTests() async {
 
     final fetched = await Task().query().find(t.id);
 
-    // Verify that reading from DB returns a Map, not a String
     final meta = fetched!.attributes['metadata'];
 
     if (meta is! Map)
@@ -290,14 +268,12 @@ Future<void> runIntegrationTests() async {
     });
     await p3.save();
 
-    // WHERE IN
     final inResults = await Post().query().whereIn('id', [p1.id, p3.id]).get();
 
     if (inResults.length != 2) {
       throw 'WhereIn failed. Expected 2, got ${inResults.length}';
     }
 
-    // WHERE NULL (Create orphan post, user_id will be null)
     final orphan = Post({
       'title': 'NullCheck',
       'created_at': isoNow(),
@@ -314,7 +290,6 @@ Future<void> runIntegrationTests() async {
     final int count = 100;
     final stopwatch = Stopwatch()..start();
 
-    // Use transaction for bulk insert to be realistic
     await DatabaseManager().transaction((txn) async {
       for (var i = 0; i < count; i++) {
         await User({
@@ -326,7 +301,6 @@ Future<void> runIntegrationTests() async {
     });
 
     stopwatch.stop();
-    //print('    -> Inserted $count records in ${stopwatch.elapsedMilliseconds}ms');
 
     final countWatch = Stopwatch()..start();
     final totalUsers = await User().query().count();
@@ -336,10 +310,8 @@ Future<void> runIntegrationTests() async {
       throw 'Bulk insert failed. Total users: $totalUsers';
 
     final queryWatch = Stopwatch()..start();
-    // Fetch a large chunk
     final manyUsers = await User().query().limit(count).get();
     queryWatch.stop();
-    //print('    -> Fetched ${manyUsers.length} records in ${queryWatch.elapsedMilliseconds}ms');
 
     if (manyUsers.length != count)
       throw 'Bulk fetch returned wrong number of records';
@@ -347,12 +319,9 @@ Future<void> runIntegrationTests() async {
 
   // TEST 12: Type Safety Verification
   await runTest('Type Safety Verification', () async {
-    // SQLite uses dynamic typing, but the driver maps them to Dart types.
-    // We want to ensure our Model attributes preserve these types (e.g. Int stays Int, not String).
-
     final p = Post({
       'title': 'Typed Post',
-      'views': 99999, // Integer
+      'views': 99999,
       'created_at': isoNow(),
     });
     await p.save();
@@ -362,17 +331,14 @@ Future<void> runIntegrationTests() async {
 
     final attrs = fetched.attributes;
 
-    // 1. Check String
     if (attrs['title'] is! String) {
       throw 'Type Error: "title" should be String, got ${attrs['title'].runtimeType} (${attrs['title']})';
     }
 
-    // 2. Check Integer (Critical for SQLite)
     if (attrs['views'] is! int) {
       throw 'Type Error: "views" should be int, got ${attrs['views'].runtimeType} (${attrs['views']})';
     }
 
-    // 3. Check ID (AutoIncrement Integer)
     if (attrs['id'] is! int) {
       throw 'Type Error: "id" should be int, got ${attrs['id'].runtimeType} (${attrs['id']})';
     }
@@ -425,7 +391,6 @@ Future<void> runIntegrationTests() async {
     final fetched = await Product().query().find(product.id);
     if (fetched == null) throw 'Product not found';
 
-    // Verify hook modified the data (laptop -> LAPTOP)
     if (fetched.attributes['name'] != 'LAPTOP') {
       throw 'Hook failed: Name should be LAPTOP, got ${fetched.attributes['name']}';
     }
@@ -434,7 +399,6 @@ Future<void> runIntegrationTests() async {
   // TEST 15: Aggregates (Sum, Avg, Max)
   await runTest('Aggregates (Sum, Avg, Max)', () async {
     await Post().query().delete();
-    // Insert dummy posts with views: 10, 20, 30
     await Post({'title': 'P1', 'views': 10, 'created_at': isoNow()}).save();
     await Post({'title': 'P2', 'views': 20, 'created_at': isoNow()}).save();
     await Post({'title': 'P3', 'views': 30, 'created_at': isoNow()}).save();
@@ -462,12 +426,10 @@ Future<void> runIntegrationTests() async {
       'created_at': isoNow(),
     });
 
-    // Assign Address object
     user.address = Address('123 Cast St', 'Cast City');
 
     await user.save();
 
-    // Read back
     final fetched = await User().query().find(user.id);
 
     if (fetched == null) throw 'User not found';
@@ -531,7 +493,6 @@ Future<void> runIntegrationTests() async {
 
     final oldUpdatedAt = user.updatedAt;
 
-    // Save without changes
     await user.save();
 
     if (user.updatedAt != oldUpdatedAt) {
@@ -562,7 +523,6 @@ Future<void> runIntegrationTests() async {
 
     if (created == null) throw 'Created At is null';
 
-    // Using tolerance for microsecond differences across DBs
     if (created.difference(now).inMilliseconds.abs() > 1000) {
       throw 'Date mismatch. Original: $now, Fetched: $created';
     }
@@ -581,7 +541,7 @@ Future<void> runIntegrationTests() async {
       if (!msg.contains('unique') &&
           !msg.contains('constraint') &&
           !msg.contains('23505')) {
-        // Postgres specific
+
         throw 'Caught unexpected error instead of constraint violation: $e';
       }
     }
@@ -620,10 +580,8 @@ Future<void> runIntegrationTests() async {
 
   // TEST 23: Lazy Streaming (Cursor)
   await runTest('Lazy Streaming (Cursor)', () async {
-    // Clean up
     await Post().query().delete();
 
-    // Create 100 posts
     await DatabaseManager().transaction((txn) async {
       for (var i = 0; i < 100; i++) {
         await Post({'title': 'P$i', 'views': i, 'created_at': isoNow()}).save();
@@ -631,7 +589,6 @@ Future<void> runIntegrationTests() async {
     });
 
     int count = 0;
-    // Iterate 10 at a time
     await for (final post
         in Post().query().orderBy('views').cursor(batchSize: 10)) {
       if (post.attributes['views'] != count) {
@@ -660,7 +617,6 @@ Future<void> runIntegrationTests() async {
     final q1 = Post().query().where('views', 10);
     final q2 = Post().query().where('views', 30);
 
-    // UNION (Alpha + Gamma)
     final results = await q1.union(q2).orderBy('views').get();
 
     if (results.length != 2)
@@ -675,10 +631,8 @@ Future<void> runIntegrationTests() async {
     final user = await User().query().first();
     if (user == null) throw 'No user found';
 
-    // Ensure clean state
     await Post().query().where('user_id', user.id).delete();
 
-    // Create 3 posts: 2 active (views > 0), 1 inactive (views = 0)
     await Post({
       'title': 'Active 1',
       'views': 100,
@@ -702,7 +656,6 @@ Future<void> runIntegrationTests() async {
         .query()
         .withRelations({
           'posts': (q) {
-            // Only load posts with views > 0 and sort by views desc
             q.where('views', 0, '>').orderBy('views', direction: 'DESC');
           },
         })
