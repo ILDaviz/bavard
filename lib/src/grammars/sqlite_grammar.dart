@@ -33,7 +33,6 @@ class SQLiteGrammar extends Grammar {
     if (value.contains('.')) {
       return value.split('.').map((segment) => wrap(segment)).join('.');
     }
-    // Don't wrap if already wrapped
     if (value.startsWith('"') && value.endsWith('"')) return value;
     return '"$value"';
   }

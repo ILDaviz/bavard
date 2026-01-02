@@ -26,8 +26,6 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
     addConstraints();
   }
 
-  // --- Internal Helpers for Key Resolution ---
-
   String get _intermediateTable => intermediateCreator({}).table;
 
   /// Resolves the foreign key pointing to Parent, defaulting to snake_case convention if null.

@@ -62,15 +62,12 @@ class MockDatabaseSpy implements DatabaseAdapter {
       transactionHistory.add(sql);
     }
 
-    // Simple substring matching to find the correct mock response.
-    // Check raw SQL first
     for (var key in _smartResponses.keys) {
       if (sql.contains(key)) {
         return _smartResponses[key]!;
       }
     }
 
-    // Check normalized (unquoted) SQL for backward compatibility with tests
     final normalized = _normalize(sql);
     for (var key in _smartResponses.keys) {
       if (normalized.contains(key)) {
@@ -113,8 +110,6 @@ class MockDatabaseSpy implements DatabaseAdapter {
   /// Does not simulate actual database updates or reactive stream behavior.
   @override
   Future<dynamic> insert(String table, Map<String, dynamic> values) async {
-    // Manually reconstructs the SQL string to ensure the repository logic
-    // produced the correct keys and structure for logging purposes.
     final keys = values.keys.map(grammar.wrap).join(', ');
     final placeholders = List.filled(values.length, '?').join(', ');
     final sql = 'INSERT INTO ${grammar.wrap(table)} ($keys) VALUES ($placeholders)';
@@ -131,7 +126,6 @@ class MockDatabaseSpy implements DatabaseAdapter {
       }
     }
 
-    // Check if a specific ID return is mocked, otherwise default to 1.
     if (_smartResponses.containsKey('last_insert_row_id')) {
       final row = _smartResponses['last_insert_row_id']!.first;
       return row['id'] ?? 1;

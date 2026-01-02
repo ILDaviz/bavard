@@ -26,7 +26,6 @@ mixin HasTimestamps on Model {
 
     final now = DateTime.now();
 
-    // Differentiates 'Create' from 'Update' based on the existence of a Primary Key.
     if (!exists) {
       // Respects manually set creation dates (e.g., during data migration).
       if (attributes[createdAtColumn] == null) {

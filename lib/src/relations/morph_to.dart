@@ -13,17 +13,13 @@ class MorphTo<R extends Model> extends Relation<R> {
   /// Essential for knowing which table to query for a given record.
   final Map<String, R Function(Map<String, dynamic>)> typeMap;
 
-  // Passes a dummy `_MorphModel` to the super constructor because the actual target table
-  // is unknown at instantiation time. Real queries use `typeMap` factories.
   MorphTo(Model parent, this.name, this.typeMap)
     : super(parent, (_) => _MorphModel() as R);
 
   /// No-op: Standard SQL constraints cannot be applied globally here because
   /// the target table varies from record to record.
   @override
-  void addConstraints() {
-    // Dynamic resolution happens in [getResult] or [match].
-  }
+  void addConstraints() {}
 
   /// Lazy-loads the parent for the current instance.
   ///
@@ -84,7 +80,6 @@ class MorphTo<R extends Model> extends Relation<R> {
   }) async {
     Map<String, List<dynamic>> mapByType = {};
 
-    // 1. Group IDs by type
     for (var model in models) {
       final type = model.attributes['${name}_type']?.toString();
       final id = model.attributes['${name}_id'];
@@ -97,7 +92,6 @@ class MorphTo<R extends Model> extends Relation<R> {
 
     Map<String, Map<String, Model>> resultsByType = {};
 
-    // 2. Query each type individually
     for (var type in mapByType.keys) {
       final creator = typeMap[type];
       if (creator == null) continue;
@@ -118,7 +112,6 @@ class MorphTo<R extends Model> extends Relation<R> {
       resultsByType[type] = {for (var r in results) normKey(r.id)!: r};
     }
 
-    // 3. Assign results back to children
     for (var model in models) {
       final type = model.attributes['${name}_type']?.toString();
       final id = normKey(model.attributes['${name}_id']);
