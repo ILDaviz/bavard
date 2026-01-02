@@ -1278,8 +1278,6 @@ class QueryBuilder<T extends Model> {
 
     while (true) {
       // Create a fresh clone for each batch to ensure isolation.
-      // This prevents state accumulation (like duplicate scope applications)
-      // and keeps the original builder pristine.
       final batchQuery = cast<T>(creator, instanceFactory: _instanceFactory);
 
       batchQuery.limit(batchSize);
@@ -1334,18 +1332,11 @@ class QueryBuilder<T extends Model> {
       }
     }
 
-    // Use a temporary modification of columns to compile the scalar query
     final originalColumns = _columns;
     _columns = [RawExpression('$expression as aggregate')];
 
-    // We can't just set _columns and call _compileSql because other parts of the grammar
-    // might look at columns, but generally compileSelect uses query.columns.
-    // However, to be safe and use the Strategy, we rely on _compileSql which uses Grammar.
-    // But wait, _scalar constructs SQL manually in the old version.
-    // We should use the grammar.
-
     final sql = _compileSql();
-    _columns = originalColumns; // Restore
+    _columns = originalColumns;
 
     final allBindings = _grammar.prepareBindings(_getAllBindings());
 
