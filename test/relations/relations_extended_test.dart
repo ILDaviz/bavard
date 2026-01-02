@@ -318,8 +318,6 @@ void main() {
       final user = users.first;
       final posts = user.getRelationList<Post>('posts');
 
-      print(mockDb.history);
-
       expect(mockDb.history.any((sql) => sql.contains('"active" = ?')), isTrue);
       
       expect(posts, hasLength(1));
