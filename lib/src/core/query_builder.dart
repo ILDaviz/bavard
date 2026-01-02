@@ -10,6 +10,8 @@ typedef ScopeCallback = void Function(QueryBuilder builder);
 /// and handles the object lifecycle (hydration, dirty checking initialization) and eager loading.
 class QueryBuilder<T extends Model> {
   final String table;
+  /// This create empty instance of the model.
+  /// Example : creator({}).newQuery()
   final T Function(Map<String, dynamic>) creator;
 
   /// Internal factory for empty instances (used during generic casting or hydration).
@@ -19,7 +21,7 @@ class QueryBuilder<T extends Model> {
   final List<Map<String, dynamic>> _wheres = [];
   final List<dynamic> _bindings = [];
   final List<String> _joins = [];
-  final List<String> _with = [];
+  final Map<String, ScopeCallback?> _with = {};
   List<dynamic> _columns = ['*'];
 
   final List<String> _groupBy = [];
@@ -952,8 +954,28 @@ class QueryBuilder<T extends Model> {
   /// Queues relationships for eager loading after the main query execution.
   ///
   /// Critical for performance optimization (mitigates N+1 queries).
-  QueryBuilder<T> withRelations(List<String> relations) {
-    _with.addAll(relations);
+  ///
+  /// Accepts:
+  /// - `List<String>`: `['posts', 'posts.comments']`
+  /// - `Map<String, ScopeCallback>`: `{'posts': (q) => q.where('active', 1)}`
+  QueryBuilder<T> withRelations(dynamic relations) {
+    if (relations is List) {
+      for (final relation in relations) {
+        _with[relation.toString()] = null;
+      }
+    } else if (relations is Map) {
+      relations.forEach((key, value) {
+        if (value is ScopeCallback) {
+          _with[key.toString()] = value;
+        } else if (value == null) {
+          _with[key.toString()] = null;
+        } else {
+           throw ArgumentError('Invalid scope callback for relation $key');
+        }
+      });
+    } else {
+      throw ArgumentError('withRelations expects a List or Map.');
+    }
     return this;
   }
 
@@ -1079,33 +1101,37 @@ class QueryBuilder<T extends Model> {
   Future<void> _eagerLoad(List<T> models) async {
     if (_with.isEmpty || models.isEmpty) return;
 
-    // Parse nested relations:
-    // ['posts', 'posts.comments'] -> {'posts': ['comments']}
-    final nestedRelations = <String, List<String>>{};
+    final rootScopes = <String, ScopeCallback?>{};
+    final rootNested = <String, Map<String, ScopeCallback?>>{};
+    final uniqueRoots = <String>{};
 
-    for (final relation in _with) {
-      final parts = relation.split('.');
+    _with.forEach((path, scope) {
+      final parts = path.split('.');
       final root = parts[0];
-      final nested = parts.length > 1 ? parts.sublist(1).join('.') : null;
+      final nestedPath = parts.length > 1 ? parts.sublist(1).join('.') : null;
 
-      if (!nestedRelations.containsKey(root)) {
-        nestedRelations[root] = [];
-      }
+      uniqueRoots.add(root);
 
-      if (nested != null) {
-        nestedRelations[root]!.add(nested);
+      if (nestedPath == null) {
+        rootScopes[root] = scope;
+      } else {
+        if (!rootNested.containsKey(root)) {
+          rootNested[root] = {};
+        }
+        rootNested[root]![nestedPath] = scope;
       }
-    }
+    });
 
     // Eager load related models parallel
     await Future.wait(
-      nestedRelations.keys.map((relationName) async {
+      uniqueRoots.map((relationName) async {
         final relation = models.first.getRelation(relationName);
         if (relation != null) {
           await relation.match(
             models,
             relationName,
-            nested: nestedRelations[relationName] ?? [],
+            scope: rootScopes[relationName],
+            nested: rootNested[relationName] ?? {},
           );
         }
       }),

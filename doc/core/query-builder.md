@@ -200,6 +200,27 @@ The `orderBy` method allows you to sort the results. It supports both string col
 .offset(5)
 ```
 
+## Unions
+
+Bavard allows you to combine the results of two queries using `UNION`, `UNION ALL`, `INTERSECT`, and `EXCEPT`.
+
+```dart
+final first = User().query().where('first_name', 'John');
+final second = User().query().where('last_name', 'Doe');
+
+// UNION
+final users = await first.union(second).get();
+
+// UNION ALL (includes duplicates)
+final allUsers = await first.unionAll(second).get();
+
+// INTERSECT (only rows present in both)
+final commonUsers = await first.intersect(second).get();
+
+// EXCEPT (rows in first but not in second)
+final exclusiveUsers = await first.except(second).get();
+```
+
 ## Aggregates
 
 The query builder supports various aggregate methods, all of which accept both string column names and `Column` objects:
@@ -299,6 +320,19 @@ StreamBuilder<List<User>>(
   },
 )
 ```
+
+## Lazy Streaming (Cursor)
+
+When working with large datasets, loading all records into memory at once can cause performance issues or crashes. The `cursor` method allows you to iterate through the database records using a stream, fetching them in small chunks.
+
+```dart
+// Iterate over all users, loading 100 at a time
+await for (final user in User().query().cursor(batchSize: 100)) {
+  print(user.name);
+}
+```
+
+This method uses offset-based pagination internally to fetch batches while exposing a seamless stream of individual `Model` instances.
 
 ## SQL Dialects
 

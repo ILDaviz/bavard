@@ -235,7 +235,8 @@ Future<void> runIntegrationTests() async {
     // 3. Verification: Record MUST exist physically in DB with deleted_at set
     final softDeletedTask = await Task().withTrashed().find(id);
     if (softDeletedTask == null) throw 'Record was physically deleted from DB!';
-    if (softDeletedTask.attributes['deleted_at'] == null) throw 'deleted_at column is null!';
+    if (softDeletedTask.attributes['deleted_at'] == null)
+      throw 'deleted_at column is null!';
   });
 
   // TEST 9: JSON Casting
@@ -460,26 +461,26 @@ Future<void> runIntegrationTests() async {
       'email': 'cast@test.com',
       'created_at': isoNow(),
     });
-    
+
     // Assign Address object
     user.address = Address('123 Cast St', 'Cast City');
-    
+
     await user.save();
-    
+
     // Read back
     final fetched = await User().query().find(user.id);
-    
+
     if (fetched == null) throw 'User not found';
-    
+
     final addr = fetched.address;
-    
+
     if (addr == null) throw 'Address is null';
     if (addr is! Address) throw 'Address is not of type Address';
     if (addr.street != '123 Cast St') throw 'Address street mismatch';
     if (addr.city != 'Cast City') throw 'Address city mismatch';
-    
+
     if (fetched.attributes['address'] is! String) {
-       throw 'Raw attribute should be String (JSON), got ${fetched.attributes['address'].runtimeType}';
+      throw 'Raw attribute should be String (JSON), got ${fetched.attributes['address'].runtimeType}';
     }
   });
 
@@ -494,8 +495,11 @@ Future<void> runIntegrationTests() async {
     });
 
     await Future.wait(futures);
-    
-    final count = await User().query().where('name', 'Concurrent%', 'LIKE').count();
+
+    final count = await User()
+        .query()
+        .where('name', 'Concurrent%', 'LIKE')
+        .count();
     if (count != 10) throw 'Concurrency failed. Expected 10, got $count';
   });
 
@@ -508,9 +512,9 @@ Future<void> runIntegrationTests() async {
       'created_at': isoNow(),
     });
     user.avatar = bytes;
-    
+
     await user.save();
-    
+
     final fetched = await User().query().find(user.id);
     final fetchedBytes = fetched?.avatar;
     if (fetchedBytes == null) throw 'Avatar is null';
@@ -519,24 +523,24 @@ Future<void> runIntegrationTests() async {
     }
     if (fetchedBytes[3] != 0xFF) throw 'Avatar data mismatch';
   });
-  
+
   // TEST 19: Dirty Checking Optimization
   await runTest('Dirty Checking (No Query on No Change)', () async {
     final user = await User().query().first();
     if (user == null) throw 'No user found';
-    
+
     final oldUpdatedAt = user.updatedAt;
-    
+
     // Save without changes
     await user.save();
-    
+
     if (user.updatedAt != oldUpdatedAt) {
-       throw 'Model was updated even though no attributes changed!';
+      throw 'Model was updated even though no attributes changed!';
     }
-    
+
     user.attributes['name'] = user.attributes['name'] + ' Changed';
     await user.save();
-    
+
     if (user.updatedAt == oldUpdatedAt) {
       throw 'Model was NOT updated after attribute change!';
     }
@@ -550,14 +554,14 @@ Future<void> runIntegrationTests() async {
       'email': 'time@test.com',
       'created_at': now.toIso8601String(),
     });
-    
+
     await user.save();
-    
+
     final fetched = await User().query().find(user.id);
-    final created = fetched?.createdAt; 
-    
+    final created = fetched?.createdAt;
+
     if (created == null) throw 'Created At is null';
-    
+
     // Using tolerance for microsecond differences across DBs
     if (created.difference(now).inMilliseconds.abs() > 1000) {
       throw 'Date mismatch. Original: $now, Fetched: $created';
@@ -568,16 +572,17 @@ Future<void> runIntegrationTests() async {
   await runTest('Error Handling (Unique Constraint)', () async {
     final email = 'unique@test.com';
     await User({'name': 'U1', 'email': email, 'created_at': isoNow()}).save();
-    
+
     try {
       await User({'name': 'U2', 'email': email, 'created_at': isoNow()}).save();
       throw 'Duplicate entry did NOT throw exception!';
     } catch (e) {
       final msg = e.toString().toLowerCase();
-      if (!msg.contains('unique') && 
+      if (!msg.contains('unique') &&
           !msg.contains('constraint') &&
-          !msg.contains('23505')) { // Postgres specific
-         throw 'Caught unexpected error instead of constraint violation: $e';
+          !msg.contains('23505')) {
+        // Postgres specific
+        throw 'Caught unexpected error instead of constraint violation: $e';
       }
     }
   });
@@ -586,7 +591,7 @@ Future<void> runIntegrationTests() async {
   await runTest('Reactivity (Watch)', () async {
     final stream = User().query().watch();
     final completer = Completer<List<User>>();
-    
+
     int emissionCount = 0;
     final subscription = stream.listen((users) {
       emissionCount++;
@@ -611,6 +616,106 @@ Future<void> runIntegrationTests() async {
     } finally {
       await subscription.cancel();
     }
+  });
+
+  // TEST 23: Lazy Streaming (Cursor)
+  await runTest('Lazy Streaming (Cursor)', () async {
+    // Clean up
+    await Post().query().delete();
+
+    // Create 100 posts
+    await DatabaseManager().transaction((txn) async {
+      for (var i = 0; i < 100; i++) {
+        await Post({'title': 'P$i', 'views': i, 'created_at': isoNow()}).save();
+      }
+    });
+
+    int count = 0;
+    // Iterate 10 at a time
+    await for (final post
+        in Post().query().orderBy('views').cursor(batchSize: 10)) {
+      if (post.attributes['views'] != count) {
+        throw 'Cursor order mismatch. Expected $count, got ${post.attributes['views']}';
+      }
+      count++;
+    }
+
+    if (count != 100)
+      throw 'Cursor missed records. Counted $count, expected 100';
+  });
+
+  // TEST 24: Set Operations (Union)
+  await runTest('Set Operations (Union)', () async {
+    await Post().query().delete();
+
+    final p1 = Post({'title': 'Alpha', 'views': 10, 'created_at': isoNow()});
+    await p1.save();
+
+    final p2 = Post({'title': 'Beta', 'views': 20, 'created_at': isoNow()});
+    await p2.save();
+
+    final p3 = Post({'title': 'Gamma', 'views': 30, 'created_at': isoNow()});
+    await p3.save();
+
+    final q1 = Post().query().where('views', 10);
+    final q2 = Post().query().where('views', 30);
+
+    // UNION (Alpha + Gamma)
+    final results = await q1.union(q2).orderBy('views').get();
+
+    if (results.length != 2)
+      throw 'Union failed. Expected 2, got ${results.length}';
+    if (results.first.attributes['title'] != 'Alpha') throw 'Union sort failed';
+    if (results.last.attributes['title'] != 'Gamma')
+      throw 'Union data mismatch';
+  });
+
+  // TEST 25: Conditional Eager Loading
+  await runTest('Conditional Eager Loading', () async {
+    final user = await User().query().first();
+    if (user == null) throw 'No user found';
+
+    // Ensure clean state
+    await Post().query().where('user_id', user.id).delete();
+
+    // Create 3 posts: 2 active (views > 0), 1 inactive (views = 0)
+    await Post({
+      'title': 'Active 1',
+      'views': 100,
+      'user_id': user.id,
+      'created_at': isoNow(),
+    }).save();
+    await Post({
+      'title': 'Active 2',
+      'views': 50,
+      'user_id': user.id,
+      'created_at': isoNow(),
+    }).save();
+    await Post({
+      'title': 'Inactive',
+      'views': 0,
+      'user_id': user.id,
+      'created_at': isoNow(),
+    }).save();
+
+    final loadedUser = await User()
+        .query()
+        .withRelations({
+          'posts': (q) {
+            // Only load posts with views > 0 and sort by views desc
+            q.where('views', 0, '>').orderBy('views', direction: 'DESC');
+          },
+        })
+        .find(user.id);
+
+    final posts = loadedUser!.getRelationList<Post>('posts');
+
+    if (posts.length != 2)
+      throw 'Conditional loading failed. Expected 2, got ${posts.length}';
+    if (posts.first.attributes['title'] != 'Active 1')
+      throw 'Sort order in conditional load failed';
+    if (posts.last.attributes['title'] != 'Active 2')
+      throw 'Data mismatch in conditional load';
   });
 
   print('\n🎉 --- ALL SYSTEMS GO: CORE IS STABLE --- 🎉');

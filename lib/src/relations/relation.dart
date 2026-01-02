@@ -28,7 +28,8 @@ abstract class Relation<R extends Model> extends QueryBuilder<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   });
 
   /// Extracts unique attribute values from a list of models, used to build

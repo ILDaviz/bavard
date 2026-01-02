@@ -1,5 +1,6 @@
 import 'has_many.dart';
 import '../core/model.dart';
+import '../core/query_builder.dart';
 
 /// Defines a one-to-one relationship where the foreign key resides on the related model [R].
 ///
@@ -16,10 +17,11 @@ class HasOne<R extends Model> extends HasMany<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     // Reuse HasMany to fetch and group data into lists.
-    await super.match(models, relationName, nested: nested);
+    await super.match(models, relationName, scope: scope, nested: nested);
 
     for (var model in models) {
       final list = model.relations[relationName] as List?;

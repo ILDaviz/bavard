@@ -290,5 +290,40 @@ void main() {
       expect(posts[1].relations.containsKey('author'), isFalse);
       expect((posts[2].relations['author'] as User).id, 2);
     });
+
+    test('Conditional Eager Loading (Constraining eager loads)', () async {
+      final mockDb = MockDatabaseSpy([], {
+        'FROM "users"': [
+          {'id': 1, 'name': 'David'},
+        ],
+        'FROM "posts"': [
+           {'id': 100, 'user_id': 1, 'title': 'Active Post', 'active': 1},
+           {'id': 101, 'user_id': 1, 'title': 'Inactive Post', 'active': 0},
+        ],
+      });
+      
+      mockDb.setMockData({
+        'FROM "users"': [{'id': 1, 'name': 'David'}],
+        '"active" = ?': [
+          {'id': 100, 'user_id': 1, 'title': 'Active Post', 'active': 1},
+        ]
+      });
+      
+      DatabaseManager().setDatabase(mockDb);
+
+      final users = await User().query().withRelations({
+        'posts': (q) => q.where('active', 1),
+      }).get();
+
+      final user = users.first;
+      final posts = user.getRelationList<Post>('posts');
+
+      print(mockDb.history);
+
+      expect(mockDb.history.any((sql) => sql.contains('"active" = ?')), isTrue);
+      
+      expect(posts, hasLength(1));
+      expect(posts.first.id, 100);
+    });
   });
 }

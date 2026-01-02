@@ -1,5 +1,6 @@
 import 'morph_many.dart';
 import '../core/model.dart';
+import '../core/query_builder.dart';
 
 /// Defines a polymorphic one-to-one relationship.
 ///
@@ -14,10 +15,11 @@ class MorphOne<R extends Model> extends MorphMany<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     // Reuse MorphMany to fetch and group data into lists efficiently.
-    await super.match(models, relationName, nested: nested);
+    await super.match(models, relationName, scope: scope, nested: nested);
 
     for (var model in models) {
       final list = model.relations[relationName] as List?;

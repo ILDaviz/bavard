@@ -14,6 +14,35 @@ final users = await User().query()
     .get();
 ```
 
+## Constraining Eager Loads
+
+Sometimes you may wish to eager load a relationship, but also specify additional query conditions for the eager loading query. You can accomplish this by passing a `Map` to `withRelations` instead of a `List`.
+
+The keys should be the relationship names, and the values should be closures that modify the query:
+
+```dart
+final users = await User().query().withRelations({
+  'posts': (q) {
+        q.where('active', 1)
+         .orderBy('created_at', direction: 'DESC');
+  },
+}).get();
+```
+
+In this example, Bavard will eager load the `posts` relationship, but only posts where the `active` column is `1` will be included.
+
+### Type Safety
+
+Since the closure receives a generic `QueryBuilder`, you can cast it to the specific model type if you need type safety or want to use autocompletion:
+
+```dart
+final users = await User().query().withRelations({
+  'posts': (q) {
+    (q as QueryBuilder<Post>).where('active', 1);
+  },
+}).get();
+```
+
 This will execute:
 1. `SELECT * FROM users`
 2. `SELECT * FROM posts WHERE user_id IN (1, 2, 3...)`

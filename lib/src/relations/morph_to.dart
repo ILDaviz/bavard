@@ -1,5 +1,6 @@
 import 'relation.dart';
 import '../core/model.dart';
+import '../core/query_builder.dart';
 
 /// Represents the inverse side of a polymorphic relationship (the child holding the keys).
 ///
@@ -78,7 +79,8 @@ class MorphTo<R extends Model> extends Relation<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     Map<String, List<dynamic>> mapByType = {};
 
@@ -103,11 +105,15 @@ class MorphTo<R extends Model> extends Relation<R> {
       final ids = mapByType[type]!;
       final dummyModel = creator(const {});
 
-      final results = await dummyModel
-          .newQuery()
-          .withRelations(nested)
-          .whereIn(dummyModel.primaryKey, ids)
-          .get();
+      final query = dummyModel.newQuery();
+      query.withRelations(nested);
+      query.whereIn(dummyModel.primaryKey, ids);
+      
+      if (scope != null) {
+        scope(query);
+      }
+
+      final results = await query.get();
 
       resultsByType[type] = {for (var r in results) normKey(r.id)!: r};
     }

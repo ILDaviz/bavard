@@ -1,5 +1,6 @@
 import 'relation.dart';
 import '../core/model.dart';
+import '../core/query_builder.dart';
 
 /// Defines a one-to-many relationship where the foreign key resides on the related model [R].
 ///
@@ -37,15 +38,21 @@ class HasMany<R extends Model> extends Relation<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     final ids = getKeys(models, localKey);
 
-    final results =
-        (await creator(
-              {},
-            ).newQuery().withRelations(nested).whereIn(foreignKey, ids).get())
-            .cast<R>();
+    final query = creator({}).newQuery();
+    
+    query.withRelations(nested);
+    query.whereIn(foreignKey, ids);
+    
+    if (scope != null) {
+      scope(query);
+    }
+
+    final results = (await query.get()).cast<R>();
 
     for (var model in models) {
       final myKey = normKey(model.attributes[localKey]);

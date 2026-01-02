@@ -288,7 +288,8 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     final parentIds = getKeys(models, parent.primaryKey);
     if (parentIds.isEmpty) return;
@@ -328,9 +329,16 @@ class BelongsToMany<R extends Model> extends Relation<R> {
         .toList();
 
     final pk = creator({}).primaryKey;
-    final relatedModels = (await creator(
-      {},
-    ).newQuery().withRelations(nested).whereIn(pk, relatedIds).get()).cast<R>();
+    
+    final query = creator({}).newQuery();
+    query.withRelations(nested);
+    query.whereIn(pk, relatedIds);
+    
+    if (scope != null) {
+      scope(query);
+    }
+    
+    final relatedModels = (await query.get()).cast<R>();
 
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};
 
