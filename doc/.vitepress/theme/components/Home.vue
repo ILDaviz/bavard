@@ -60,7 +60,7 @@
                 <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
                 <div class="w-3 h-3 rounded-full bg-green-400"></div>
               </div>
-              <span class="ml-4 text-xs text-gray-500 dark:text-gray-400 font-mono">user_repository.dart</span>
+              <span class="ml-4 text-xs text-gray-500 dark:text-gray-400 font-mono">user_model.dart</span>
             </div>
             <!-- Code Content -->
             <div class="p-6 text-sm font-mono leading-relaxed overflow-x-auto text-gray-800 dark:text-gray-200">
