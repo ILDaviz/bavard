@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   /* Brand Colors - Indigo/Electric Blue vibe */
   --vp-c-brand-1: #6366f1;

@@ -11,6 +11,9 @@
   },
   "devDependencies": {
     "@vue/server-renderer": "^3.5.26",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "3.4.17",
     "vue": "^3.5.26"
   }
 }

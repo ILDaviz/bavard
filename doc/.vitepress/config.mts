@@ -20,7 +20,8 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/' },
-      { text: 'API', link: '/api/' }
+      { text: 'API', link: '/api/' },
+      { text: 'Pub.dev', link: 'https://pub.dev/packages/bavard' }
     ],
 
     search: {
