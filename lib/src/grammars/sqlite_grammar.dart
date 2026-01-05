@@ -8,10 +8,16 @@ class SQLiteGrammar extends Grammar {
   }
 
   @override
-  String compileInsert(QueryBuilder query, Map<String, dynamic> values) {
-    final columns = wrapArray(values.keys.toList()).join(', ');
-    final placeholders = List.filled(values.length, '?').join(', ');
-    return 'INSERT INTO ${wrap(query.table)} ($columns) VALUES ($placeholders)';
+  String compileInsert(QueryBuilder query, List<Map<String, dynamic>> values) {
+    if (values.isEmpty) return '';
+
+    final columns = values.first.keys.toList()..sort();
+    
+    final columnsSql = wrapArray(columns).join(', ');
+    final rowPlaceholders = '(' + List.filled(columns.length, '?').join(', ') + ')';
+    final valuesSql = List.filled(values.length, rowPlaceholders).join(', ');
+
+    return 'INSERT INTO ${wrap(query.table)} ($columnsSql) VALUES $valuesSql';
   }
 
   @override

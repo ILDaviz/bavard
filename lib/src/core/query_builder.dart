@@ -1225,6 +1225,37 @@ class QueryBuilder<T extends Model> {
     return await DatabaseManager().insert(table, resolvedValues);
   }
 
+  /// Executes a bulk INSERT into the database.
+  ///
+  /// WARNING: Bypasses the Model lifecycle (no events, automatic timestamps, or casts).
+  /// Returns true if the operation was successful.
+  Future<bool> insertAll(List<Map<String, dynamic>> values) async {
+    if (values.isEmpty) return true;
+
+    final resolvedValues = values.map((map) {
+      return map.map((key, value) {
+        final colName = _resolveColumnNameForWrite(key);
+        _assertIdent(colName, dotted: false, what: 'column name');
+        return MapEntry(colName, value);
+      });
+    }).toList();
+
+    final sortedKeys = resolvedValues.first.keys.toList()..sort();
+
+    final bindings = <dynamic>[];
+    for (final map in resolvedValues) {
+      for (final key in sortedKeys) {
+        bindings.add(map[key]);
+      }
+    }
+
+    final sql = _grammar.compileInsert(this, resolvedValues);
+    final allBindings = _grammar.prepareBindings(bindings);
+
+    final affected = await DatabaseManager().execute(table, sql, allBindings);
+    return affected > 0;
+  }
+
   /// Returns a reactive stream that emits updated results when the table changes.
   ///
   /// Essential for Flutter reactive UIs (StreamBuilder).

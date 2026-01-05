@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Core:** Added `insertAll()` method to `QueryBuilder` for high-performance bulk record insertion. It generates a single SQL query (`VALUES (...), (...)`) and bypasses model events for efficiency.
 - **Core:** Added `cursor({int batchSize})` method to `QueryBuilder` for lazy streaming of large datasets using offset-based pagination. This allows iterating over thousands of records without loading them all into memory at once.
 - **Core:** Added support for SQL Set Operations: `union()`, `unionAll()`, `intersect()`, and `except()`. These methods allow combining results from multiple queries with automatic binding aggregation and proper SQL generation.
 - **Relations:** Added support for **Conditional Eager Loading**. `withRelations` now accepts a `Map<String, ScopeCallback>` where the value is a callback to apply constraints (e.g. `where`) to the eager loading query.

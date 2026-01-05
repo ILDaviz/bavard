@@ -264,7 +264,21 @@ await User().query().insert({
   User.schema.email: 'jane@example.com',
   User.schema.votes: 0,
 });
+
 ```
+
+### Bulk Inserts
+
+To insert multiple records in a single query, use the `insertAll` method. This method accepts a `List` of maps and returns `true` on success.
+
+```dart
+await User().query().insertAll([
+  {'email': 'picard@example.com', 'votes': 0},
+  {'email': 'janeway@example.com', 'votes': 0},
+]);
+```
+
+**Note:** Like `insert`, `insertAll` performs a raw database operation. It does **not** trigger model events (like `created`) or manage timestamps automatically.
 
 ### Updates
 

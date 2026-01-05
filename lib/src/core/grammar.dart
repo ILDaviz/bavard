@@ -12,7 +12,7 @@ abstract class Grammar {
   String compileSelect(QueryBuilder query);
 
   /// Compiles an INSERT query into a SQL string.
-  String compileInsert(QueryBuilder query, Map<String, dynamic> values);
+  String compileInsert(QueryBuilder query, List<Map<String, dynamic>> values);
 
   /// Compiles an UPDATE query into a SQL string.
   String compileUpdate(QueryBuilder query, Map<String, dynamic> values);
