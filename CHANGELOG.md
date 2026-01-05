@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.26] - 2026-01-05
+
 ### Added
 - **Core:** Added `insertAll()` method to `QueryBuilder` for high-performance bulk record insertion. It generates a single SQL query (`VALUES (...), (...)`) and bypasses model events for efficiency.
 - **Core:** Added `cursor({int batchSize})` method to `QueryBuilder` for lazy streaming of large datasets using offset-based pagination. This allows iterating over thousands of records without loading them all into memory at once.
