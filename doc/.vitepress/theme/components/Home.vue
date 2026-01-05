@@ -1,7 +1,5 @@
 <template>
   <div class="relative overflow-hidden pt-16 pb-32 space-y-24 bg-gray-50 dark:bg-transparent min-h-[calc(100vh-var(--vp-nav-height))] w-full">
-    
-    <!-- Hero Section -->
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
           <div class="relative z-10">
             <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight mb-6">
@@ -26,8 +24,6 @@
               </a>
             </div>
           </div>
-          
-          <!-- Background Decor -->
           <div class="absolute top-0 left-1/2 w-full -translate-x-1/2 h-full z-0 pointer-events-none opacity-20 dark:opacity-10">
              <div class="absolute top-20 left-1/4 w-72 h-72 bg-purple-300 rounded-full filter blur-3xl animate-blob"></div>
              <div class="absolute top-20 right-1/4 w-72 h-72 bg-indigo-300 rounded-full filter blur-3xl animate-blob animation-delay-2000"></div>
@@ -35,7 +31,6 @@
           </div>
         </div>
     
-        <!-- Why Bavard? Section -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <!-- Text Content -->
@@ -49,11 +44,9 @@
           </p>
         </div>
 
-        <!-- Mock Code Editor -->
         <div class="relative group">
           <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-10 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></div>
           <div class="relative bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-xl border border-gray-200 dark:border-gray-800">
-            <!-- Terminal Header -->
             <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
               <div class="flex gap-1.5">
                 <div class="w-3 h-3 rounded-full bg-red-400"></div>
@@ -62,7 +55,6 @@
               </div>
               <span class="ml-4 text-xs text-gray-500 dark:text-gray-400 font-mono">user_repository.dart</span>
             </div>
-            <!-- Code Content -->
             <div class="p-6 text-sm font-mono leading-relaxed overflow-x-auto text-gray-800 dark:text-gray-200">
               <div class="flex gap-4">
                 <span class="text-gray-400 dark:text-gray-500 select-none">1</span>
@@ -101,192 +93,80 @@
         </div>
       </div>
     </div>
-
-        <!-- Features Grid -->
-
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            
-
-            <!-- Feature 1 -->
-
             <a href="/bavard/guide/installation" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
-
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-
                 🦋
-
               </div>
-
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Flutter ready</h3>
-
               <p class="text-gray-600 dark:text-gray-400">
-
                 Seamlessly integrated with Flutter for mobile, desktop, and web applications.
-
               </p>
-
             </a>
-
-    
-
-            <!-- Feature 2 -->
-
             <a href="/bavard/core/query-builder" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
-
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-
                 🪄
-
               </div>
-
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Fluent query builder</h3>
-
               <p class="text-gray-600 dark:text-gray-400">
-
                 Write readable queries like <code class="text-xs bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-medium">User().query().where(...).get()</code>.
-
               </p>
-
             </a>
-
-    
-
-            <!-- Feature 3 -->
-
             <a href="/bavard/core/crud" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
-
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-
                 🔄
-
               </div>
-
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Active record pattern</h3>
-
               <p class="text-gray-600 dark:text-gray-400">
-
                 Models are responsible for saving themselves. <code class="text-xs bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-medium">user.save()</code>, <code class="text-xs bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-medium">user.delete()</code>.
-
               </p>
-
             </a>
-
-    
-
-            <!-- Feature 4 -->
-
             <a href="/bavard/reference/adapters" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
-
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-
                 🧩
-
               </div>
-
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Framework agnostic</h3>
-
               <p class="text-gray-600 dark:text-gray-400">
-
                 Works with any database driver via the <code class="text-xs bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-medium">DatabaseAdapter</code> interface.
-
               </p>
-
             </a>
-
-    
-
-            <!-- Feature 5 -->
-
             <a href="/bavard/relationships/" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
-
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-
                 🔗
-
               </div>
-
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Powerful relations</h3>
-
               <p class="text-gray-600 dark:text-gray-400">
-
                 HasOne, HasMany, BelongsTo, ManyToMany, and Polymorphic relations supported out of the box.
-
               </p>
-
             </a>
-
-    
-
-            <!-- Feature 6 -->
-
             <a href="/bavard/tooling/code-generation" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
-
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-
                 ✨
-
               </div>
-
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Zero boilerplate</h3>
-
               <p class="text-gray-600 dark:text-gray-400">
-
                 Code generation is completely optional. Bavard works entirely at runtime, allowing you to use standard Dart syntax.
-
               </p>
-
             </a>
-
-    
-
-            <!-- Feature 7 -->
-
             <a href="/bavard/advanced/uuids" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
-
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-
                 📡
-
               </div>
-
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Offline-first ready</h3>
-
               <p class="text-gray-600 dark:text-gray-400">
-
                 Native support for client-side UUIDs and driver-agnostic architecture, perfect for local-first apps.
-
               </p>
-
             </a>
-
-    
-
-            <!-- Feature 8 -->
-
             <a href="/bavard/advanced/soft-deletes" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
-
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-
                 🏭
-
               </div>
-
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Production-ready</h3>
-
               <p class="text-gray-600 dark:text-gray-400">
-
                 Built-in support for soft deletes, automatic timestamps, and global scopes out of the box.
-
               </p>
-
             </a>
-
-    
-
-             <!-- Feature 9 -->
             <a href="/bavard/advanced/type-casting" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
                 🎭
@@ -296,15 +176,11 @@
                  Automatic hydration of complex types like JSON, DateTime, and Booleans between Dart and your database.
               </p>
             </a>
-
           </div>
         </div>
-
-        <!-- Footer -->
         <footer class="mt-24 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-                <!-- Brand Column -->
                 <div class="space-y-4">
                   <div class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
                     💬 Bavard
@@ -313,8 +189,6 @@
                     Making Dart & Flutter database interactions fluent, descriptive, and enjoyable.
                   </p>
                 </div>
-                
-                <!-- Links Column -->
                 <div>
                   <h4 class="text-gray-900 dark:text-white font-bold mb-4">Resources</h4>
                   <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
@@ -323,8 +197,6 @@
                     <li><a href="https://github.com/ILDaviz/bavard" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">GitHub Repository</a></li>
                   </ul>
                 </div>
-      
-                <!-- Community Column -->
                 <div>
                   <h4 class="text-gray-900 dark:text-white font-bold mb-4">License</h4>
                   <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -333,13 +205,11 @@
                   </p>
                 </div>
               </div>
-              
               <div class="pt-8 border-t border-gray-100 dark:border-gray-800/50 text-center text-xs text-gray-500 dark:text-gray-500">
                 Copyright © 2025-present Bavard Contributors
               </div>
             </div>
         </footer>
-
   </div>
 </template>
 
