@@ -22,7 +22,7 @@ This annotation is used to generate, based on the provided schema, the various e
 ```dart
 import 'package:bavard/bavard.dart';
 
-part 'user.fillable.g.dart';
+part 'user.fillable.dart';
 
 @fillable
 class User extends Model with $UserFillable {

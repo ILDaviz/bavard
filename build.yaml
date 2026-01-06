@@ -17,7 +17,7 @@ builders:
     import: "package:bavard/src/generators/model_fillable_generator.dart"
     builder_factories: ["fillableGenerator"]
     build_extensions:
-      ".dart": [".fillable.g.dart"]
+      ".dart": [".fillable.dart"]
     auto_apply: dependents
     build_to: source
 

@@ -6,10 +6,10 @@ import 'package:build/build.dart';
 
 import '../../bavard.dart';
 
-/// Entry point for the builder. Generates a `.fillable.g.dart` file containing
+/// Entry point for the builder. Generates a `.fillable.dart` file containing
 /// the mixin implementation for models annotated with `@Fillable`.
 Builder fillableGenerator(BuilderOptions options) =>
-    LibraryBuilder(FillableGenerator(), generatedExtension: '.fillable.g.dart');
+    PartBuilder(<Generator>[FillableGenerator()], '.fillable.dart');
 
 class FillableGenerator extends GeneratorForAnnotation<Fillable> {
   /// Analyzes the `schema` static field to generate strongly-typed accessors,
@@ -79,7 +79,8 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
       if (col.columnType == 'IdColumn') continue;
       if (hasTimestamps &&
           (col.columnType == 'CreatedAtColumn' ||
-              col.columnType == 'UpdatedAtColumn')) continue;
+              col.columnType == 'UpdatedAtColumn'))
+        continue;
       if (hasSoftDeletes && col.columnType == 'DeletedAtColumn') continue;
 
       buffer.writeln();
