@@ -50,7 +50,7 @@ void main() {
 
       await SoftUser().query().get();
 
-      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "users"."deleted_at" IS NULL'));
     });
 
     test('HasGlobalScopes are applied also via typed query()', () async {

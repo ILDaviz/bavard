@@ -19,7 +19,7 @@ class HasMany<R extends Model> extends Relation<R> {
   /// Filters the query to return only children belonging to the current parent instance.
   @override
   void addConstraints() {
-    where(foreignKey, parent.attributes[localKey]);
+    where('$table.$foreignKey', parent.attributes[localKey]);
   }
 
   Future<R> create(Map<String, dynamic> values) async {

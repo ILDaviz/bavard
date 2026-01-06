@@ -18,7 +18,7 @@ class BelongsTo<R extends Model> extends Relation<R> {
   /// [ownerKey] matches the current model's [foreignKey].
   @override
   void addConstraints() {
-    where(ownerKey, parent.attributes[foreignKey]);
+    where('$table.$ownerKey', parent.attributes[foreignKey]);
   }
 
   Future<R?> getResult() => first();

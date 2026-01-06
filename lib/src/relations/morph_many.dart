@@ -27,8 +27,8 @@ class MorphMany<R extends Model> extends Relation<R> {
   /// Both constraints are required because foreign IDs are not unique across different parent tables.
   @override
   void addConstraints() {
-    where('${name}_type', type);
-    where('${name}_id', id);
+    where('$table.${name}_type', type);
+    where('$table.${name}_id', id);
   }
 
   /// Eagerly loads polymorphic children for a list of parents.

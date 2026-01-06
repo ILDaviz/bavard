@@ -16,7 +16,7 @@ mixin HasSoftDeletes on Model {
     super.registerGlobalScopes(builder);
 
     builder.withGlobalScope('soft_delete', (b) {
-      b.whereNull('deleted_at');
+      b.whereNull('$table.deleted_at');
     });
   }
 
@@ -29,7 +29,7 @@ mixin HasSoftDeletes on Model {
   QueryBuilder<Model> onlyTrashed() {
     return newQuery()
         .withoutGlobalScope('soft_delete')
-        .whereNotNull('deleted_at');
+        .whereNotNull('$table.deleted_at');
   }
 
   /// Overrides physical deletion to perform an `UPDATE` operation.

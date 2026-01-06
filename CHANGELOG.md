@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **Core:** Improved SQL generation for `HasSoftDeletes` and relationships (`BelongsTo`, `HasMany`, etc.) by fully qualifying column names with their table aliases (e.g. `users.deleted_at` instead of `deleted_at`). This prevents "ambiguous column name" errors in complex queries involving joins.
+
 ## [0.0.26] - 2026-01-05
 
 ### Added

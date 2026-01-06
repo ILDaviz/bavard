@@ -129,14 +129,14 @@ void main() {
     test('onlyTrashed() combined with where clauses', () async {
       await SoftUser().onlyTrashed().where('role', 'admin').get();
 
-      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NOT NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "users"."deleted_at" IS NOT NULL'));
       expect(dbSpy.lastSql, contains('AND "role" = ?'));
     });
 
     test('standard query excludes soft deleted records', () async {
       await SoftUser().query().get();
 
-      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "users"."deleted_at" IS NULL'));
     });
   });
 }
