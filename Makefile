@@ -35,12 +35,6 @@ tidy:
 	fi
 
 test-all:
-	@if [ -n "$$(git status --porcelain)" ]; then \
-		echo "❌ Error: Working directory is dirty. Please commit or stash your changes first."; \
-		exit 1; \
-	fi
-
-test-all:
 	@echo "🧪 Running Unit Tests..."
 	dart test
 	@echo "✅ Unit Tests Passed"
