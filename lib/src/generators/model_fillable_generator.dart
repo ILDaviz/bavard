@@ -35,8 +35,6 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
 
     await getColumnFromSchema(schemaField, buildStep, columnsData);
 
-    buffer.writeln("import 'package:bavard/bavard.dart';");
-    buffer.writeln();
     buffer.writeln('mixin \$${className}Fillable on Model {');
     buffer.writeln();
 
