@@ -151,11 +151,11 @@ Create a class that extends `Pivot` and defines your intermediate table columns 
 import 'package:bavard/bavard.dart';
 import 'package:bavard/schema.dart';
 
-import 'user_role.pivot.g.dart';
+part 'user_role.g.dart';
 
 @bavardPivot
 class UserRole extends Pivot with $UserRole {
-  UserRole(super.attributes);
+  UserRole([Map<String, dynamic> attributes = const {}]) : super(Map.from(attributes));
 
   // Define pivot columns in a schema record
   static const schema = (
@@ -171,11 +171,11 @@ Just like regular models, you can implement a `Pivot` class manually. You only n
 
 ```dart
 class UserRole extends Pivot {
-  UserRole(super.attributes);
+  UserRole([Map<String, dynamic> attributes = const {}]) : super(Map.from(attributes));
 
   // Manual Getters/Setters
-  DateTime? get createdAt => getAttribute<DateTime>('created_at');
-  bool? get isActive => getAttribute<bool>('is_active');
+  DateTime? get createdAt => get<DateTime>(const DateTimeColumn('created_at'));
+  bool? get isActive => get<bool>(const BoolColumn('is_active'));
 
   // List of columns to select from pivot table
   static const columns = ['created_at', 'is_active'];
@@ -201,7 +201,7 @@ In your model, chain the `.using()` method to your `belongsToMany` definition, p
 class User extends Model {
   BelongsToMany<Role> roles() {
     return belongsToMany(Role.new, 'user_roles')
-      .using(UserRole.new, UserRole.columns);
+      .using(UserRole.new, $UserRole.columns);
   }
 }
 ```

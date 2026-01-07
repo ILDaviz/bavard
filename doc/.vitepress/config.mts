@@ -49,7 +49,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the MIT License. Crafted with ❤️ for the Dart ecosystem.',
-      copyright: `Copyright © 2025-${currentYear} Bavard Contributors`
+      copyright: `Copyright © 2025-${currentYear} David Galet and Bavard Contributors`
     },
 
     sidebar: [

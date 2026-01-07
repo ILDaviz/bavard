@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **Generator:** Migrated to `SharedPartBuilder` for code generation.
+
+### Documentation
+- **Theme:** Applied glassmorphism style to the navigation bar for better readability.
+- **Fun:** Added a surprise "quack" on the homepage for curious clickers. 🪿
+
 ### Fixed
 - **Core:** Improved SQL generation for `HasSoftDeletes` and relationships (`BelongsTo`, `HasMany`, etc.) by fully qualifying column names with their table aliases (e.g. `users.deleted_at` instead of `deleted_at`). This prevents "ambiguous column name" errors in complex queries involving joins.
 

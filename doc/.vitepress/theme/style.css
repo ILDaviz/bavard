@@ -12,6 +12,9 @@
   /* Background nuances */
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #6366f1 30%, #4f46e5);
+
+  /* Transparent Navbar */
+  --vp-nav-bg-color: rgba(255, 255, 255, 0.7);
 }
 
 /* Dark mode adjustments */
@@ -19,6 +22,30 @@
   --vp-c-brand-1: #818cf8;
   --vp-c-brand-2: #6366f1;
   --vp-c-brand-3: #4f46e5;
+  
+  /* Transparent Navbar */
+  --vp-nav-bg-color: rgba(27, 27, 31, 0.7);
+}
+
+/* Navbar Blur Effect */
+.VPNavBar {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Goose Rain Easter Egg */
+@keyframes goose-fall-anim {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+
+.goose-emoji {
+  position: fixed;
+  top: -50px;
+  z-index: 9999;
+  user-select: none;
+  pointer-events: none;
+  animation: goose-fall-anim 3s linear forwards;
 }
 
 /* Custom Table Styles - More readable for Schema tables */

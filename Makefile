@@ -22,6 +22,10 @@ test-all:
 	dart test
 	@echo "✅ Unit Tests Passed"
 	@echo "--------------------------------------"
+	@echo "🧪 Running Builder Usage Example Tests..."
+	cd example/builder_usage && dart pub get && dart run build_runner build --delete-conflicting-outputs && dart test
+	@echo "✅ Builder Usage Tests Passed"
+	@echo "--------------------------------------"
 	@echo "🐳 Running SQLite Integration Tests..."
 	docker build -f example/sqlite-docker/Dockerfile -t bavard-sqlite-test . && docker run --rm bavard-sqlite-test
 	@echo "✅ SQLite Tests Passed"

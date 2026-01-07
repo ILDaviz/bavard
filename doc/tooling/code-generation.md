@@ -103,11 +103,11 @@ For Many-to-Many relationships, you can create strongly-typed `Pivot` classes to
 import 'package:bavard/bavard.dart';
 import 'package:bavard/schema.dart';
 
-import 'user_role.pivot.g.dart';
+part 'user_role.g.dart';
 
 @bavardPivot
 class UserRole extends Pivot with $UserRole {
-  UserRole(super.attributes);
+  UserRole([Map<String, dynamic> attributes = const {}]) : super(Map.from(attributes));
 
   static const schema = (
     createdAt: DateTimeColumn('created_at'),
@@ -118,7 +118,7 @@ class UserRole extends Pivot with $UserRole {
 
 The pivot generator creates:
 1. **Typed Getters/Setters**: `pivot.createdAt`, `pivot.isActive`.
-2. **Static Columns List**: `UserRole.columns`, which can be passed to the `belongsToMany(...).using()` method.
+2. **Static Columns List**: `$UserRole.columns`, which can be passed to the `belongsToMany(...).using()` method.
 
 ::: tip
 **Pro Tip:** If you don't want to use code generation for pivots, you can manually define getters/setters and the `columns` list. See the [Relationships Guide](/relationships/index#manual-pivot-no-code-generation) for more details.
