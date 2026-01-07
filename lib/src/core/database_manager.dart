@@ -100,13 +100,14 @@ class DatabaseManager {
           _activeTransaction = previousTransaction;
         }
       });
-    } catch (e) {
+    } catch (e, s) {
       if (e is TransactionException) rethrow;
 
       throw TransactionException(
         message: 'Transaction failed: ${e.toString()}',
         wasRolledBack: true,
         originalError: e,
+        stackTrace: s,
       );
     }
   }
