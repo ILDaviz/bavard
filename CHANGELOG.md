@@ -4,15 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Core:** Added `stackTrace` support to `BavardException` and all its subclasses. This ensures that when database errors or transaction failures are caught and rethrown, the original stack trace is preserved for easier debugging.
+- **Core:** Added `formatBoolForDebug()` to `Grammar` to support dialect-specific boolean formatting (e.g., `TRUE/FALSE` for Postgres vs `1/0` for SQLite) in debug SQL output.
+- **Testing:** Updated `MockDatabaseSpy` constructor to accept an optional `Grammar`, enabling better testing of dialect-specific behaviors in unit tests.
+
 ### Changed
 - **Generator:** Migrated to `SharedPartBuilder` for code generation.
+- **Pivots:** Standardized the `Pivot` constructor pattern to `UserRole([Map<String, dynamic> attributes = const {}]) : super(Map.from(attributes))`. This ensures better isolation of pivot data and supports parameterless instantiation.
 
 ### Documentation
 - **Theme:** Applied glassmorphism style to the navigation bar for better readability.
 - **Fun:** Added a surprise "quack" on the homepage for curious clickers. 🪿
+- **Reference:** Updated "Error Handling" guide to document the new `stackTrace` property and how to use it for debugging.
 
 ### Fixed
 - **Core:** Improved SQL generation for `HasSoftDeletes` and relationships (`BelongsTo`, `HasMany`, etc.) by fully qualifying column names with their table aliases (e.g. `users.deleted_at` instead of `deleted_at`). This prevents "ambiguous column name" errors in complex queries involving joins.
+- **Core:** Fixed `QueryBuilder.toSql()` and `toRawSql()` to correctly apply global scopes (like soft deletes) before compiling the SQL.
+- **Core:** Fixed a bug in `QueryBuilder.toRawSql()` where placeholder replacement (`?`) was incorrectly applied to points of domanda inside string literals. It now uses a safer parser that respects string boundaries.
 
 ## [0.0.26] - 2026-01-05
 
