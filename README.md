@@ -60,7 +60,7 @@ Bavard models use a schema-first approach. For the best experience, use code gen
 ```dart
 import 'package:bavard/bavard.dart';
 
-part 'user.fillable.dart';
+part 'user.g.dart';
 
 @fillable
 class User extends Model with $UserFillable {

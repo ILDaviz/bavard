@@ -130,7 +130,7 @@ For full type safety and better IDE support, use the `@fillable` annotation and 
 ```dart
 import 'package:bavard/bavard.dart';
 
-part 'user.fillable.dart'; // Name of the generated file
+part 'user.g.dart'; // Name of the generated file
 
 @fillable
 class User extends Model with $UserFillable {

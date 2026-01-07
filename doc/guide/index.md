@@ -33,7 +33,7 @@ import 'package:bavard/bavard.dart';
 import 'package:bavard/schema.dart';
 import 'post.dart';
 import 'image.dart';
-import 'user.fillable.dart';
+import 'user.g.dart';
 
 @fillable
 class User extends Model with $UserFillable, HasUuids {

@@ -6,10 +6,10 @@ import 'package:build/build.dart';
 
 import '../../bavard.dart';
 
-/// Entry point for the builder. Generates a `.fillable.dart` file containing
+/// Entry point for the builder. Generates a `.g.dart` file containing
 /// the mixin implementation for models annotated with `@Fillable`.
 Builder fillableGenerator(BuilderOptions options) =>
-    PartBuilder(<Generator>[FillableGenerator()], '.fillable.dart');
+    SharedPartBuilder(<Generator>[FillableGenerator()], 'fillable');
 
 class FillableGenerator extends GeneratorForAnnotation<Fillable> {
   /// Analyzes the `schema` static field to generate strongly-typed accessors,
