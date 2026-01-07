@@ -28,6 +28,7 @@ doc/.vitepress/cache
 # Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
 /pubspec.lock
 *.lock
+!doc/yarn.lock
 .dart_tool/
 .flutter-plugins-dependencies
 /build/
