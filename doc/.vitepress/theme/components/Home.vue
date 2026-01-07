@@ -126,7 +126,7 @@
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
                 🧩
               </div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Framework agnostic</h3>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Driver agnostic</h3>
               <p class="text-gray-600 dark:text-gray-400">
                 Works with any database driver via the <code class="text-xs bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-medium">DatabaseAdapter</code> interface.
               </p>
@@ -144,9 +144,9 @@
               <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
                 ✨
               </div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Zero boilerplate</h3>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No Code Gen Required</h3>
               <p class="text-gray-600 dark:text-gray-400">
-                Code generation is completely optional. Bavard works entirely at runtime, allowing you to use standard Dart syntax.
+                Code generation is completely optional. Bavard works entirely at runtime, giving you a faster development workflow.
               </p>
             </a>
             <a href="/bavard/advanced/uuids" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
