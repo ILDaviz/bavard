@@ -49,6 +49,9 @@ class PostgresGrammar extends Grammar {
   }
 
   @override
+  String formatBoolForDebug(bool value) => value ? 'TRUE' : 'FALSE';
+
+  @override
   List<dynamic> prepareBindings(List<dynamic> bindings) {
     return bindings.map((value) {
       // Postgres handles boolean natively, no need to convert to 0/1

@@ -32,6 +32,7 @@ class QueryBuilder<T extends Model> {
 
   final Map<String, ScopeCallback> _globalScopes = {};
   bool _ignoreGlobalScopes = false;
+  bool _scopesApplied = false;
 
   int? _offset;
   String? _orderBy;
@@ -60,7 +61,10 @@ class QueryBuilder<T extends Model> {
   int? get offsetValue => _offset;
 
   /// Returns the raw SQL string compiled from current state.
-  String toSql() => _compileSql();
+  String toSql() {
+    _applyScopes();
+    return _compileSql();
+  }
 
   static final RegExp _tableIdent = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$');
 
@@ -172,22 +176,45 @@ class QueryBuilder<T extends Model> {
   // ---------------------------------------------------------------------------
 
   String toRawSql() {
+    _applyScopes();
     String sql = _compileSql();
     final allBindings = _grammar.prepareBindings(_getAllBindings());
 
     int index = 0;
-    return sql.replaceAllMapped('?', (match) {
-      if (index >= allBindings.length) return '?';
+    StringBuffer result = StringBuffer();
+    bool inString = false;
+    String? quoteChar;
 
-      final value = allBindings[index++];
-      return _formatValueForDebug(value);
-    });
+    for (int i = 0; i < sql.length; i++) {
+      String char = sql[i];
+
+      // Handle string literals to avoid replacing '?' inside them
+      if ((char == "'" || char == '"') && (i == 0 || sql[i - 1] != '\\')) {
+        if (!inString) {
+          inString = true;
+          quoteChar = char;
+        } else if (char == quoteChar) {
+          inString = false;
+          quoteChar = null;
+        }
+        result.write(char);
+      } else if (char == '?' && !inString) {
+        if (index < allBindings.length) {
+          result.write(_formatValueForDebug(allBindings[index++]));
+        } else {
+          result.write('?');
+        }
+      } else {
+        result.write(char);
+      }
+    }
+    return result.toString();
   }
 
   String _formatValueForDebug(dynamic value) {
     if (value == null) return 'NULL';
     if (value is num) return value.toString();
-    if (value is bool) return value ? '1' : '0';
+    if (value is bool) return _grammar.formatBoolForDebug(value);
     if (value is DateTime) return "'${value.toIso8601String()}'";
     return "'${value.toString().replaceAll("'", "''")}'";
   }
@@ -228,11 +255,13 @@ class QueryBuilder<T extends Model> {
   }
 
   void _applyScopes() {
-    if (_ignoreGlobalScopes) return;
+    if (_ignoreGlobalScopes || _scopesApplied) return;
 
     _globalScopes.forEach((name, scope) {
       scope(this);
     });
+
+    _scopesApplied = true;
   }
 
   // ---------------------------------------------------------------------------

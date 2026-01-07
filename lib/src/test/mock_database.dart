@@ -20,7 +20,7 @@ class MockDatabaseSpy implements DatabaseAdapter {
   bool _inTransaction = false;
 
   // Default grammar for testing
-  final Grammar _grammar = SQLiteGrammar();
+  final Grammar _grammar;
 
   @override
   Grammar get grammar => _grammar;
@@ -37,7 +37,9 @@ class MockDatabaseSpy implements DatabaseAdapter {
   MockDatabaseSpy([
     this._defaultData = const [],
     Map<String, List<Map<String, dynamic>>> smartResponses = const {},
-  ]) : _smartResponses = Map.from(smartResponses);
+    Grammar? grammar,
+  ])  : _smartResponses = Map.from(smartResponses),
+        _grammar = grammar ?? SQLiteGrammar();
 
   /// Updates the mock response configuration at runtime.
   void setMockData(Map<String, List<Map<String, dynamic>>> data) {

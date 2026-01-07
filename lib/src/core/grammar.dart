@@ -32,6 +32,9 @@ abstract class Grammar {
   /// Normalizes bindings for the specific database driver.
   List<dynamic> prepareBindings(List<dynamic> bindings);
 
+  /// Formats a boolean value for debug SQL output.
+  String formatBoolForDebug(bool value) => value ? '1' : '0';
+
   /// Concatenates components of a SELECT query.
   String concatenate(List<String> components) {
     return components.where((component) => component.isNotEmpty).join(' ');
