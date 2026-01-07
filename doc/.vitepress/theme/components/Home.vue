@@ -2,7 +2,7 @@
   <div class="relative overflow-hidden pt-16 pb-32 space-y-24 bg-gray-50 dark:bg-transparent min-h-[calc(100vh-var(--vp-nav-height))] w-full">
         <div class="relative mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
           <div class="relative z-10">
-            <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight mb-6">
+            <h1 class="text-6xl md:text-[150px] font-extrabold tracking-tight mb-6">
               <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 animate-gradient-x">
                 Bavard
               </span>
