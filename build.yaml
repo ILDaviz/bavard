@@ -16,15 +16,17 @@ builders:
   fillable_generator:
     import: "package:bavard/src/generators/model_fillable_generator.dart"
     builder_factories: ["fillableGenerator"]
-    build_extensions:
-      ".dart": [".fillable.g.dart"]
+    # "fillable" is The `partId` argument passed to `SharedPartBuilder`
+    build_extensions: {".dart": [".fillable.g.part"]}
     auto_apply: dependents
-    build_to: source
+    build_to: cache
+    applies_builders: ["source_gen:combining_builder"]
 
   pivot_generator:
     import: "package:bavard/src/generators/pivot_generator.dart"
     builder_factories: ["pivotGenerator"]
-    build_extensions:
-      ".dart": [".pivot.g.dart"]
+    # "pivot" is The `partId` argument passed to `SharedPartBuilder`
+    build_extensions: {".dart": [".pivot.g.part"]}
     auto_apply: dependents
-    build_to: source
+    build_to: cache
+    applies_builders: ["source_gen:combining_builder"]
