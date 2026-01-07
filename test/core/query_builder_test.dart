@@ -129,20 +129,22 @@ void main() {
     expect(dbSpy.lastArgs, [1, 'admin@test.com']);
   });
 
-  test('It handles whereNull and whereNotNull with dynamic columns (Strings or Column objects)', () async {
-    final col = TextColumn('deleted_at');
-    final q = TestUser()
-        .query()
-        .whereNull(col)
-        .orWhereNotNull('posted_at');
-    await q.get();
+  test(
+    'It handles whereNull and whereNotNull with dynamic columns (Strings or Column objects)',
+    () async {
+      final col = TextColumn('deleted_at');
+      final q = TestUser().query().whereNull(col).orWhereNotNull('posted_at');
+      await q.get();
 
-    expect(
-      dbSpy.lastSql,
-      contains('WHERE "users"."deleted_at" IS NULL OR "posted_at" IS NOT NULL'),
-    );
-    expect(dbSpy.lastArgs, isEmpty);
-  });
+      expect(
+        dbSpy.lastSql,
+        contains(
+          'WHERE "users"."deleted_at" IS NULL OR "posted_at" IS NOT NULL',
+        ),
+      );
+      expect(dbSpy.lastArgs, isEmpty);
+    },
+  );
 
   test('It handles whereRaw with bindings', () async {
     await TestUser().query().whereRaw('age > ?', bindings: [18]).get();
@@ -354,7 +356,10 @@ void main() {
     final query1 = TestUser().query().where('active', 1);
     final query2 = TestUser().query().where('active', 0);
 
-    await query1.unionAll(query2).orderBy('created_at', direction: 'DESC').get();
+    await query1
+        .unionAll(query2)
+        .orderBy('created_at', direction: 'DESC')
+        .get();
 
     expect(
       dbSpy.lastSql,
@@ -364,11 +369,13 @@ void main() {
   });
 
   test('It calculates COUNT with UNION', () async {
-     final query1 = TestUser().query().where('id', 1);
+    final query1 = TestUser().query().where('id', 1);
     final query2 = TestUser().query().where('id', 2);
 
     dbSpy.setMockData({
-      'SELECT COUNT(*) as aggregate': [{'aggregate': 10}],
+      'SELECT COUNT(*) as aggregate': [
+        {'aggregate': 10},
+      ],
     });
 
     final count = await query1.union(query2).count();

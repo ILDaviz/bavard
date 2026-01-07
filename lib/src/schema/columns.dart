@@ -247,22 +247,20 @@ class EnumColumn<T extends Enum> extends Column<T> {
       WhereCondition(name!, '!=', value.name, sourceColumn: this);
 
   @override
-  WhereCondition inList(List<T> values) =>
-      WhereCondition(
-        name!,
-        'IN',
-        values.map((e) => e.name).toList(),
-        sourceColumn: this,
-      );
+  WhereCondition inList(List<T> values) => WhereCondition(
+    name!,
+    'IN',
+    values.map((e) => e.name).toList(),
+    sourceColumn: this,
+  );
 
   @override
-  WhereCondition notInList(List<T> values) =>
-      WhereCondition(
-        name!,
-        'NOT IN',
-        values.map((e) => e.name).toList(),
-        sourceColumn: this,
-      );
+  WhereCondition notInList(List<T> values) => WhereCondition(
+    name!,
+    'NOT IN',
+    values.map((e) => e.name).toList(),
+    sourceColumn: this,
+  );
 }
 
 /// Represents the Primary Key column.
@@ -270,8 +268,11 @@ class EnumColumn<T extends Enum> extends Column<T> {
 /// Can be mapped to an [int] (auto-increment) or [String] (UUID).
 /// Usage: `IdColumn()` implies default 'id' name, or `IdColumn('uuid')`.
 class IdColumn extends Column<dynamic> {
-  const IdColumn([String? name = 'id', bool isNullable = false, bool isGuarded = true])
-      : super(name, isNullable: isNullable, isGuarded: isGuarded);
+  const IdColumn([
+    String? name = 'id',
+    bool isNullable = false,
+    bool isGuarded = true,
+  ]) : super(name, isNullable: isNullable, isGuarded: isGuarded);
 
   @override
   String get schemaType => 'id';

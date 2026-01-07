@@ -122,7 +122,9 @@ void main() {
       DatabaseManager().setDatabase(mockDb);
 
       mockDb.setMockData({
-        'FROM "users"': [{'id': 1, 'name': 'Old Name'}],
+        'FROM "users"': [
+          {'id': 1, 'name': 'Old Name'},
+        ],
       });
 
       final stream = User().query().watch();
@@ -130,8 +132,16 @@ void main() {
       final expectation = expectLater(
         stream,
         emitsInOrder([
-          isA<List<User>>().having((l) => l.first.attributes['name'], 'initial', 'Old Name'),
-          isA<List<User>>().having((l) => l.first.attributes['name'], 'updated', 'New Name'),
+          isA<List<User>>().having(
+            (l) => l.first.attributes['name'],
+            'initial',
+            'Old Name',
+          ),
+          isA<List<User>>().having(
+            (l) => l.first.attributes['name'],
+            'updated',
+            'New Name',
+          ),
         ]),
       );
 
@@ -139,7 +149,9 @@ void main() {
 
       await DatabaseManager().transaction((txn) async {
         mockDb.setMockData({
-          'FROM "users"': [{'id': 1, 'name': 'New Name'}],
+          'FROM "users"': [
+            {'id': 1, 'name': 'New Name'},
+          ],
         });
         await txn.execute('users', 'UPDATE users SET name = "New Name"');
         return true;
@@ -153,7 +165,9 @@ void main() {
       DatabaseManager().setDatabase(mockDb);
 
       mockDb.setMockData({
-        'FROM "users"': [{'id': 1, 'name': 'Old Name'}],
+        'FROM "users"': [
+          {'id': 1, 'name': 'Old Name'},
+        ],
       });
 
       final stream = User().query().watch();
@@ -170,25 +184,34 @@ void main() {
       try {
         await DatabaseManager().transaction((txn) async {
           mockDb.setMockData({
-            'FROM "users"': [{'id': 1, 'name': 'Temporary Name'}],
+            'FROM "users"': [
+              {'id': 1, 'name': 'Temporary Name'},
+            ],
           });
 
-          await txn.execute('users', 'UPDATE users SET name = "Temporary Name"');
+          await txn.execute(
+            'users',
+            'UPDATE users SET name = "Temporary Name"',
+          );
 
           throw Exception('Rollback Trigger');
         });
-      } catch (e) {
-      }
+      } catch (e) {}
 
       mockDb.setMockData({
-        'FROM "users"': [{'id': 1, 'name': 'Old Name'}],
+        'FROM "users"': [
+          {'id': 1, 'name': 'Old Name'},
+        ],
       });
 
       await Future.delayed(Duration.zero);
       await subscription.cancel();
 
-      expect(history, isNot(contains('Temporary Name')),
-          reason: 'UI should never see uncommitted data');
+      expect(
+        history,
+        isNot(contains('Temporary Name')),
+        reason: 'UI should never see uncommitted data',
+      );
       expect(history.first, 'Old Name');
     });
   });

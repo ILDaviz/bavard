@@ -6,7 +6,7 @@ void main() {
   group('Product (Fillable Generator)', () {
     test('Fillable and Guarded lists are correct', () {
       final product = Product();
-      
+
       expect(product.fillable, containsAll(['name', 'price']));
       expect(product.fillable, isNot(contains('stock')));
       expect(product.fillable, isNot(contains('id')));
@@ -23,7 +23,7 @@ void main() {
 
     test('Type-safe accessors work', () {
       final product = Product();
-      
+
       product.name = 'MacBook Pro';
       product.price = 1999.99;
       product.stock = 10;
@@ -41,13 +41,13 @@ void main() {
   group('OrderProduct (Pivot Generator)', () {
     test('Schema columns are generated', () {
       expect($OrderProduct.columns, hasLength(2));
-      
+
       expect($OrderProduct.columns.first, isA<SchemaColumn>());
     });
 
     test('Type-safe accessors work', () {
       final pivot = OrderProduct();
-      
+
       pivot.quantity = 5;
       pivot.discount = 0.1;
 

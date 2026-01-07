@@ -63,6 +63,9 @@ void main() {
   test('withPivot works with Column object', () async {
     await User().roles().withPivot([schema.isActive]).get();
 
-    expect(dbSpy.lastSql, contains('"user_roles"."is_active" AS "pivot_is_active"'));
+    expect(
+      dbSpy.lastSql,
+      contains('"user_roles"."is_active" AS "pivot_is_active"'),
+    );
   });
 }

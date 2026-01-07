@@ -38,27 +38,32 @@ void main() {
       expect(users.first.exists, isTrue);
     });
 
-    test('watch() returns stream of typed models and emits initial data', () async {
-      final mockDb = MockDatabaseSpy([
-        {'id': 1, 'name': 'David'},
-      ]);
-      DatabaseManager().setDatabase(mockDb);
+    test(
+      'watch() returns stream of typed models and emits initial data',
+      () async {
+        final mockDb = MockDatabaseSpy([
+          {'id': 1, 'name': 'David'},
+        ]);
+        DatabaseManager().setDatabase(mockDb);
 
-      final stream = WatchUser().query().watch();
+        final stream = WatchUser().query().watch();
 
-      expect(stream, isA<Stream<List<WatchUser>>>());
+        expect(stream, isA<Stream<List<WatchUser>>>());
 
-      final users = await stream.first;
-      expect(users.length, 1);
-      expect(users.first.attributes['name'], 'David');
-    });
+        final users = await stream.first;
+        expect(users.length, 1);
+        expect(users.first.attributes['name'], 'David');
+      },
+    );
 
     test('watch() stream emits new data when table changes', () async {
       final mockDb = MockDatabaseSpy();
       DatabaseManager().setDatabase(mockDb);
 
       mockDb.setMockData({
-        'FROM "users"': [{'id': 1, 'name': 'David'}],
+        'FROM "users"': [
+          {'id': 1, 'name': 'David'},
+        ],
       });
 
       final stream = WatchUser().query().watch();
@@ -82,7 +87,10 @@ void main() {
         ],
       });
 
-      await DatabaseManager().execute('users', 'UPDATE users SET name = "changed"');
+      await DatabaseManager().execute(
+        'users',
+        'UPDATE users SET name = "changed"',
+      );
 
       await expectation;
     });
@@ -92,7 +100,9 @@ void main() {
       DatabaseManager().setDatabase(mockDb);
 
       mockDb.setMockData({
-        'FROM "users"': [{'id': 1, 'name': 'David'}],
+        'FROM "users"': [
+          {'id': 1, 'name': 'David'},
+        ],
       });
 
       final stream = WatchUser().query().watch();
@@ -102,7 +112,10 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
       expect(emitCount, 1);
 
-      await DatabaseManager().execute('other_table', 'UPDATE other_table SET x = 1');
+      await DatabaseManager().execute(
+        'other_table',
+        'UPDATE other_table SET x = 1',
+      );
 
       await Future.delayed(const Duration(milliseconds: 50));
       expect(emitCount, 1, reason: 'Should not emit for other table changes');

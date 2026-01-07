@@ -77,7 +77,7 @@ void main() {
       // BoolColumn -> boolean -> bool cast -> stored as 1/0
       expect(user.attributes['is_active'], 1);
     });
-    
+
     test('Mixed usage: casts overrides schema', () {
       final hybrid = HybridUser({'age': '25'});
       expect(hybrid.getAttribute<double>('age'), 25.0);

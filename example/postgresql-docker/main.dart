@@ -45,10 +45,9 @@ class PostgresAdapter implements DatabaseAdapter {
 
   @override
   Future<List<Map<String, dynamic>>> getAll(
-      String sql,
-      [
-        List<dynamic>? arguments,
-      ]) async {
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     final transformedSql = _transformSql(sql);
     final result = await _conn.execute(
       Sql(transformedSql),
@@ -61,17 +60,20 @@ class PostgresAdapter implements DatabaseAdapter {
 
   @override
   Future<Map<String, dynamic>> get(
-      String sql,
-      [
-        List<dynamic>? arguments,
-      ]) async {
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     final result = await getAll(sql, arguments);
     if (result.isEmpty) return {};
     return result.first;
   }
 
   @override
-  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(
+    String table,
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     final transformedSql = _transformSql(sql);
     final result = await _conn.execute(
       Sql(transformedSql),
@@ -86,7 +88,8 @@ class PostgresAdapter implements DatabaseAdapter {
     final placeholders = List.filled(values.length, '?').join(', ');
 
     // Postgres specific: RETURNING * to be safe against missing 'id' column
-    final sql = 'INSERT INTO "$table" ($columns) VALUES ($placeholders) RETURNING *';
+    final sql =
+        'INSERT INTO "$table" ($columns) VALUES ($placeholders) RETURNING *';
 
     final transformedSql = _transformSql(sql);
     final result = await _conn.execute(
@@ -105,10 +108,14 @@ class PostgresAdapter implements DatabaseAdapter {
 
   @override
   Future<T> transaction<T>(
-      Future<T> Function(TransactionContext txn) callback,
-      ) async {
+    Future<T> Function(TransactionContext txn) callback,
+  ) async {
     return await _conn.runTx((session) async {
-      final txnAdapter = _PostgresTransactionContext(session, _transformSql, _prepareArgs);
+      final txnAdapter = _PostgresTransactionContext(
+        session,
+        _transformSql,
+        _prepareArgs,
+      );
       return await callback(txnAdapter);
     });
   }
@@ -123,10 +130,9 @@ class _PostgresTransactionContext implements TransactionContext {
 
   @override
   Future<List<Map<String, dynamic>>> getAll(
-      String sql,
-      [
-        List? arguments,
-      ]) async {
+    String sql, [
+    List? arguments,
+  ]) async {
     final result = await _session.execute(
       Sql(_transformer(sql)),
       parameters: _preparer(arguments ?? []),
@@ -153,7 +159,8 @@ class _PostgresTransactionContext implements TransactionContext {
   Future<dynamic> insert(String table, Map<String, dynamic> values) async {
     final columns = values.keys.map((k) => '"$k"').join(', ');
     final placeholders = List.filled(values.length, '?').join(', ');
-    final sql = 'INSERT INTO "$table" ($columns) VALUES ($placeholders) RETURNING *';
+    final sql =
+        'INSERT INTO "$table" ($columns) VALUES ($placeholders) RETURNING *';
 
     final result = await _session.execute(
       Sql(_transformer(sql)),
@@ -171,7 +178,9 @@ class _PostgresTransactionContext implements TransactionContext {
 // ==========================================
 
 void main() async {
-  print('\n🧪 --- STARTING BAVARD CORE & EDGE CASE TESTS (PostgreSQL) --- 🧪\n');
+  print(
+    '\n🧪 --- STARTING BAVARD CORE & EDGE CASE TESTS (PostgreSQL) --- 🧪\n',
+  );
 
   final host = Platform.environment['DB_HOST'] ?? 'localhost';
   final port = int.parse(Platform.environment['DB_PORT'] ?? '5432');
@@ -189,7 +198,10 @@ void main() async {
     password: pass,
   );
 
-  final db = await Connection.open(endpoint, settings: ConnectionSettings(sslMode: SslMode.disable));
+  final db = await Connection.open(
+    endpoint,
+    settings: ConnectionSettings(sslMode: SslMode.disable),
+  );
 
   DatabaseManager().setDatabase(PostgresAdapter(db));
 
@@ -207,15 +219,51 @@ void main() async {
     print('Warning cleaning tables: $e');
   }
 
-  await db.execute(Sql.named('CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT, email TEXT UNIQUE, address TEXT, avatar BYTEA, created_at TEXT, updated_at TEXT)'));
-  await db.execute(Sql.named('CREATE TABLE profiles (id SERIAL PRIMARY KEY, user_id INTEGER, bio TEXT, website TEXT, created_at TEXT, updated_at TEXT)'));
-  await db.execute(Sql.named('CREATE TABLE posts (id SERIAL PRIMARY KEY, user_id INTEGER, title TEXT, content TEXT, views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)'));
-  await db.execute(Sql.named('CREATE TABLE comments (id SERIAL PRIMARY KEY, user_id INTEGER, commentable_type TEXT, commentable_id INTEGER, body TEXT, created_at TEXT, updated_at TEXT)'));
-  await db.execute(Sql.named('CREATE TABLE categories (id SERIAL PRIMARY KEY, name TEXT, created_at TEXT, updated_at TEXT)'));
-  await db.execute(Sql.named('CREATE TABLE videos (id SERIAL PRIMARY KEY, title TEXT, url TEXT, created_at TEXT, updated_at TEXT)'));
-  await db.execute(Sql.named('CREATE TABLE category_post (post_id INTEGER, category_id INTEGER, created_at TEXT, PRIMARY KEY(post_id, category_id))'));
-  await db.execute(Sql.named('CREATE TABLE tasks (id SERIAL PRIMARY KEY, title TEXT, metadata TEXT,created_at TEXT, updated_at TEXT, deleted_at TEXT)'));
-  await db.execute(Sql.named('CREATE TABLE products (id SERIAL PRIMARY KEY, name TEXT, price DOUBLE PRECISION, created_at TEXT, updated_at TEXT)'));
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT, email TEXT UNIQUE, address TEXT, avatar BYTEA, created_at TEXT, updated_at TEXT)',
+    ),
+  );
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE profiles (id SERIAL PRIMARY KEY, user_id INTEGER, bio TEXT, website TEXT, created_at TEXT, updated_at TEXT)',
+    ),
+  );
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE posts (id SERIAL PRIMARY KEY, user_id INTEGER, title TEXT, content TEXT, views INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)',
+    ),
+  );
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE comments (id SERIAL PRIMARY KEY, user_id INTEGER, commentable_type TEXT, commentable_id INTEGER, body TEXT, created_at TEXT, updated_at TEXT)',
+    ),
+  );
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE categories (id SERIAL PRIMARY KEY, name TEXT, created_at TEXT, updated_at TEXT)',
+    ),
+  );
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE videos (id SERIAL PRIMARY KEY, title TEXT, url TEXT, created_at TEXT, updated_at TEXT)',
+    ),
+  );
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE category_post (post_id INTEGER, category_id INTEGER, created_at TEXT, PRIMARY KEY(post_id, category_id))',
+    ),
+  );
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE tasks (id SERIAL PRIMARY KEY, title TEXT, metadata TEXT,created_at TEXT, updated_at TEXT, deleted_at TEXT)',
+    ),
+  );
+  await db.execute(
+    Sql.named(
+      'CREATE TABLE products (id SERIAL PRIMARY KEY, name TEXT, price DOUBLE PRECISION, created_at TEXT, updated_at TEXT)',
+    ),
+  );
   print('✅ Database & Schema Initialized.');
 
   await runIntegrationTests();

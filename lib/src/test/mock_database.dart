@@ -38,8 +38,8 @@ class MockDatabaseSpy implements DatabaseAdapter {
     this._defaultData = const [],
     Map<String, List<Map<String, dynamic>>> smartResponses = const {},
     Grammar? grammar,
-  ])  : _smartResponses = Map.from(smartResponses),
-        _grammar = grammar ?? SQLiteGrammar();
+  ]) : _smartResponses = Map.from(smartResponses),
+       _grammar = grammar ?? SQLiteGrammar();
 
   /// Updates the mock response configuration at runtime.
   void setMockData(Map<String, List<Map<String, dynamic>>> data) {
@@ -90,7 +90,11 @@ class MockDatabaseSpy implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(
+    String table,
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     lastSql = sql;
     lastArgs = arguments;
     history.add(sql);
@@ -114,7 +118,8 @@ class MockDatabaseSpy implements DatabaseAdapter {
   Future<dynamic> insert(String table, Map<String, dynamic> values) async {
     final keys = values.keys.map(grammar.wrap).join(', ');
     final placeholders = List.filled(values.length, '?').join(', ');
-    final sql = 'INSERT INTO ${grammar.wrap(table)} ($keys) VALUES ($placeholders)';
+    final sql =
+        'INSERT INTO ${grammar.wrap(table)} ($keys) VALUES ($placeholders)';
 
     lastSql = sql;
     lastArgs = values.values.toList();

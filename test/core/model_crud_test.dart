@@ -30,7 +30,10 @@ void main() {
       final user = User();
       await user.save();
 
-      expect(dbSpy.history.any((s) => s.contains('INSERT INTO "users"')), isTrue);
+      expect(
+        dbSpy.history.any((s) => s.contains('INSERT INTO "users"')),
+        isTrue,
+      );
       expect(user.exists, isTrue);
     });
 

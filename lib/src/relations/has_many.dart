@@ -44,10 +44,10 @@ class HasMany<R extends Model> extends Relation<R> {
     final ids = getKeys(models, localKey);
 
     final query = creator({}).newQuery();
-    
+
     query.withRelations(nested);
     query.whereIn(foreignKey, ids);
-    
+
     if (scope != null) {
       scope(query);
     }

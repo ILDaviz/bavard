@@ -10,6 +10,7 @@ typedef ScopeCallback = void Function(QueryBuilder builder);
 /// and handles the object lifecycle (hydration, dirty checking initialization) and eager loading.
 class QueryBuilder<T extends Model> {
   final String table;
+
   /// This create empty instance of the model.
   /// Example : creator({}).newQuery()
   final T Function(Map<String, dynamic>) creator;
@@ -686,8 +687,9 @@ class QueryBuilder<T extends Model> {
     }
 
     final targetColumn = _resolveColumnName(column);
-    final sqlCol =
-        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
+    final sqlCol = targetColumn.contains('(')
+        ? targetColumn
+        : _grammar.wrap(targetColumn);
     _havings.add({
       'type': boolean,
       'sql': '$sqlCol $op ${_grammar.parameter(value)}',
@@ -735,8 +737,9 @@ class QueryBuilder<T extends Model> {
   /// Adds a HAVING clause that checks for NULL.
   QueryBuilder<T> havingNull(dynamic column, {String boolean = 'AND'}) {
     final targetColumn = _resolveColumnName(column);
-    final sqlCol =
-        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
+    final sqlCol = targetColumn.contains('(')
+        ? targetColumn
+        : _grammar.wrap(targetColumn);
 
     _havings.add({'type': boolean, 'sql': '$sqlCol IS NULL'});
     return this;
@@ -745,8 +748,9 @@ class QueryBuilder<T extends Model> {
   /// Adds a HAVING clause that checks for NOT NULL.
   QueryBuilder<T> havingNotNull(dynamic column, {String boolean = 'AND'}) {
     final targetColumn = _resolveColumnName(column);
-    final sqlCol =
-        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
+    final sqlCol = targetColumn.contains('(')
+        ? targetColumn
+        : _grammar.wrap(targetColumn);
 
     _havings.add({'type': boolean, 'sql': '$sqlCol IS NOT NULL'});
     return this;
@@ -762,8 +766,9 @@ class QueryBuilder<T extends Model> {
     String boolean = 'AND',
   }) {
     final targetColumn = _resolveColumnName(column);
-    final sqlCol =
-        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
+    final sqlCol = targetColumn.contains('(')
+        ? targetColumn
+        : _grammar.wrap(targetColumn);
     _havings.add({
       'type': boolean,
       'sql':
@@ -811,8 +816,9 @@ class QueryBuilder<T extends Model> {
   }
 
   Future<int?> count([dynamic column = '*']) async {
-    final targetColumn =
-        column == '*' ? '*' : _grammar.wrap(_resolveColumnName(column));
+    final targetColumn = column == '*'
+        ? '*'
+        : _grammar.wrap(_resolveColumnName(column));
 
     if (_groupBy.isNotEmpty || _havings.isNotEmpty || _unions.isNotEmpty) {
       final dbManager = DatabaseManager();
@@ -830,7 +836,8 @@ class QueryBuilder<T extends Model> {
         throw QueryException(
           sql: wrapperSql,
           bindings: bindings,
-          message: 'Failed to execute count with group by or unions: ${e.toString()}',
+          message:
+              'Failed to execute count with group by or unions: ${e.toString()}',
           originalError: e,
         );
       }
@@ -907,11 +914,16 @@ class QueryBuilder<T extends Model> {
   // JOINS & RELATIONS
   // ---------------------------------------------------------------------------
 
-  QueryBuilder<T> join(String table, dynamic one, String operator, dynamic two) {
+  QueryBuilder<T> join(
+    String table,
+    dynamic one,
+    String operator,
+    dynamic two,
+  ) {
     _assertIdent(table, dotted: false, what: 'join table name');
     final targetOne = _resolveColumnName(one);
     final targetTwo = _resolveColumnName(two);
-    
+
     _assertIdent(targetOne, dotted: true, what: 'join lhs');
     _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
@@ -936,7 +948,7 @@ class QueryBuilder<T extends Model> {
     _assertIdent(table, dotted: false, what: 'join table name');
     final targetOne = _resolveColumnName(one);
     final targetTwo = _resolveColumnName(two);
-    
+
     _assertIdent(targetOne, dotted: true, what: 'join lhs');
     _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
@@ -961,7 +973,7 @@ class QueryBuilder<T extends Model> {
     _assertIdent(table, dotted: false, what: 'join table name');
     final targetOne = _resolveColumnName(one);
     final targetTwo = _resolveColumnName(two);
-    
+
     _assertIdent(targetOne, dotted: true, what: 'join lhs');
     _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
@@ -995,7 +1007,7 @@ class QueryBuilder<T extends Model> {
         } else if (value == null) {
           _with[key.toString()] = null;
         } else {
-           throw ArgumentError('Invalid scope callback for relation $key');
+          throw ArgumentError('Invalid scope callback for relation $key');
         }
       });
     } else {
@@ -1293,13 +1305,17 @@ class QueryBuilder<T extends Model> {
     final manager = DatabaseManager();
     final controller = StreamController<List<T>>();
 
-    get().then((data) {
-      if (!controller.isClosed) controller.add(data);
-    }).catchError((e) {
-      if (!controller.isClosed) controller.addError(e);
-    });
+    get()
+        .then((data) {
+          if (!controller.isClosed) controller.add(data);
+        })
+        .catchError((e) {
+          if (!controller.isClosed) controller.addError(e);
+        });
 
-    final subscription = manager.tableChanges.where((t) => t == table).listen((_) async {
+    final subscription = manager.tableChanges.where((t) => t == table).listen((
+      _,
+    ) async {
       try {
         final data = await get();
         if (!controller.isClosed) controller.add(data);
@@ -1367,20 +1383,21 @@ class QueryBuilder<T extends Model> {
       final bindings = _grammar.prepareBindings(_getAllBindings());
       final wrapperSql =
           'SELECT $expression as aggregate FROM ($subQuery) as temp_table';
-      
+
       try {
         final row = await dbManager.get(wrapperSql, bindings);
         if (row.isEmpty || row['aggregate'] == null) return null;
-        
+
         final value = row['aggregate'];
-         if (T == int && value is num) return value.toInt() as T;
-         if (T == double && value is num) return value.toDouble() as T;
-         return value as T;
+        if (T == int && value is num) return value.toInt() as T;
+        if (T == double && value is num) return value.toDouble() as T;
+        return value as T;
       } catch (e) {
-         throw QueryException(
+        throw QueryException(
           sql: wrapperSql,
           bindings: bindings,
-          message: 'Failed to execute scalar query with unions: ${e.toString()}',
+          message:
+              'Failed to execute scalar query with unions: ${e.toString()}',
           originalError: e,
         );
       }

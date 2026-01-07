@@ -6,9 +6,9 @@ import 'package:bavard/bavard.dart';
 import 'package:bavard/src/grammars/sqlite_grammar.dart';
 import 'package:shared_test_suite/tests.dart';
 
-// ========================================== 
+// ==========================================
 // ADAPTER & INFRASTRUCTURE
-// ========================================== 
+// ==========================================
 
 class SqliteAdapter implements DatabaseAdapter {
   final Database _db;
@@ -49,7 +49,11 @@ class SqliteAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(
+    String table,
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     _db.execute(sql, _sanitize(arguments ?? []));
     return _db.getUpdatedRows();
   }
@@ -121,9 +125,9 @@ class _SqliteTransactionContext implements TransactionContext {
   }
 }
 
-// ========================================== 
+// ==========================================
 // MAIN TEST SUITE
-// ========================================== 
+// ==========================================
 
 void main() async {
   print('\n🧪 --- STARTING BAVARD CORE & EDGE CASE TESTS (SQLite) --- 🧪\n');

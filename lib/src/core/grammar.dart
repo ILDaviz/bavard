@@ -63,12 +63,14 @@ abstract class Grammar {
   String compileUnions(QueryBuilder query) {
     if (query.unions.isEmpty) return '';
 
-    return query.unions.map((union) {
-      final type = union['type'];
-      final childQuery = union['query'] as QueryBuilder;
-      final sql = childQuery.toSql();
-      return '$type $sql';
-    }).join(' ');
+    return query.unions
+        .map((union) {
+          final type = union['type'];
+          final childQuery = union['query'] as QueryBuilder;
+          final sql = childQuery.toSql();
+          return '$type $sql';
+        })
+        .join(' ');
   }
 
   String compileColumns(QueryBuilder query, List<dynamic> columns) {

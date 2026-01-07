@@ -27,11 +27,11 @@ class ModelNotFoundException extends BavardException {
     String? message,
     StackTrace? stackTrace,
   }) : super(
-          message ??
-              'No query results for model [$model]${id != null ? ' with ID: $id' : ''}.',
-          null,
-          stackTrace,
-        );
+         message ??
+             'No query results for model [$model]${id != null ? ' with ID: $id' : ''}.',
+         null,
+         stackTrace,
+       );
 
   @override
   String toString() => 'ModelNotFoundException: $message';
@@ -105,10 +105,10 @@ class MassAssignmentException extends BavardException {
     required this.model,
     StackTrace? stackTrace,
   }) : super(
-          'Cannot mass-assign [$attribute] on model [$model].',
-          null,
-          stackTrace,
-        );
+         'Cannot mass-assign [$attribute] on model [$model].',
+         null,
+         stackTrace,
+       );
 
   @override
   String toString() => 'MassAssignmentException: $message';
@@ -138,10 +138,10 @@ class RelationNotFoundException extends BavardException {
     required this.model,
     StackTrace? stackTrace,
   }) : super(
-          'Relation [$relation] not found on model [$model].',
-          null,
-          stackTrace,
-        );
+         'Relation [$relation] not found on model [$model].',
+         null,
+         stackTrace,
+       );
 
   @override
   String toString() => 'RelationNotFoundException: $message';

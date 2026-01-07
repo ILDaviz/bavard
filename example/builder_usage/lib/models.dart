@@ -24,7 +24,8 @@ class Product extends Model with $ProductFillable {
 
 @bavardPivot
 class OrderProduct extends Pivot with $OrderProduct {
-  OrderProduct([Map<String, dynamic> attributes = const {}]) : super(Map.from(attributes));
+  OrderProduct([Map<String, dynamic> attributes = const {}])
+      : super(Map.from(attributes));
 
   static const schema = (
     quantity: IntColumn('quantity'),

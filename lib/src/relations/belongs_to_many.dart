@@ -93,7 +93,7 @@ class BelongsToMany<R extends Model> extends Relation<R> {
 
     final query = QueryBuilder<_PivotHelperModel>(
       pivotTable,
-          (map) => _PivotHelperModel(pivotTable, map),
+      (map) => _PivotHelperModel(pivotTable, map),
     );
 
     query.where(foreignPivotKey, parent.id);
@@ -319,15 +319,15 @@ class BelongsToMany<R extends Model> extends Relation<R> {
         .toList();
 
     final pk = creator({}).primaryKey;
-    
+
     final query = creator({}).newQuery();
     query.withRelations(nested);
     query.whereIn(pk, relatedIds);
-    
+
     if (scope != null) {
       scope(query);
     }
-    
+
     final relatedModels = (await query.get()).cast<R>();
 
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};
@@ -377,5 +377,6 @@ class _PivotHelperModel extends Model {
   String get table => _table;
 
   @override
-  _PivotHelperModel fromMap(Map<String, dynamic> map) => _PivotHelperModel(_table, map);
+  _PivotHelperModel fromMap(Map<String, dynamic> map) =>
+      _PivotHelperModel(_table, map);
 }

@@ -56,11 +56,7 @@ void main() {
       final mockDb = MockDatabaseSpy([], {
         'FROM taggables': [
           {'tag_id': 10, 'taggable_id': 1, 'taggable_type': 'posts'},
-          {
-            'tag_id': 11,
-            'taggable_id': 1,
-            'taggable_type': 'videos',
-          },
+          {'tag_id': 11, 'taggable_id': 1, 'taggable_type': 'videos'},
         ],
         'FROM tags': [
           {'id': 10, 'name': 'Flutter'},

@@ -40,12 +40,12 @@ class User extends Model with HasTimestamps {
 
   @override
   List<SchemaColumn> get columns => [
-    IdColumn(),
-    TextColumn('name'),
-    TextColumn('email'),
-    CreatedAtColumn(),
-    UpdatedAtColumn(),
-  ];
+        IdColumn(),
+        TextColumn('name'),
+        TextColumn('email'),
+        CreatedAtColumn(),
+        UpdatedAtColumn(),
+      ];
 
   User([super.attributes]);
   @override
@@ -65,8 +65,8 @@ class User extends Model with HasTimestamps {
 
   @override
   Map<String, dynamic> get casts => {
-    'address': AddressCast(),
-  };
+        'address': AddressCast(),
+      };
 
   Address? get address => getAttribute<Address>('address');
   set address(Address? value) => setAttribute('address', value);

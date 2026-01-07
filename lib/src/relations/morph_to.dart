@@ -102,7 +102,7 @@ class MorphTo<R extends Model> extends Relation<R> {
       final query = dummyModel.newQuery();
       query.withRelations(nested);
       query.whereIn(dummyModel.primaryKey, ids);
-      
+
       if (scope != null) {
         scope(query);
       }

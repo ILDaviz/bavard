@@ -98,7 +98,7 @@ Future<void> getColumnFromSchema(
                   baseType = 'DateTime';
                   castType = 'datetime';
                   // Defaults for these columns
-                  isNullable = true; 
+                  isNullable = true;
                   isGuarded = true;
                   break;
                 case 'IdColumn':

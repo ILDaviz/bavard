@@ -9,7 +9,7 @@ class TestUser extends Model {
   TestUser([super.attributes]);
   @override
   TestUser fromMap(Map<String, dynamic> map) => TestUser(map);
-  
+
   static final schema = TestUserSchema();
 }
 
@@ -42,7 +42,10 @@ void main() {
       TestUser.schema.age: 25,
     });
 
-    expect(dbSpy.lastSql, contains('INSERT INTO "users" ("name", "age") VALUES (?, ?)'));
+    expect(
+      dbSpy.lastSql,
+      contains('INSERT INTO "users" ("name", "age") VALUES (?, ?)'),
+    );
     expect(dbSpy.lastArgs, containsAll(['Alice', 25]));
   });
 }

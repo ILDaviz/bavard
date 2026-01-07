@@ -35,7 +35,11 @@ class MockDatabaseAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(
+    String table,
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     return 1;
   }
 

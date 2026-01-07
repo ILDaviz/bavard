@@ -12,9 +12,10 @@ class PostgresGrammar extends Grammar {
     if (values.isEmpty) return '';
 
     final columns = values.first.keys.toList()..sort();
-    
+
     final columnsSql = wrapArray(columns).join(', ');
-    final rowPlaceholders = '(' + List.filled(columns.length, '?').join(', ') + ')';
+    final rowPlaceholders =
+        '(' + List.filled(columns.length, '?').join(', ') + ')';
     final valuesSql = List.filled(values.length, rowPlaceholders).join(', ');
 
     return 'INSERT INTO ${wrap(query.table)} ($columnsSql) VALUES $valuesSql';

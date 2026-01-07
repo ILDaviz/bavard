@@ -9,7 +9,7 @@ class TestUser extends Model {
   TestUser([super.attributes]);
   @override
   TestUser fromMap(Map<String, dynamic> map) => TestUser(map);
-  
+
   static final schema = TestUserSchema();
 }
 
@@ -24,23 +24,31 @@ void main() {
 
   test('groupBy throws ArgumentError when passed a WhereCondition', () {
     expect(
-      () => TestUser().query().groupBy([TestUser.schema.votes.greaterThanOrEqual(100)]),
-      throwsA(isA<ArgumentError>().having(
-        (e) => e.message, 
-        'message', 
-        contains('You passed a WhereCondition'),
-      )),
+      () => TestUser().query().groupBy([
+        TestUser.schema.votes.greaterThanOrEqual(100),
+      ]),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => e.message,
+          'message',
+          contains('You passed a WhereCondition'),
+        ),
+      ),
     );
   });
 
   test('whereNull throws ArgumentError when passed a WhereCondition', () {
     expect(
-      () => TestUser().query().whereNull(TestUser.schema.votes.greaterThanOrEqual(100)),
-      throwsA(isA<ArgumentError>().having(
-        (e) => e.message, 
-        'message', 
-        contains('You passed a WhereCondition'),
-      )),
+      () => TestUser().query().whereNull(
+        TestUser.schema.votes.greaterThanOrEqual(100),
+      ),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => e.message,
+          'message',
+          contains('You passed a WhereCondition'),
+        ),
+      ),
     );
   });
 }

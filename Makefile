@@ -1,4 +1,4 @@
-.PHONY: help release check-git test-all
+.PHONY: help release check-git test-all lint fix-commit
 
 CURRENT_VERSION := $(shell python3 -c "print(next(line.split(':')[1].strip() for line in open('pubspec.yaml') if line.startswith('version:')))")
 
@@ -8,10 +8,33 @@ help:
 	@echo "Usage: make release v=X.Y.Z"
 	@echo "Example: make release v=0.0.2"
 	@echo "--------------------------------------"
+	@echo "🛠️  Development"
+	@echo "  make tidy          : Format code, analyze, and commit fixes (style: lint and formatting updates)"
+	@echo "--------------------------------------"
 	@echo "🧪 Testing"
 	@echo "  make test-all      : Run Unit Tests + SQLite (Docker) + Postgres (Docker One-shot)"
 
 check-git:
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "❌ Error: Working directory is dirty. Please commit or stash your changes first."; \
+		exit 1; \
+	fi
+
+tidy:
+	@echo "🎨 Formatting code..."
+	@dart format .
+	@echo "🔍 Analyzing code..."
+	@dart analyze .
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "📦 Committing formatting changes..."; \
+		git add .; \
+		git commit -m "style: lint and formatting updates"; \
+		echo "✅ Code formatted and committed."; \
+	else \
+		echo "✨ No formatting changes needed."; \
+	fi
+
+test-all:
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		echo "❌ Error: Working directory is dirty. Please commit or stash your changes first."; \
 		exit 1; \

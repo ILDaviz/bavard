@@ -135,10 +135,9 @@ void main() {
         });
         DatabaseManager().setDatabase(mockDb);
 
-        final users = await User()
-            .query()
-            .withRelations(['posts.comments'])
-            .get();
+        final users = await User().query().withRelations([
+          'posts.comments',
+        ]).get();
 
         final user = users.first;
 

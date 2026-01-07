@@ -51,9 +51,7 @@ class CustomCastModel extends Model {
   CustomCastModel fromMap(Map<String, dynamic> map) => CustomCastModel(map);
 
   @override
-  Map<String, dynamic> get casts => {
-    'address': AddressCast(),
-  };
+  Map<String, dynamic> get casts => {'address': AddressCast()};
 
   Address? get address => getAttribute<Address>('address');
   set address(Address? value) => setAttribute('address', value);
@@ -67,7 +65,7 @@ void main() {
   group('Custom Attribute Casts', () {
     test('getAttribute returns transformed value', () {
       final model = CustomCastModel({
-        'address': '{"street":"123 Main St","city":"New York"}'
+        'address': '{"street":"123 Main St","city":"New York"}',
       });
 
       expect(model.address, isA<Address>());
@@ -78,7 +76,7 @@ void main() {
     test('setAttribute stores transformed value', () {
       final model = CustomCastModel();
       final address = Address('456 Market St', 'San Francisco');
-      
+
       model.address = address;
 
       expect(model.attributes['address'], isA<String>());
@@ -88,21 +86,21 @@ void main() {
     });
 
     test('Works with null values', () {
-       final model = CustomCastModel({'address': null});
-       expect(model.address, isNull);
+      final model = CustomCastModel({'address': null});
+      expect(model.address, isNull);
 
-       model.address = null;
-       expect(model.attributes['address'], isNull);
+      model.address = null;
+      expect(model.attributes['address'], isNull);
     });
 
     test('Works with dehydrate', () {
-       final model = CustomCastModel();
-       final address = Address('789 Broad St', 'Chicago');
-       model.address = address;
-       
-       final dehydrated = model.dehydrateAttributes();
-       expect(dehydrated['address'], isA<String>());
-       expect(dehydrated['address'], contains('Chicago'));
+      final model = CustomCastModel();
+      final address = Address('789 Broad St', 'Chicago');
+      model.address = address;
+
+      final dehydrated = model.dehydrateAttributes();
+      expect(dehydrated['address'], isA<String>());
+      expect(dehydrated['address'], contains('Chicago'));
     });
   });
 }

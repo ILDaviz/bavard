@@ -84,17 +84,17 @@ class DatabaseManager {
     try {
       return await db.transaction<T>((txn) async {
         final trackingTxn = _TrackingTransactionContext(txn);
-        
+
         final previousTransaction = _activeTransaction;
         _activeTransaction = trackingTxn;
 
         try {
           final result = await callback(trackingTxn);
-          
+
           for (final table in trackingTxn.modifiedTables) {
             _tableChangesController.add(table);
           }
-          
+
           return result;
         } finally {
           _activeTransaction = previousTransaction;
@@ -115,7 +115,11 @@ class DatabaseManager {
   /// Executes SQL using the active transaction if available, otherwise uses the main connection.
   ///
   /// Returns the number of rows affected (if supported by the adapter).
-  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(
+    String table,
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
     int result;
     if (_activeTransaction != null) {
       result = await _activeTransaction!.execute(table, sql, arguments);

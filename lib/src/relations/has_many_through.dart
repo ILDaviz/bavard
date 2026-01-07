@@ -75,7 +75,7 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
     final query = creator({}).newQuery();
     query.withRelations(nested);
     query.whereIn(_secondKey, intermediateIds);
-    
+
     if (scope != null) {
       scope(query);
     }

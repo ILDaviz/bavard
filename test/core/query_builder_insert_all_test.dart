@@ -26,7 +26,7 @@ void main() {
 
   test('insertAll() generates correct SQL for single item', () async {
     await TestUser().query().insertAll([
-      {'name': 'Alice', 'age': 30}
+      {'name': 'Alice', 'age': 30},
     ]);
 
     expect(dbSpy.lastSql, 'INSERT INTO "users" ("age", "name") VALUES (?, ?)');
@@ -39,17 +39,26 @@ void main() {
       {'name': 'Bob', 'age': 25},
     ]);
 
-    expect(dbSpy.lastSql, 'INSERT INTO "users" ("age", "name") VALUES (?, ?), (?, ?)');
+    expect(
+      dbSpy.lastSql,
+      'INSERT INTO "users" ("age", "name") VALUES (?, ?), (?, ?)',
+    );
     expect(dbSpy.lastArgs, [30, 'Alice', 25, 'Bob']);
   });
-  
-  test('insertAll() handles items with mixed key order but same keys', () async {
-    await TestUser().query().insertAll([
-      {'name': 'Alice', 'age': 30},
-      {'age': 25, 'name': 'Bob'},
-    ]);
 
-    expect(dbSpy.lastSql, 'INSERT INTO "users" ("age", "name") VALUES (?, ?), (?, ?)');
-    expect(dbSpy.lastArgs, [30, 'Alice', 25, 'Bob']);
-  });
+  test(
+    'insertAll() handles items with mixed key order but same keys',
+    () async {
+      await TestUser().query().insertAll([
+        {'name': 'Alice', 'age': 30},
+        {'age': 25, 'name': 'Bob'},
+      ]);
+
+      expect(
+        dbSpy.lastSql,
+        'INSERT INTO "users" ("age", "name") VALUES (?, ?), (?, ?)',
+      );
+      expect(dbSpy.lastArgs, [30, 'Alice', 25, 'Bob']);
+    },
+  );
 }

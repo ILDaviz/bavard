@@ -9,7 +9,7 @@ class TestUser extends Model {
   TestUser([super.attributes]);
   @override
   TestUser fromMap(Map<String, dynamic> map) => TestUser(map);
-  
+
   static final schema = TestUserSchema();
 }
 
@@ -30,7 +30,9 @@ void main() {
 
   test('count() works with Column', () async {
     final countMock = MockDatabaseSpy([], {
-      'SELECT COUNT("users"."votes") as aggregate': [{'aggregate': 10}],
+      'SELECT COUNT("users"."votes") as aggregate': [
+        {'aggregate': 10},
+      ],
     });
     DatabaseManager().setDatabase(countMock);
 
@@ -40,7 +42,9 @@ void main() {
 
   test('sum() works with Column', () async {
     final sumMock = MockDatabaseSpy([], {
-      'SELECT SUM("users"."votes") as aggregate': [{'aggregate': 100}],
+      'SELECT SUM("users"."votes") as aggregate': [
+        {'aggregate': 100},
+      ],
     });
     DatabaseManager().setDatabase(sumMock);
 
@@ -49,14 +53,15 @@ void main() {
   });
 
   test('join() works with Column', () async {
-    await TestUser().query().join(
-      'roles', 
-      TestUser.schema.roleId, 
-      '=', 
-      'roles.id',
-    ).get();
+    await TestUser()
+        .query()
+        .join('roles', TestUser.schema.roleId, '=', 'roles.id')
+        .get();
 
-    expect(dbSpy.lastSql, contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'));
+    expect(
+      dbSpy.lastSql,
+      contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'),
+    );
   });
 
   test('orderBy() works with Column', () async {
@@ -77,8 +82,8 @@ void main() {
     ]).get();
 
     expect(
-      dbSpy.lastSql, 
-      startsWith('SELECT "users"."id", "users"."name", "email" FROM "users"')
+      dbSpy.lastSql,
+      startsWith('SELECT "users"."id", "users"."name", "email" FROM "users"'),
     );
   });
 }
