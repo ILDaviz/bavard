@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.27] - 2026-01-07
+
 ### Added
 - **Core:** Added `stackTrace` support to `BavardException` and all its subclasses. This ensures that when database errors or transaction failures are caught and rethrown, the original stack trace is preserved for easier debugging.
 - **Core:** Added `formatBoolForDebug()` to `Grammar` to support dialect-specific boolean formatting (e.g., `TRUE/FALSE` for Postgres vs `1/0` for SQLite) in debug SQL output.
