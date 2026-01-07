@@ -46,3 +46,19 @@ th {
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;
 }
+
+/* Animated Gradient Title for Navbar */
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.VPNavBarTitle .title {
+  background: linear-gradient(to right, #4f46e5, #9333ea, #6366f1);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-x 4s linear infinite;
+}

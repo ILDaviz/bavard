@@ -1,6 +1,6 @@
 <template>
   <div class="relative overflow-hidden pt-16 pb-32 space-y-24 bg-gray-50 dark:bg-transparent min-h-[calc(100vh-var(--vp-nav-height))] w-full">
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+        <div class="relative mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
           <div class="relative z-10">
             <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight mb-6">
               <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 animate-gradient-x">
@@ -11,7 +11,7 @@
               An Eloquent-inspired ORM for Dart/Flutter
             </p>
             <p class="mt-4 text-lg text-gray-700 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              Simplify interactions with SQLite, PostgreSQL, PowerSync, or whatever database you prefer. Keep your code clean and readable.
+              Simplify interactions with SQLite, PostgreSQL, PowerSync, or any SQL-compatible database. Keep your code clean and readable.
             </p>
             
             <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -178,38 +178,6 @@
             </a>
           </div>
         </div>
-        <footer class="mt-24 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-                <div class="space-y-4">
-                  <div class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                    💬 Bavard
-                  </div>
-                  <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                    Making Dart & Flutter database interactions fluent, descriptive, and enjoyable.
-                  </p>
-                </div>
-                <div>
-                  <h4 class="text-gray-900 dark:text-white font-bold mb-4">Resources</h4>
-                  <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                    <li><a href="/bavard/guide/" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Documentation</a></li>
-                    <li><a href="https://pub.dev/packages/bavard" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Pub.dev Package</a></li>
-                    <li><a href="https://github.com/ILDaviz/bavard" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">GitHub Repository</a></li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 class="text-gray-900 dark:text-white font-bold mb-4">License</h4>
-                  <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Released under the MIT License.<br>
-                    Crafted with ❤️ for the Dart ecosystem.
-                  </p>
-                </div>
-              </div>
-              <div class="pt-8 border-t border-gray-100 dark:border-gray-800/50 text-center text-xs text-gray-500 dark:text-gray-500">
-                Copyright © 2025-present Bavard Contributors
-              </div>
-            </div>
-        </footer>
   </div>
 </template>
 
