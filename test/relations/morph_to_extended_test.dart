@@ -124,7 +124,6 @@ void main() {
 
       await comments.first.commentable().match(comments, 'commentable');
 
-      // Should have made 2 queries (one per type), not 3
       final fromPostsCount = mockDb.history
           .where((s) => s.contains('FROM "posts"'))
           .length;

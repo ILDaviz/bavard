@@ -43,25 +43,18 @@ class Utils {
 
     // -ves (lives -> life, wolves -> wolf)
     if (word.endsWith('ves')) {
-      // Very basic heuristic: if it ends in 'ives', usually 'ife' (lives -> life), else 'f' (wolves -> wolf)
-      // But 'hives' -> 'hive'. Let's keep it simple for now:
       // knives -> knife, leaves -> leaf.
-      // A common safe fallback for 'ves' is just replacing 'ves' with 'f' or 'fe'.
-      // For DB table names, this is rare. Let's skip complex 'ves' logic to avoid over-engineering if not needed.
     }
 
     // -ies (categories -> category)
     if (word.endsWith('ies')) {
       if (word.endsWith('eies') || word.endsWith('aies')) {
-        // e.g. zombies -> zombie (handled by standard 's' rule if we are careful)
-        // But standard rule is consonant + y -> ies.
         return '${word.substring(0, word.length - 3)}y';
       }
       return '${word.substring(0, word.length - 3)}y';
     }
 
     // -es (boxes -> box, buses -> bus, searches -> search)
-    // Suffixes that typically take -es: s, x, z, ch, sh
     if (word.endsWith('es')) {
       final base = word.substring(0, word.length - 2);
       if (base.endsWith('s') ||
@@ -74,7 +67,6 @@ class Utils {
     }
 
     // -s (users -> user)
-    // Avoid removing 's' if the word ends in 'ss' (address -> address, NOT addres)
     if (word.endsWith('s') && !word.endsWith('ss')) {
       return word.substring(0, word.length - 1);
     }

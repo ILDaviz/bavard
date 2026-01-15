@@ -48,7 +48,6 @@ void main() {
       ];
       await posts.first.tags().match(posts, 'tags');
 
-      // Usa getRelationList per gestire il caso null
       final tags = posts.first.getRelationList<Tag>('tags');
       expect(tags, isEmpty);
     });
@@ -57,11 +56,7 @@ void main() {
       final mockDb = MockDatabaseSpy([], {
         'FROM taggables': [
           {'tag_id': 10, 'taggable_id': 1, 'taggable_type': 'posts'},
-          {
-            'tag_id': 11,
-            'taggable_id': 1,
-            'taggable_type': 'videos',
-          }, // Different type
+          {'tag_id': 11, 'taggable_id': 1, 'taggable_type': 'videos'},
         ],
         'FROM tags': [
           {'id': 10, 'name': 'Flutter'},
@@ -77,7 +72,6 @@ void main() {
 
       final tags = posts.first.relations['tags'] as List;
 
-      // Should only include tags for 'posts' type
       expect(tags.length, 1);
       expect((tags.first as Tag).attributes['name'], 'Flutter');
     });
@@ -108,7 +102,6 @@ void main() {
       final post = Post({'id': 1});
       await post.tags().get();
 
-      // Should use 'taggables' (name + 's')
       expect(dbSpy.lastSql, contains('taggables'));
     });
   });

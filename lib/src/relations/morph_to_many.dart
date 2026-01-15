@@ -2,6 +2,7 @@ import 'relation.dart';
 import '../core/model.dart';
 import '../core/database_manager.dart';
 import '../core/utils.dart';
+import '../core/query_builder.dart';
 
 /// Defines a polymorphic many-to-many relationship.
 ///
@@ -53,7 +54,8 @@ class MorphToMany<R extends Model> extends Relation<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     final parentIds = getKeys(models, parent.primaryKey);
     final db = DatabaseManager().db;
@@ -80,13 +82,15 @@ class MorphToMany<R extends Model> extends Relation<R> {
     // Dynamically resolve the primary key of the related model (do not assume 'id').
     final relatedPk = creator({}).primaryKey;
 
-    final relatedModels =
-        (await creator({})
-                .newQuery()
-                .withRelations(nested)
-                .whereIn(relatedPk, relatedIds)
-                .get())
-            .cast<R>();
+    final query = creator({}).newQuery();
+    query.withRelations(nested);
+    query.whereIn(relatedPk, relatedIds);
+
+    if (scope != null) {
+      scope(query);
+    }
+
+    final relatedModels = (await query.get()).cast<R>();
 
     // Map: related_id -> model instance
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};

@@ -22,7 +22,6 @@ class UserRole extends Pivot {
   ];
 }
 
-// A dummy pivot class for testing type mismatches
 class AnotherPivot extends Pivot {
   AnotherPivot(super.attributes);
 }
@@ -74,7 +73,7 @@ class StrictUserRole extends Pivot {
   DateTime get createdAt => get(StrictUserRole.schema.createdAt);
   bool get isActive => get(StrictUserRole.schema.isActive);
 
-  static List<Column> get columns => [
+  static List<SchemaColumn> get columns => [
     StrictUserRole.schema.createdAt,
     StrictUserRole.schema.isActive,
   ];
@@ -130,7 +129,7 @@ void main() {
               'user_id': 1,
               'role_id': 100,
               'created_at': now.toIso8601String(),
-              'is_active': 1, // sqlite bool
+              'is_active': 1,
             },
           ],
           'FROM "roles"': [
@@ -208,7 +207,6 @@ void main() {
         ]).get();
         final pivot = users.first.rolesList.first.getPivot<StrictUserRole>()!;
 
-        // Trying to access non-nullable getters when data is null should throw TypeError
         expect(() => pivot.createdAt, throwsA(isA<TypeError>()));
         expect(() => pivot.isActive, throwsA(isA<TypeError>()));
       },
@@ -278,7 +276,6 @@ void main() {
         final role = users.first.rolesList.first;
 
         expect(role.getPivot<UserRole>(), isNotNull);
-
         expect(role.getPivot<AnotherPivot>(), isNull);
       },
     );

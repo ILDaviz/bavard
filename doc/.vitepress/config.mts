@@ -1,13 +1,27 @@
 import { defineConfig } from 'vitepress'
+import fs from 'fs'
+import path from 'path'
+
+const pubspecPath = path.resolve(__dirname, '../../pubspec.yaml')
+const pubspecContent = fs.readFileSync(pubspecPath, 'utf-8')
+const versionMatch = pubspecContent.match(/version:\s+(\d+\.\d+\.\d+)/)
+const bavardVersion = versionMatch ? versionMatch[1] : '0.0.0'
+const currentYear = new Date().getFullYear()
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Bavard",
-  description: "An Eloquent-inspired ORM for Dart/Flutter. Simplify interactions with SQLite, PostgreSQL, PowerSync, or whatever database you prefer. Keep your code clean and readable.",
+  description: "An Eloquent-inspired ORM for Dart/Flutter. Simplify interactions with SQLite, PostgreSQL, PowerSync, or any SQL-compatible database. Keep your code clean and readable.",
   lang: 'en-US',
   base: '/bavard/',
   cleanUrls: true,
   lastUpdated: true,
+  
+  vite: {
+    define: {
+      '__BAVARD_VERSION__': JSON.stringify(bavardVersion)
+    }
+  },
 
   head: [
     ['meta', { name: 'theme-color', content: '#6366f1' }],
@@ -20,7 +34,8 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/' },
-      { text: 'API', link: '/api/' }
+      { text: 'API', link: '/api/' },
+      { text: 'Pub.dev', link: 'https://pub.dev/packages/bavard' }
     ],
 
     search: {
@@ -33,8 +48,8 @@ export default defineConfig({
     },
 
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2025 Bavard Contributors'
+      message: 'Released under the MIT License. Crafted with ❤️ for the Dart ecosystem.',
+      copyright: `Copyright © 2025-${currentYear} David Galet and Bavard Contributors`
     },
 
     sidebar: [

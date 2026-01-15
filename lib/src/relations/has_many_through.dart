@@ -1,6 +1,7 @@
 import 'relation.dart';
 import '../core/utils.dart';
 import '../core/model.dart';
+import '../core/query_builder.dart';
 
 /// Defines a distant one-to-many relationship linking a Parent to a Target via an Intermediate model.
 ///
@@ -24,8 +25,6 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
   ) {
     addConstraints();
   }
-
-  // --- Internal Helpers for Key Resolution ---
 
   String get _intermediateTable => intermediateCreator({}).table;
 
@@ -56,7 +55,8 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     final parentIds = getKeys(models, parent.primaryKey);
 
@@ -72,13 +72,15 @@ class HasManyThrough<R extends Model, I extends Model> extends Relation<R> {
     final intermediateIds = intermediateMap.keys.whereType<String>().toList();
     if (intermediateIds.isEmpty) return;
 
-    final targets =
-        (await creator({})
-                .newQuery()
-                .withRelations(nested)
-                .whereIn(_secondKey, intermediateIds)
-                .get())
-            .cast<R>();
+    final query = creator({}).newQuery();
+    query.withRelations(nested);
+    query.whereIn(_secondKey, intermediateIds);
+
+    if (scope != null) {
+      scope(query);
+    }
+
+    final targets = (await query.get()).cast<R>();
 
     for (var model in models) {
       final myParentId = normKey(model.id);

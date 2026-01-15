@@ -8,12 +8,15 @@ import '../query_builder.dart';
 mixin HasSoftDeletes on Model {
   bool get trashed => attributes['deleted_at'] != null;
 
+  DateTime? get deletedAt => attributes['deleted_at'];
+  set deletedAt(DateTime? value) => attributes['deleted_at'] = value;
+
   @override
   void registerGlobalScopes(QueryBuilder<Model> builder) {
     super.registerGlobalScopes(builder);
 
     builder.withGlobalScope('soft_delete', (b) {
-      b.whereNull('deleted_at');
+      b.whereNull('$table.deleted_at');
     });
   }
 
@@ -26,7 +29,7 @@ mixin HasSoftDeletes on Model {
   QueryBuilder<Model> onlyTrashed() {
     return newQuery()
         .withoutGlobalScope('soft_delete')
-        .whereNotNull('deleted_at');
+        .whereNotNull('$table.deleted_at');
   }
 
   /// Overrides physical deletion to perform an `UPDATE` operation.

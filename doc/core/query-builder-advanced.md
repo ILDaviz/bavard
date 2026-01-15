@@ -41,23 +41,31 @@ await User().query()
 
 ## Joins
 
-The query builder allows you to write `JOIN` clauses.
+The query builder allows you to write `JOIN` clauses. It supports both string column names and `Column` objects for join conditions.
 
 ### Inner Join
 
 ```dart
+// Using Strings
 await User().query()
     .join('contacts', 'users.id', '=', 'contacts.user_id')
-    .join('orders', 'users.id', '=', 'orders.user_id')
-    .select(['users.*', 'contacts.phone', 'orders.price'])
+    .select(['users.*', 'contacts.phone'])
+    .get();
+
+// Using Columns
+await User().query()
+    .join('contacts', User.schema.id, '=', Contact.schema.userId)
     .get();
 ```
 
 ### Left Join / Right Join
 
 ```dart
+// Using Strings
 .leftJoin('posts', 'users.id', '=', 'posts.user_id')
-.rightJoin('posts', 'users.id', '=', 'posts.user_id')
+
+// Using Columns
+.rightJoin('posts', User.schema.id, '=', Post.schema.userId)
 ```
 
 ## Group By and Having
@@ -65,16 +73,19 @@ await User().query()
 ### Group By
 
 ```dart
+// Using Strings
 await User().query()
     .groupBy(['account_id', 'status'])
     .get();
-```
 
-To group by a single column, you can use the convenience method `groupByColumn`. Both methods support type-safe `Column` objects:
-
-```dart
+// Using Columns (convenience method for single column)
 await User().query()
     .groupByColumn(User.schema.accountId)
+    .get();
+    
+// Using Columns (list)
+await User().query()
+    .groupBy([User.schema.accountId, User.schema.status])
     .get();
 ```
 
@@ -83,9 +94,16 @@ await User().query()
 The `having` method works similarly to `where` but filters the results after grouping. It accepts string column names or `Column` objects.
 
 ```dart
+// Using Strings
 await User().query()
     .groupBy(['account_id'])
     .having('account_id', 100, operator: '>')
+    .get();
+
+// Using Columns
+await User().query()
+    .groupByColumn(User.schema.accountId)
+    .having(User.schema.accountId, 100, operator: '>')
     .orHaving(User.schema.status, 'active')
     .get();
 ```
@@ -104,14 +122,21 @@ await User().query()
 
 ### Additional Having Clauses
 
-The query builder also supports `havingNull`, `havingNotNull`, and `havingBetween`:
+The query builder also supports `havingNull`, `havingNotNull`, and `havingBetween`, accepting both strings and `Column` objects:
 
 ```dart
+// Using Strings
 await User().query()
     .groupBy(['account_id'])
     .havingNull('deleted_at')
-    .havingNotNull('activated_at')
     .havingBetween('votes', 1, 100)
+    .get();
+
+// Using Columns
+await User().query()
+    .groupByColumn(User.schema.accountId)
+    .havingNotNull(User.schema.activatedAt)
+    .havingBetween(User.schema.votes, 1, 100)
     .get();
 ```
 

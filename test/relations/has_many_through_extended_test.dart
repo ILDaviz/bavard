@@ -130,8 +130,6 @@ void main() {
 
     test('custom first key', () async {
       final country = Country({'id': 1});
-
-      // Using default keys
       await country.posts().get();
 
       expect(dbSpy.lastSql, contains('"users"."country_id" = ?'));

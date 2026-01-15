@@ -33,7 +33,7 @@ void main() {
       await user.profile().getResult();
 
       expect(dbSpy.lastSql, contains('FROM "profiles"'));
-      expect(dbSpy.lastSql, contains('WHERE "user_id" = ?'));
+      expect(dbSpy.lastSql, contains('WHERE "profiles"."user_id" = ?'));
       expect(dbSpy.lastSql, contains('LIMIT 1'));
       expect(dbSpy.lastArgs, [1]);
     });

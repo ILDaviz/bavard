@@ -6,7 +6,7 @@ import 'package:source_gen/source_gen.dart';
 import 'annotations.dart';
 
 Builder pivotGenerator(BuilderOptions options) =>
-    LibraryBuilder(PivotGenerator(), generatedExtension: '.pivot.g.dart');
+    SharedPartBuilder(<Generator>[PivotGenerator()], 'pivot');
 
 class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
   @override
@@ -15,8 +15,6 @@ class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
     ConstantReader annotation,
     BuildStep buildStep,
   ) async {
-    final fileName = buildStep.inputId.pathSegments.last;
-
     if (element is! ClassElement) {
       throw InvalidGenerationSourceError('@BavardPivot works only on classes.');
     }
@@ -29,10 +27,6 @@ class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
 
     await getColumnFromSchema(schemaField, buildStep, columnsData);
 
-    buffer.writeln();
-    buffer.writeln("import 'package:bavard/bavard.dart';");
-    buffer.writeln("import 'package:bavard/schema.dart';");
-    buffer.writeln("import './$fileName';");
     buffer.writeln();
 
     buffer.writeln('mixin \$${className} on Pivot {');
@@ -55,7 +49,7 @@ class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
     final colList = columnsData
         .map((c) => '$className.schema.${c.propertyName}')
         .join(', ');
-    buffer.writeln('  static List<Column> get columns => [$colList];');
+    buffer.writeln('  static List<SchemaColumn> get columns => [$colList];');
 
     buffer.writeln('}');
     return buffer.toString();

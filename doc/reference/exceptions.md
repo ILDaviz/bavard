@@ -14,6 +14,25 @@ Bavard throws specific exceptions that you can catch to handle errors gracefully
 | `RelationNotFoundException` | Thrown when accessing an undefined relationship. |
 | `DatabaseNotInitializedException` | Thrown if `DatabaseManager` is used before setup. |
 
+## Debugging with Stack Traces
+
+All `BavardException` classes include an optional `stackTrace` property that preserves the original stack trace of the error. This is particularly useful for debugging `TransactionException` or `QueryException` where the error might originate deep within the database driver.
+
+```dart
+try {
+  await DatabaseManager().transaction((txn) async {
+    // ... complex logic that might fail ...
+  });
+} on TransactionException catch (e) {
+  print('Transaction failed: ${e.message}');
+  
+  // Access the original stack trace to find the root cause
+  if (e.stackTrace != null) {
+    print(e.stackTrace);
+  }
+}
+```
+
 ## Example
 
 ```dart

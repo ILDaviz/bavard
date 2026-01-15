@@ -62,7 +62,7 @@ These are automatically mixed into `Model` and are always available.
 
 | Mixin | Functionality |
 | :--- | :--- |
-| `HasCasts` | Handles type conversion (hydration/dehydration) of attributes (JSON, DateTime, Bool). |
+| `HasCasts` | Handles type conversion (hydration/dehydration) of attributes based on `columns` or `casts`. |
 | `HasEvents` | Provides lifecycle hooks (`onSaving`, `onDeleted`, etc.). |
 | `HasRelationships` | Manages relation definitions and lazy/eager loading. |
 | `HasAttributeHelpers` | Adds typed accessors like `model.string('name')` or bracket notation `model['name']`. |

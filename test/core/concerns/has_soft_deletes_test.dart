@@ -48,18 +48,18 @@ void main() {
       'Standard query automatically excludes soft deleted records',
       () async {
         await User().query().get();
-        expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NULL'));
+        expect(dbSpy.lastSql, contains('WHERE "users"."deleted_at" IS NULL'));
       },
     );
 
     test('withTrashed() includes soft deleted records', () async {
       await User().withTrashed().get();
-      expect(dbSpy.lastSql, isNot(contains('"deleted_at" IS NULL')));
+      expect(dbSpy.lastSql, isNot(contains('"users"."deleted_at" IS NULL')));
     });
 
     test('onlyTrashed() fetches ONLY soft deleted records', () async {
       await User().onlyTrashed().get();
-      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NOT NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "users"."deleted_at" IS NOT NULL'));
     });
 
     test('restore() resets deleted_at to NULL', () async {

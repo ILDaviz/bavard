@@ -1,0 +1,9 @@
+name: shared_test_suite
+description: Shared integration tests for Bavard examples.
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  bavard:
+    path: ../../
+  test: ^1.24.0

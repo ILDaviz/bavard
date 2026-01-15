@@ -6,6 +6,12 @@ mixin HasTimestamps on Model {
 
   String get updatedAtColumn => 'updated_at';
 
+  DateTime? get createdAt => getAttribute<DateTime>(createdAtColumn);
+  set createdAt(dynamic value) => setAttribute(createdAtColumn, value);
+
+  DateTime? get updatedAt => getAttribute<DateTime>(updatedAtColumn);
+  set updatedAt(dynamic value) => setAttribute(updatedAtColumn, value);
+
   /// Master toggle to disable auto-timestamping (e.g., for legacy tables or bulk imports).
   bool get timestamps => true;
 
@@ -20,12 +26,16 @@ mixin HasTimestamps on Model {
 
     final now = DateTime.now();
 
-    // Differentiates 'Create' from 'Update' based on the existence of a Primary Key.
     if (!exists) {
       // Respects manually set creation dates (e.g., during data migration).
       if (attributes[createdAtColumn] == null) {
         setAttribute(createdAtColumn, now);
       }
+    }
+
+    // Only update timestamp if model is dirty (user changed something)
+    if (exists && !isDirty()) {
+      return super.onSaving();
     }
 
     setAttribute(updatedAtColumn, now);

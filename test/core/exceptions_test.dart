@@ -51,9 +51,6 @@ void main() {
 
     group('DatabaseNotInitializedException', () {
       test('throws when database not initialized', () {
-        // Create a new DatabaseManager instance to test uninitialized state
-        // In real code, we'd need to reset the singleton
-        // For this test, we verify the exception type exists and formats correctly
         const exception = DatabaseNotInitializedException();
 
         expect(exception.message, contains('not initialized'));

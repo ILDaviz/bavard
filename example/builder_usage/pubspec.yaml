@@ -1,0 +1,13 @@
+name: builder_usage
+description: A real-world example of using Bavard code generation.
+publish_to: 'none'
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  bavard:
+    path: ../../
+
+dev_dependencies:
+  build_runner: ^2.4.0
+  test: ^1.24.0

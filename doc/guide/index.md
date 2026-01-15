@@ -10,6 +10,7 @@ Core features like relationship resolution, query building, and data hydration a
 
 ## Why Bavard?
 
+- **Flutter ready:** Seamlessly integrated with Flutter for mobile, desktop, and web applications.
 - **Fluent Syntax:** Write readable queries such as `User().query().where(User.schema.age.greaterThan(18)).get()`.
 - **Offline-first ready:** Native support for client-side UUIDs (`HasUuids`) and driver-agnostic architecture.
 - **Advanced features:** Already includes soft deletes, Automatic timestamps, Global scopes, and Polymorphic relationships.
@@ -32,7 +33,7 @@ import 'package:bavard/bavard.dart';
 import 'package:bavard/schema.dart';
 import 'post.dart';
 import 'image.dart';
-import 'user.fillable.g.dart';
+import 'user.g.dart';
 
 @fillable
 class User extends Model with $UserFillable, HasUuids {
@@ -72,5 +73,5 @@ user.name = 'Mario';
 user.email = 'mario@example.com';
 await user.save();
 
-final users = await User().query().where('active', 1).get();
+final users = await User().query().where(User.schema.name.equals('Mario')).get();
 ```

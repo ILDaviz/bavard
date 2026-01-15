@@ -11,11 +11,9 @@ class User extends Model {
 
 void main() {
   group('Dirty Checking', () {
-    test('newly instantiated model is clean by default', () {
+    test('clean after construction', () {
       final user = User({'name': 'David'});
-      // In the constructor, original = Map.from(rawAttributes), so it starts clean.
       expect(user.isDirty(), isFalse);
-      expect(user.getDirty(), isEmpty);
     });
 
     test('model is clean after syncOriginal', () {

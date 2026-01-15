@@ -15,7 +15,7 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   final String relatedPivotKey;
 
   Pivot Function(Map<String, dynamic>)? _pivotCreator;
-  List<Column> _pivotColumns = [];
+  List<SchemaColumn> _pivotColumns = [];
 
   BelongsToMany(
     super.parent,
@@ -33,7 +33,7 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   /// [columns]: List of columns to retrieve from the pivot table (e.g. `UserRole.columns`).
   BelongsToMany<R> using<P extends Pivot>(
     P Function(Map<String, dynamic>) factory,
-    List<Column> columns,
+    List<SchemaColumn> columns,
   ) {
     _pivotCreator = factory;
     _pivotColumns = columns;
@@ -47,11 +47,10 @@ class BelongsToMany<R extends Model> extends Relation<R> {
   BelongsToMany<R> withPivot(List<dynamic> columns) {
     _pivotColumns.addAll(
       columns.map((c) {
-        if (c is Column) return c;
+        if (c is SchemaColumn) return c;
         return TextColumn(c.toString());
       }),
     );
-    // Ensure we have a pivot creator if not set
     _pivotCreator ??= (map) => GenericPivot(map);
     return this;
   }
@@ -94,7 +93,7 @@ class BelongsToMany<R extends Model> extends Relation<R> {
 
     final query = QueryBuilder<_PivotHelperModel>(
       pivotTable,
-          (map) => _PivotHelperModel(pivotTable, map),
+      (map) => _PivotHelperModel(pivotTable, map),
     );
 
     query.where(foreignPivotKey, parent.id);
@@ -231,7 +230,6 @@ class BelongsToMany<R extends Model> extends Relation<R> {
 
   @override
   Future<List<R>> get() async {
-    // 1. Add specific selects if pivot columns are requested
     if (_pivotColumns.isNotEmpty) {
       // Ensure we select related model fields to avoid them being clobbered
       final selects = <String>['$table.*'];
@@ -245,10 +243,8 @@ class BelongsToMany<R extends Model> extends Relation<R> {
       select(selects);
     }
 
-    // 2. Execute the query
     final models = await super.get();
 
-    // 3. Hydrate Pivot instances
     if (_pivotCreator != null) {
       for (final model in models) {
         _hydratePivot(model);
@@ -266,29 +262,24 @@ class BelongsToMany<R extends Model> extends Relation<R> {
 
     model.attributes.forEach((key, value) {
       if (key.startsWith('pivot_')) {
-        final cleanKey = key.substring(6); // remove 'pivot_'
+        final cleanKey = key.substring(6);
         pivotData[cleanKey] = value;
         keysToRemove.add(key);
       }
     });
 
-    // Clean up the model attributes so they don't look dirty
     for (var k in keysToRemove) model.attributes.remove(k);
 
     model.pivot = _pivotCreator!(pivotData);
   }
 
   /// Eagerly loads relationships to solve N+1 issues.
-  ///
-  /// Strategy:
-  /// 1. Fetch pivot rows via raw SQL (bypassing QueryBuilder for the intermediate table).
-  /// 2. Fetch related models in a single batch.
-  /// 3. Stitch results back to parents in-memory.
   @override
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     final parentIds = getKeys(models, parent.primaryKey);
     if (parentIds.isEmpty) return;
@@ -328,9 +319,16 @@ class BelongsToMany<R extends Model> extends Relation<R> {
         .toList();
 
     final pk = creator({}).primaryKey;
-    final relatedModels = (await creator(
-      {},
-    ).newQuery().withRelations(nested).whereIn(pk, relatedIds).get()).cast<R>();
+
+    final query = creator({}).newQuery();
+    query.withRelations(nested);
+    query.whereIn(pk, relatedIds);
+
+    if (scope != null) {
+      scope(query);
+    }
+
+    final relatedModels = (await query.get()).cast<R>();
 
     final relatedDict = {for (var m in relatedModels) normKey(m.id)!: m};
 
@@ -346,23 +344,16 @@ class BelongsToMany<R extends Model> extends Relation<R> {
       for (var pivotRow in myPivots) {
         final rId = normKey(pivotRow[relatedPivotKey]);
         if (rId != null && relatedDict.containsKey(rId)) {
-          // CLONE the model so we can attach unique pivot data to this instance
-          // without affecting other parents who might share the same related model.
           final original = relatedDict[rId]!;
 
-          // Re-hydrate a fresh instance
           final clone = creator(original.attributes);
           clone.exists = true;
           clone.syncOriginal();
 
-          // Manually copy relations if they were eager loaded on the original
           clone.relations.addAll(original.relations);
 
-          // Attach Pivot
           if (_pivotCreator != null) {
             matches.add(clone);
-            // In match (separate query), we don't use 'pivot_' prefix aliases.
-            // The row comes directly from the pivot table.
             clone.pivot = _pivotCreator != null
                 ? _pivotCreator!(pivotRow)
                 : GenericPivot(pivotRow);
@@ -386,5 +377,6 @@ class _PivotHelperModel extends Model {
   String get table => _table;
 
   @override
-  _PivotHelperModel fromMap(Map<String, dynamic> map) => _PivotHelperModel(_table, map);
+  _PivotHelperModel fromMap(Map<String, dynamic> map) =>
+      _PivotHelperModel(_table, map);
 }

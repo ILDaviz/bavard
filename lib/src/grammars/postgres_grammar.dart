@@ -8,10 +8,17 @@ class PostgresGrammar extends Grammar {
   }
 
   @override
-  String compileInsert(QueryBuilder query, Map<String, dynamic> values) {
-    final columns = wrapArray(values.keys.toList()).join(', ');
-    final placeholders = List.filled(values.length, '?').join(', ');
-    return 'INSERT INTO ${wrap(query.table)} ($columns) VALUES ($placeholders) RETURNING id';
+  String compileInsert(QueryBuilder query, List<Map<String, dynamic>> values) {
+    if (values.isEmpty) return '';
+
+    final columns = values.first.keys.toList()..sort();
+
+    final columnsSql = wrapArray(columns).join(', ');
+    final rowPlaceholders =
+        '(' + List.filled(columns.length, '?').join(', ') + ')';
+    final valuesSql = List.filled(values.length, rowPlaceholders).join(', ');
+
+    return 'INSERT INTO ${wrap(query.table)} ($columnsSql) VALUES $valuesSql';
   }
 
   @override
@@ -33,23 +40,17 @@ class PostgresGrammar extends Grammar {
     if (value.contains('.')) {
       return value.split('.').map((segment) => wrap(segment)).join('.');
     }
-    // Don't wrap if already wrapped
     if (value.startsWith('"') && value.endsWith('"')) return value;
     return '"$value"';
   }
 
   @override
   String parameter(dynamic value) {
-    // Note: Parameter binding for Postgres ($1, $2...) is typically handled
-    // by the driver (e.g. 'postgres' package) or needs stateful compilation.
-    // For this implementation, we rely on the driver transforming ? or @
-    // or we return '?' and let the adapter handle substitution if needed.
-    // Standard SQL uses '?' or named parameters.
-    // If strict $1 is needed during string generation, this method would
-    // need a counter. For now, we assume the underlying driver or a
-    // post-processing step handles ? -> $i conversion if the driver doesn't support ?.
     return '?';
   }
+
+  @override
+  String formatBoolForDebug(bool value) => value ? 'TRUE' : 'FALSE';
 
   @override
   List<dynamic> prepareBindings(List<dynamic> bindings) {

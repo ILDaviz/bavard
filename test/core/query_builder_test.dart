@@ -34,6 +34,11 @@ void main() {
     expect(dbSpy.lastSql, 'SELECT "users".* FROM "users"');
   });
 
+  test('It generates SELECT DISTINCT', () async {
+    await TestUser().query().distinct().get();
+    expect(dbSpy.lastSql, startsWith('SELECT DISTINCT "users".* FROM "users"'));
+  });
+
   test('It generates WHERE clauses with bindings', () async {
     await TestUser().where('email', 'david@test.com').get();
 
@@ -124,20 +129,22 @@ void main() {
     expect(dbSpy.lastArgs, [1, 'admin@test.com']);
   });
 
-  test('It handles whereNull and whereNotNull with dynamic columns (Strings or Column objects)', () async {
-    final col = TextColumn('deleted_at');
-    final q = TestUser()
-        .query()
-        .whereNull(col)
-        .orWhereNotNull('posted_at');
-    await q.get();
+  test(
+    'It handles whereNull and whereNotNull with dynamic columns (Strings or Column objects)',
+    () async {
+      final col = TextColumn('deleted_at');
+      final q = TestUser().query().whereNull(col).orWhereNotNull('posted_at');
+      await q.get();
 
-    expect(
-      dbSpy.lastSql,
-      contains('WHERE "users"."deleted_at" IS NULL OR "posted_at" IS NOT NULL'),
-    );
-    expect(dbSpy.lastArgs, isEmpty);
-  });
+      expect(
+        dbSpy.lastSql,
+        contains(
+          'WHERE "users"."deleted_at" IS NULL OR "posted_at" IS NOT NULL',
+        ),
+      );
+      expect(dbSpy.lastArgs, isEmpty);
+    },
+  );
 
   test('It handles whereRaw with bindings', () async {
     await TestUser().query().whereRaw('age > ?', bindings: [18]).get();
@@ -271,6 +278,7 @@ void main() {
     final originalQuery = TestUser()
         .query()
         .select(['name', 'role'])
+        .distinct()
         .join('roles', 'users.role_id', '=', 'roles.id')
         .where('active', 1)
         .whereRaw('age > ?', bindings: [21])
@@ -289,7 +297,7 @@ void main() {
 
     expect(
       sql,
-      startsWith('SELECT "users"."name", "users"."role" FROM "users"'),
+      startsWith('SELECT DISTINCT "users"."name", "users"."role" FROM "users"'),
     );
     expect(sql, contains('JOIN "roles" ON "users"."role_id" = "roles"."id"'));
     expect(sql, contains('WHERE "active" = ? AND age > ?'));
@@ -307,5 +315,74 @@ void main() {
     final castedQuery = originalQuery.cast<AdminView>(AdminView.new);
 
     expect(castedQuery, isNotNull);
+  });
+
+  test('It streams results via cursor()', () async {
+    dbSpy.setMockData({
+      'OFFSET 0': [
+        {'id': 1, 'name': 'User 1'},
+        {'id': 2, 'name': 'User 2'},
+      ],
+      'OFFSET 2': [
+        {'id': 3, 'name': 'User 3'},
+      ],
+    });
+
+    final stream = TestUser().query().where('active', 1).cursor(batchSize: 2);
+    final results = await stream.toList();
+
+    expect(results.length, 3);
+    expect(results[0].getAttribute('name'), 'User 1');
+    expect(results[1].getAttribute('name'), 'User 2');
+    expect(results[2].getAttribute('name'), 'User 3');
+
+    expect(dbSpy.lastSql, contains('WHERE "active" = ?'));
+  });
+
+  test('It generates UNION queries', () async {
+    final query1 = TestUser().query().where('id', 1);
+    final query2 = TestUser().query().where('id', 2);
+
+    await query1.union(query2).get();
+
+    expect(
+      dbSpy.lastSql,
+      'SELECT "users".* FROM "users" WHERE "id" = ? UNION SELECT "users".* FROM "users" WHERE "id" = ?',
+    );
+    expect(dbSpy.lastArgs, [1, 2]);
+  });
+
+  test('It generates UNION ALL queries with ORDER BY', () async {
+    final query1 = TestUser().query().where('active', 1);
+    final query2 = TestUser().query().where('active', 0);
+
+    await query1
+        .unionAll(query2)
+        .orderBy('created_at', direction: 'DESC')
+        .get();
+
+    expect(
+      dbSpy.lastSql,
+      'SELECT "users".* FROM "users" WHERE "active" = ? UNION ALL SELECT "users".* FROM "users" WHERE "active" = ? ORDER BY "created_at" DESC',
+    );
+    expect(dbSpy.lastArgs, [1, 0]);
+  });
+
+  test('It calculates COUNT with UNION', () async {
+    final query1 = TestUser().query().where('id', 1);
+    final query2 = TestUser().query().where('id', 2);
+
+    dbSpy.setMockData({
+      'SELECT COUNT(*) as aggregate': [
+        {'aggregate': 10},
+      ],
+    });
+
+    final count = await query1.union(query2).count();
+
+    expect(count, 10);
+    expect(dbSpy.lastSql, contains('SELECT COUNT(*) as aggregate FROM ('));
+    expect(dbSpy.lastSql, contains('UNION'));
+    expect(dbSpy.lastSql, endsWith(') as temp_table'));
   });
 }

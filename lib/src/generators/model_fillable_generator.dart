@@ -6,10 +6,10 @@ import 'package:build/build.dart';
 
 import '../../bavard.dart';
 
-/// Entry point for the builder. Generates a `.fillable.g.dart` file containing
+/// Entry point for the builder. Generates a `.g.dart` file containing
 /// the mixin implementation for models annotated with `@Fillable`.
 Builder fillableGenerator(BuilderOptions options) =>
-    LibraryBuilder(FillableGenerator(), generatedExtension: '.fillable.g.dart');
+    SharedPartBuilder(<Generator>[FillableGenerator()], 'fillable');
 
 class FillableGenerator extends GeneratorForAnnotation<Fillable> {
   /// Analyzes the `schema` static field to generate strongly-typed accessors,
@@ -35,8 +35,6 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
 
     await getColumnFromSchema(schemaField, buildStep, columnsData);
 
-    buffer.writeln("import 'package:bavard/bavard.dart';");
-    buffer.writeln();
     buffer.writeln('mixin \$${className}Fillable on Model {');
     buffer.writeln();
 
@@ -62,14 +60,27 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
     buffer.writeln();
     buffer.writeln('  /// CASTS');
     buffer.writeln('  @override');
-    buffer.writeln('  Map<String, String> get casts => {');
+    buffer.writeln('  Map<String, dynamic> get casts => {');
     for (var col in columnsData) {
       buffer.writeln("    '${col.dbName}': '${col.castType}',");
     }
     buffer.writeln('  };');
 
+    // Check for mixins
+    final supertypes = element.allSupertypes.map((t) => t.element.name).toSet();
+    final hasTimestamps = supertypes.contains('HasTimestamps');
+    final hasSoftDeletes = supertypes.contains('HasSoftDeletes');
+
     // Generate type-safe accessors that proxy to the underlying dynamic `getAttribute` / `setAttribute`.
     for (var col in columnsData) {
+      // Skip accessors if handled by mixins or base Model
+      if (col.columnType == 'IdColumn') continue;
+      if (hasTimestamps &&
+          (col.columnType == 'CreatedAtColumn' ||
+              col.columnType == 'UpdatedAtColumn'))
+        continue;
+      if (hasSoftDeletes && col.columnType == 'DeletedAtColumn') continue;
+
       buffer.writeln();
       buffer.writeln(
         '  /// Accessor for [${col.propertyName}] (DB: ${col.dbName})',

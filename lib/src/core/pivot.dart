@@ -58,7 +58,6 @@ abstract class Pivot {
   }
 }
 
-// This is utility method.
 bool _isType<T, Target>() => T == Target || T == _typeOf<Target?>();
 Type _typeOf<T>() => T;
 

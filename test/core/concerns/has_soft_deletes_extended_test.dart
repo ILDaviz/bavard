@@ -60,10 +60,7 @@ void main() {
 
     test('delete() on new model (exists=false, no id) does nothing', () async {
       final user = SoftUser({'name': 'David'});
-      // id is null, exists is false
-
       await user.delete();
-
       expect(dbSpy.history, isEmpty);
     });
 
@@ -99,7 +96,6 @@ void main() {
 
       await user.restore();
 
-      // Should still attempt to save (no-op due to no dirty fields)
       expect(user.trashed, isFalse);
     });
 
@@ -133,14 +129,14 @@ void main() {
     test('onlyTrashed() combined with where clauses', () async {
       await SoftUser().onlyTrashed().where('role', 'admin').get();
 
-      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NOT NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "users"."deleted_at" IS NOT NULL'));
       expect(dbSpy.lastSql, contains('AND "role" = ?'));
     });
 
     test('standard query excludes soft deleted records', () async {
       await SoftUser().query().get();
 
-      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NULL'));
+      expect(dbSpy.lastSql, contains('WHERE "users"."deleted_at" IS NULL'));
     });
   });
 }

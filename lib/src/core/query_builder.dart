@@ -10,23 +10,30 @@ typedef ScopeCallback = void Function(QueryBuilder builder);
 /// and handles the object lifecycle (hydration, dirty checking initialization) and eager loading.
 class QueryBuilder<T extends Model> {
   final String table;
+
+  /// This create empty instance of the model.
+  /// Example : creator({}).newQuery()
   final T Function(Map<String, dynamic>) creator;
 
   /// Internal factory for empty instances (used during generic casting or hydration).
   final T Function() _instanceFactory;
+  late final T _modelInstance;
 
   final List<Map<String, dynamic>> _wheres = [];
   final List<dynamic> _bindings = [];
   final List<String> _joins = [];
-  final List<String> _with = [];
+  final Map<String, ScopeCallback?> _with = {};
   List<dynamic> _columns = ['*'];
 
   final List<String> _groupBy = [];
   final List<Map<String, dynamic>> _havings = [];
   final List<dynamic> _havingBindings = [];
+  final List<Map<String, dynamic>> _unions = [];
+  bool _distinct = false;
 
   final Map<String, ScopeCallback> _globalScopes = {};
   bool _ignoreGlobalScopes = false;
+  bool _scopesApplied = false;
 
   int? _offset;
   String? _orderBy;
@@ -37,23 +44,28 @@ class QueryBuilder<T extends Model> {
     : _instanceFactory =
           instanceFactory ?? (() => creator(const {}).newInstance() as T) {
     _assertIdent(table, dotted: false, what: 'table name');
+    _modelInstance = _instanceFactory();
   }
 
   /// Helper to access the current database grammar.
   Grammar get _grammar => DatabaseManager().db.grammar;
 
-  // Public getters for Grammar access
   List<Map<String, dynamic>> get wheres => _wheres;
   List<dynamic> get columns => _columns;
   List<String> get joins => _joins;
   List<String> get groups => _groupBy;
   List<Map<String, dynamic>> get havings => _havings;
+  List<Map<String, dynamic>> get unions => _unions;
+  bool get distinctValue => _distinct;
   String? get orders => _orderBy;
   int? get limitValue => _limit;
   int? get offsetValue => _offset;
 
   /// Returns the raw SQL string compiled from current state.
-  String toSql() => _compileSql();
+  String toSql() {
+    _applyScopes();
+    return _compileSql();
+  }
 
   static final RegExp _tableIdent = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$');
 
@@ -131,7 +143,8 @@ class QueryBuilder<T extends Model> {
       );
     }
     if (column is Column) {
-      final name = column.name ?? column.toString();
+      final name = column.name ?? _resolveDefaultColumnName(column);
+
       if (!name.contains('.') && !name.contains('(')) {
         return '$table.$name';
       }
@@ -140,30 +153,69 @@ class QueryBuilder<T extends Model> {
     return column.toString();
   }
 
+  String _resolveDefaultColumnName(Column column) {
+    if (column is IdColumn) {
+      return _modelInstance.primaryKey;
+    } else if (column is CreatedAtColumn) {
+      if (_modelInstance is HasTimestamps) {
+        return (_modelInstance as HasTimestamps).createdAtColumn;
+      }
+      return 'created_at';
+    } else if (column is UpdatedAtColumn) {
+      if (_modelInstance is HasTimestamps) {
+        return (_modelInstance as HasTimestamps).updatedAtColumn;
+      }
+      return 'updated_at';
+    } else if (column is DeletedAtColumn) {
+      return 'deleted_at';
+    }
+    return '';
+  }
+
   // ---------------------------------------------------------------------------
   // DEBUGGING TOOLS
   // ---------------------------------------------------------------------------
 
   String toRawSql() {
+    _applyScopes();
     String sql = _compileSql();
-    final allBindings = _grammar.prepareBindings([
-      ..._bindings,
-      ..._havingBindings,
-    ]);
+    final allBindings = _grammar.prepareBindings(_getAllBindings());
 
     int index = 0;
-    return sql.replaceAllMapped('?', (match) {
-      if (index >= allBindings.length) return '?';
+    StringBuffer result = StringBuffer();
+    bool inString = false;
+    String? quoteChar;
 
-      final value = allBindings[index++];
-      return _formatValueForDebug(value);
-    });
+    for (int i = 0; i < sql.length; i++) {
+      String char = sql[i];
+
+      // Handle string literals to avoid replacing '?' inside them
+      if ((char == "'" || char == '"') && (i == 0 || sql[i - 1] != '\\')) {
+        if (!inString) {
+          inString = true;
+          quoteChar = char;
+        } else if (char == quoteChar) {
+          inString = false;
+          quoteChar = null;
+        }
+        result.write(char);
+      } else if (char == '?' && !inString) {
+        if (index < allBindings.length) {
+          result.write(_formatValueForDebug(allBindings[index++]));
+        } else {
+          result.write('?');
+        }
+      } else {
+        result.write(char);
+      }
+    }
+    return result.toString();
   }
 
   String _formatValueForDebug(dynamic value) {
     if (value == null) return 'NULL';
     if (value is num) return value.toString();
-    if (value is bool) return value ? '1' : '0';
+    if (value is bool) return _grammar.formatBoolForDebug(value);
     if (value is DateTime) return "'${value.toIso8601String()}'";
     return "'${value.toString().replaceAll("'", "''")}'";
   }
@@ -175,7 +227,7 @@ class QueryBuilder<T extends Model> {
 
   QueryBuilder<T> printQueryAndBindings() {
     print('\x1B[34m[QUERY]\x1B[0m ${_compileSql()}');
-    print('\x1B[33m[BINDINGS]\x1B[0m ${[..._bindings, ..._havingBindings]}');
+    print('\x1B[33m[BINDINGS]\x1B[0m ${_getAllBindings()}');
     return this;
   }
 
@@ -204,11 +256,13 @@ class QueryBuilder<T extends Model> {
   }
 
   void _applyScopes() {
-    if (_ignoreGlobalScopes) return;
+    if (_ignoreGlobalScopes || _scopesApplied) return;
 
     _globalScopes.forEach((name, scope) {
       scope(this);
     });
+
+    _scopesApplied = true;
   }
 
   // ---------------------------------------------------------------------------
@@ -231,6 +285,11 @@ class QueryBuilder<T extends Model> {
 
     if (column is WhereCondition) {
       targetColumn = column.column;
+      // If the column name is empty (due to optional name in Schema), resolve it now using the sourceColumn
+      if (targetColumn.isEmpty && column.sourceColumn != null) {
+        targetColumn = _resolveColumnName(column.sourceColumn);
+      }
+
       targetOperator = column.operator;
       targetValue = column.value;
       targetBoolean = column.boolean;
@@ -259,7 +318,6 @@ class QueryBuilder<T extends Model> {
     }
 
     String sqlString;
-    // We use _grammar.wrap for columns and _grammar.parameter for values
 
     if (finalOp == 'IN' || finalOp == 'NOT IN') {
       if (targetValue is! List) {
@@ -348,7 +406,6 @@ class QueryBuilder<T extends Model> {
     final nestedClause = _grammar.compileWheres(nestedBuilder);
 
     if (nestedClause.isNotEmpty) {
-      // Remove 'WHERE ' from the compiled string
       final sqlInside = nestedClause.substring(6);
 
       _wheres.add({'type': boolean, 'sql': '($sqlInside)'});
@@ -595,7 +652,7 @@ class QueryBuilder<T extends Model> {
     for (final column in columns) {
       final targetColumn = _resolveColumnName(column);
       _assertIdent(targetColumn, dotted: true, what: 'groupBy column');
-      _groupBy.add(targetColumn); // Grammar wraps these in compileGroups
+      _groupBy.add(targetColumn);
     }
     return this;
   }
@@ -630,8 +687,9 @@ class QueryBuilder<T extends Model> {
     }
 
     final targetColumn = _resolveColumnName(column);
-    final sqlCol =
-        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
+    final sqlCol = targetColumn.contains('(')
+        ? targetColumn
+        : _grammar.wrap(targetColumn);
     _havings.add({
       'type': boolean,
       'sql': '$sqlCol $op ${_grammar.parameter(value)}',
@@ -679,8 +737,9 @@ class QueryBuilder<T extends Model> {
   /// Adds a HAVING clause that checks for NULL.
   QueryBuilder<T> havingNull(dynamic column, {String boolean = 'AND'}) {
     final targetColumn = _resolveColumnName(column);
-    final sqlCol =
-        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
+    final sqlCol = targetColumn.contains('(')
+        ? targetColumn
+        : _grammar.wrap(targetColumn);
 
     _havings.add({'type': boolean, 'sql': '$sqlCol IS NULL'});
     return this;
@@ -689,8 +748,9 @@ class QueryBuilder<T extends Model> {
   /// Adds a HAVING clause that checks for NOT NULL.
   QueryBuilder<T> havingNotNull(dynamic column, {String boolean = 'AND'}) {
     final targetColumn = _resolveColumnName(column);
-    final sqlCol =
-        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
+    final sqlCol = targetColumn.contains('(')
+        ? targetColumn
+        : _grammar.wrap(targetColumn);
 
     _havings.add({'type': boolean, 'sql': '$sqlCol IS NOT NULL'});
     return this;
@@ -706,8 +766,9 @@ class QueryBuilder<T extends Model> {
     String boolean = 'AND',
   }) {
     final targetColumn = _resolveColumnName(column);
-    final sqlCol =
-        targetColumn.contains('(') ? targetColumn : _grammar.wrap(targetColumn);
+    final sqlCol = targetColumn.contains('(')
+        ? targetColumn
+        : _grammar.wrap(targetColumn);
     _havings.add({
       'type': boolean,
       'sql':
@@ -755,16 +816,14 @@ class QueryBuilder<T extends Model> {
   }
 
   Future<int?> count([dynamic column = '*']) async {
-    final targetColumn =
-        column == '*' ? '*' : _grammar.wrap(_resolveColumnName(column));
+    final targetColumn = column == '*'
+        ? '*'
+        : _grammar.wrap(_resolveColumnName(column));
 
-    if (_groupBy.isNotEmpty || _havings.isNotEmpty) {
+    if (_groupBy.isNotEmpty || _havings.isNotEmpty || _unions.isNotEmpty) {
       final dbManager = DatabaseManager();
       final subQuery = _compileSql();
-      final bindings = _grammar.prepareBindings([
-        ..._bindings,
-        ..._havingBindings,
-      ]);
+      final bindings = _grammar.prepareBindings(_getAllBindings());
       final wrapperSql =
           'SELECT COUNT(*) as aggregate FROM ($subQuery) as temp_table';
       try {
@@ -777,7 +836,8 @@ class QueryBuilder<T extends Model> {
         throw QueryException(
           sql: wrapperSql,
           bindings: bindings,
-          message: 'Failed to execute count with group by: ${e.toString()}',
+          message:
+              'Failed to execute count with group by or unions: ${e.toString()}',
           originalError: e,
         );
       }
@@ -836,7 +896,6 @@ class QueryBuilder<T extends Model> {
   Future<T> findOrFail(dynamic id) async {
     final result = await find(id);
     if (result == null) {
-      // Use the table name as a proxy for model name
       throw ModelNotFoundException(model: table, id: id);
     }
     return result;
@@ -855,11 +914,16 @@ class QueryBuilder<T extends Model> {
   // JOINS & RELATIONS
   // ---------------------------------------------------------------------------
 
-  QueryBuilder<T> join(String table, dynamic one, String operator, dynamic two) {
+  QueryBuilder<T> join(
+    String table,
+    dynamic one,
+    String operator,
+    dynamic two,
+  ) {
     _assertIdent(table, dotted: false, what: 'join table name');
     final targetOne = _resolveColumnName(one);
     final targetTwo = _resolveColumnName(two);
-    
+
     _assertIdent(targetOne, dotted: true, what: 'join lhs');
     _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
@@ -884,7 +948,7 @@ class QueryBuilder<T extends Model> {
     _assertIdent(table, dotted: false, what: 'join table name');
     final targetOne = _resolveColumnName(one);
     final targetTwo = _resolveColumnName(two);
-    
+
     _assertIdent(targetOne, dotted: true, what: 'join lhs');
     _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
@@ -909,7 +973,7 @@ class QueryBuilder<T extends Model> {
     _assertIdent(table, dotted: false, what: 'join table name');
     final targetOne = _resolveColumnName(one);
     final targetTwo = _resolveColumnName(two);
-    
+
     _assertIdent(targetOne, dotted: true, what: 'join lhs');
     _assertIdent(targetTwo, dotted: true, what: 'join rhs');
 
@@ -927,8 +991,28 @@ class QueryBuilder<T extends Model> {
   /// Queues relationships for eager loading after the main query execution.
   ///
   /// Critical for performance optimization (mitigates N+1 queries).
-  QueryBuilder<T> withRelations(List<String> relations) {
-    _with.addAll(relations);
+  ///
+  /// Accepts:
+  /// - `List<String>`: `['posts', 'posts.comments']`
+  /// - `Map<String, ScopeCallback>`: `{'posts': (q) => q.where('active', 1)}`
+  QueryBuilder<T> withRelations(dynamic relations) {
+    if (relations is List) {
+      for (final relation in relations) {
+        _with[relation.toString()] = null;
+      }
+    } else if (relations is Map) {
+      relations.forEach((key, value) {
+        if (value is ScopeCallback) {
+          _with[key.toString()] = value;
+        } else if (value == null) {
+          _with[key.toString()] = null;
+        } else {
+          throw ArgumentError('Invalid scope callback for relation $key');
+        }
+      });
+    } else {
+      throw ArgumentError('withRelations expects a List or Map.');
+    }
     return this;
   }
 
@@ -959,6 +1043,40 @@ class QueryBuilder<T extends Model> {
     return this;
   }
 
+  /// Forces the query to return distinct results.
+  QueryBuilder<T> distinct() {
+    _distinct = true;
+    return this;
+  }
+
+  // ---------------------------------------------------------------------------
+  // UNIONS
+  // ---------------------------------------------------------------------------
+
+  /// Combines the result with another query using UNION.
+  QueryBuilder<T> union(QueryBuilder query) {
+    _unions.add({'type': 'UNION', 'query': query});
+    return this;
+  }
+
+  /// Combines the result with another query using UNION ALL.
+  QueryBuilder<T> unionAll(QueryBuilder query) {
+    _unions.add({'type': 'UNION ALL', 'query': query});
+    return this;
+  }
+
+  /// Combines the result with another query using INTERSECT.
+  QueryBuilder<T> intersect(QueryBuilder query) {
+    _unions.add({'type': 'INTERSECT', 'query': query});
+    return this;
+  }
+
+  /// Combines the result with another query using EXCEPT.
+  QueryBuilder<T> except(QueryBuilder query) {
+    _unions.add({'type': 'EXCEPT', 'query': query});
+    return this;
+  }
+
   // ---------------------------------------------------------------------------
   // INTERNALS
   // ---------------------------------------------------------------------------
@@ -985,11 +1103,13 @@ class QueryBuilder<T extends Model> {
     qb._groupBy.addAll(_groupBy);
     qb._havings.addAll(_havings);
     qb._havingBindings.addAll(_havingBindings);
+    qb._unions.addAll(_unions);
     qb._globalScopes.addAll(_globalScopes);
     qb._ignoreGlobalScopes = _ignoreGlobalScopes;
     qb._orderBy = _orderBy;
     qb._limit = _limit;
     qb._offset = _offset;
+    qb._distinct = _distinct;
 
     return qb;
   }
@@ -1001,6 +1121,16 @@ class QueryBuilder<T extends Model> {
     return _grammar.compileSelect(this);
   }
 
+  /// Recursively collects bindings from this query and all attached unions.
+  List<dynamic> _getAllBindings() {
+    final bindings = [..._bindings, ..._havingBindings];
+    for (final union in _unions) {
+      final query = union['query'] as QueryBuilder;
+      bindings.addAll(query._getAllBindings());
+    }
+    return bindings;
+  }
+
   /// Resolves eager loads by delegating to the Model's relation definition.
   ///
   /// Iterates through the result set [models] and matches related records in-memory
@@ -1008,33 +1138,36 @@ class QueryBuilder<T extends Model> {
   Future<void> _eagerLoad(List<T> models) async {
     if (_with.isEmpty || models.isEmpty) return;
 
-    // Parse nested relations:
-    // ['posts', 'posts.comments'] -> {'posts': ['comments']}
-    final nestedRelations = <String, List<String>>{};
+    final rootScopes = <String, ScopeCallback?>{};
+    final rootNested = <String, Map<String, ScopeCallback?>>{};
+    final uniqueRoots = <String>{};
 
-    for (final relation in _with) {
-      final parts = relation.split('.');
+    _with.forEach((path, scope) {
+      final parts = path.split('.');
       final root = parts[0];
-      final nested = parts.length > 1 ? parts.sublist(1).join('.') : null;
+      final nestedPath = parts.length > 1 ? parts.sublist(1).join('.') : null;
 
-      if (!nestedRelations.containsKey(root)) {
-        nestedRelations[root] = [];
+      uniqueRoots.add(root);
+
+      if (nestedPath == null) {
+        rootScopes[root] = scope;
+      } else {
+        if (!rootNested.containsKey(root)) {
+          rootNested[root] = {};
+        }
+        rootNested[root]![nestedPath] = scope;
       }
+    });
 
-      if (nested != null) {
-        nestedRelations[root]!.add(nested);
-      }
-    }
-
-    // Eager load related models parallel
     await Future.wait(
-      nestedRelations.keys.map((relationName) async {
+      uniqueRoots.map((relationName) async {
         final relation = models.first.getRelation(relationName);
         if (relation != null) {
           await relation.match(
             models,
             relationName,
-            nested: nestedRelations[relationName] ?? [],
+            scope: rootScopes[relationName],
+            nested: rootNested[relationName] ?? {},
           );
         }
       }),
@@ -1073,10 +1206,7 @@ class QueryBuilder<T extends Model> {
     _applyScopes();
     final dbManager = DatabaseManager();
     final sql = _compileSql();
-    final allBindings = _grammar.prepareBindings([
-      ..._bindings,
-      ..._havingBindings,
-    ]);
+    final allBindings = _grammar.prepareBindings(_getAllBindings());
 
     try {
       final resultRows = await dbManager.getAll(sql, allBindings);
@@ -1108,7 +1238,7 @@ class QueryBuilder<T extends Model> {
       ..._bindings,
     ]);
 
-    return await DatabaseManager().execute(sql, allBindings);
+    return await DatabaseManager().execute(table, sql, allBindings);
   }
 
   Future<int> delete() async {
@@ -1116,7 +1246,7 @@ class QueryBuilder<T extends Model> {
     final sql = _grammar.compileDelete(this);
     final bindings = _grammar.prepareBindings(_bindings);
 
-    return await DatabaseManager().execute(sql, bindings);
+    return await DatabaseManager().execute(table, sql, bindings);
   }
 
   /// Executes a raw INSERT into the database.
@@ -1136,20 +1266,109 @@ class QueryBuilder<T extends Model> {
     return await DatabaseManager().insert(table, resolvedValues);
   }
 
+  /// Executes a bulk INSERT into the database.
+  ///
+  /// WARNING: Bypasses the Model lifecycle (no events, automatic timestamps, or casts).
+  /// Returns true if the operation was successful.
+  Future<bool> insertAll(List<Map<String, dynamic>> values) async {
+    if (values.isEmpty) return true;
+
+    final resolvedValues = values.map((map) {
+      return map.map((key, value) {
+        final colName = _resolveColumnNameForWrite(key);
+        _assertIdent(colName, dotted: false, what: 'column name');
+        return MapEntry(colName, value);
+      });
+    }).toList();
+
+    final sortedKeys = resolvedValues.first.keys.toList()..sort();
+
+    final bindings = <dynamic>[];
+    for (final map in resolvedValues) {
+      for (final key in sortedKeys) {
+        bindings.add(map[key]);
+      }
+    }
+
+    final sql = _grammar.compileInsert(this, resolvedValues);
+    final allBindings = _grammar.prepareBindings(bindings);
+
+    final affected = await DatabaseManager().execute(table, sql, allBindings);
+    return affected > 0;
+  }
+
   /// Returns a reactive stream that emits updated results when the table changes.
   ///
-  /// Leverages the underlying database adapter's change notifications (e.g., SQLite triggers).
   /// Essential for Flutter reactive UIs (StreamBuilder).
   Stream<List<T>> watch() {
     _applyScopes();
-    final db = DatabaseManager().db;
-    final sql = _compileSql();
-    final allBindings = _grammar.prepareBindings([
-      ..._bindings,
-      ..._havingBindings,
-    ]);
+    final manager = DatabaseManager();
+    final controller = StreamController<List<T>>();
 
-    return db.watch(sql, parameters: allBindings).asyncMap(_hydrate);
+    get()
+        .then((data) {
+          if (!controller.isClosed) controller.add(data);
+        })
+        .catchError((e) {
+          if (!controller.isClosed) controller.addError(e);
+        });
+
+    final subscription = manager.tableChanges.where((t) => t == table).listen((
+      _,
+    ) async {
+      try {
+        final data = await get();
+        if (!controller.isClosed) controller.add(data);
+      } catch (e) {
+        if (!controller.isClosed) controller.addError(e);
+      }
+    });
+
+    controller.onCancel = () {
+      subscription.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  /// Lazily streams results in chunks to minimize memory usage for large datasets.
+  ///
+  /// Uses offset-based pagination to fetch [batchSize] records at a time.
+  /// Yields individual [Model] instances as they are retrieved.
+  ///
+  /// Example:
+  /// ```dart
+  /// await for (final user in User().query().cursor(batchSize: 50)) {
+  ///   print(user.name);
+  /// }
+  /// ```
+  Stream<T> cursor({int batchSize = 100}) async* {
+    int currentOffset = _offset ?? 0;
+
+    while (true) {
+      // Create a fresh clone for each batch to ensure isolation.
+      final batchQuery = cast<T>(creator, instanceFactory: _instanceFactory);
+
+      batchQuery.limit(batchSize);
+      batchQuery.offset(currentOffset);
+
+      final batch = await batchQuery.get();
+
+      if (batch.isEmpty) {
+        break;
+      }
+
+      for (final model in batch) {
+        yield model;
+      }
+
+      if (batch.length < batchSize) {
+        break;
+      }
+
+      currentOffset += batchSize;
+    }
   }
 
   /// Helper for aggregate queries (Count, Sum, etc).
@@ -1159,23 +1378,38 @@ class QueryBuilder<T extends Model> {
     _applyScopes();
     final dbManager = DatabaseManager();
 
-    // Use a temporary modification of columns to compile the scalar query
+    if (_unions.isNotEmpty) {
+      final subQuery = _compileSql();
+      final bindings = _grammar.prepareBindings(_getAllBindings());
+      final wrapperSql =
+          'SELECT $expression as aggregate FROM ($subQuery) as temp_table';
+
+      try {
+        final row = await dbManager.get(wrapperSql, bindings);
+        if (row.isEmpty || row['aggregate'] == null) return null;
+
+        final value = row['aggregate'];
+        if (T == int && value is num) return value.toInt() as T;
+        if (T == double && value is num) return value.toDouble() as T;
+        return value as T;
+      } catch (e) {
+        throw QueryException(
+          sql: wrapperSql,
+          bindings: bindings,
+          message:
+              'Failed to execute scalar query with unions: ${e.toString()}',
+          originalError: e,
+        );
+      }
+    }
+
     final originalColumns = _columns;
     _columns = [RawExpression('$expression as aggregate')];
 
-    // We can't just set _columns and call _compileSql because other parts of the grammar
-    // might look at columns, but generally compileSelect uses query.columns.
-    // However, to be safe and use the Strategy, we rely on _compileSql which uses Grammar.
-    // But wait, _scalar constructs SQL manually in the old version.
-    // We should use the grammar.
-
     final sql = _compileSql();
-    _columns = originalColumns; // Restore
+    _columns = originalColumns;
 
-    final allBindings = _grammar.prepareBindings([
-      ..._bindings,
-      ..._havingBindings,
-    ]);
+    final allBindings = _grammar.prepareBindings(_getAllBindings());
 
     try {
       final row = await dbManager.get(sql, allBindings);

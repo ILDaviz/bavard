@@ -24,7 +24,7 @@ This annotation is used to generate, based on the provided schema, the various e
 ```dart
 import 'package:bavard/bavard.dart';
 
-part 'user.fillable.g.dart';
+part 'user.g.dart';
 
 @fillable
 class User extends Model with $UserFillable {
@@ -56,7 +56,7 @@ dart run build_runner build
 The generator creates:
 1. **Typed Getters/Setters**: `user.name`, `user.age`.
 2. **Fillable/Guarded Lists**: Automatically derived from the schema (using `isGuarded`).
-3. **Casts Map**: Automatically derived from the column types.
+3. **Casting Rules**: Automatically derived from the column types, ensuring correct hydration of types like `DateTime`, `bool`, and `JSON`.
 4. **Static Schema**: Enables type-safe queries like `User().query().where(User.schema.age.greaterThan(18))`.
 
 ### Type Modifiers
@@ -64,6 +64,31 @@ The generator creates:
 In the schema definition:
 - `isNullable: true`: The Dart getter will be nullable (e.g., `int?`).
 - `isGuarded: true`: The field will be added to the `guarded` list and excluded from `fillable`.
+
+### Standard Columns
+
+You can include standard columns in your schema to enable type-safe queries (e.g., `User.schema.createdAt`). The generator will **not** create duplicate accessors for these, as they are handled by the core mixins (`Model`, `HasTimestamps`, `HasSoftDeletes`).
+
+- **`IdColumn`**: Resolves to the model's `primaryKey`.
+- **`CreatedAtColumn`**: Resolves to `created_at` (or custom name).
+- **`UpdatedAtColumn`**: Resolves to `updated_at` (or custom name).
+- **`DeletedAtColumn`**: Resolves to `deleted_at`.
+
+The column name is optional and will be resolved dynamically from the model's configuration.
+
+```dart
+static const schema = (
+  id: IdColumn(), // Automatically resolves to primaryKey
+  createdAt: CreatedAtColumn(),
+  updatedAt: UpdatedAtColumn(),
+  // ... other columns
+);
+```
+
+::: warning Custom Column Names
+If you have overridden the standard column names in your Model (e.g., `primaryKey => 'uuid'`), you **must** pass the name explicitly to the column constructor: `id: IdColumn('uuid')`.
+This is required for the generator to correctly configure data casting (e.g. converting string UUIDs or timestamps) at runtime.
+:::
 
 ## @bavardPivot
 
@@ -80,11 +105,11 @@ For Many-to-Many relationships, you can create strongly-typed `Pivot` classes to
 import 'package:bavard/bavard.dart';
 import 'package:bavard/schema.dart';
 
-import 'user_role.pivot.g.dart';
+part 'user_role.g.dart';
 
 @bavardPivot
 class UserRole extends Pivot with $UserRole {
-  UserRole(super.attributes);
+  UserRole([Map<String, dynamic> attributes = const {}]) : super(Map.from(attributes));
 
   static const schema = (
     createdAt: DateTimeColumn('created_at'),
@@ -95,7 +120,7 @@ class UserRole extends Pivot with $UserRole {
 
 The pivot generator creates:
 1. **Typed Getters/Setters**: `pivot.createdAt`, `pivot.isActive`.
-2. **Static Columns List**: `UserRole.columns`, which can be passed to the `belongsToMany(...).using()` method.
+2. **Static Columns List**: `$UserRole.columns`, which can be passed to the `belongsToMany(...).using()` method.
 
 ::: tip
 **Pro Tip:** If you don't want to use code generation for pivots, you can manually define getters/setters and the `columns` list. See the [Relationships Guide](/relationships/index#manual-pivot-no-code-generation) for more details.

@@ -61,7 +61,7 @@ void main() {
     });
 
     test('attach() with ID directly', () async {
-      await user.roles().attach(10); // ID as int
+      await user.roles().attach(10);
 
       expect(mockDb.lastArgs, contains(10));
     });

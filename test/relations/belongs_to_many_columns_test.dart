@@ -45,28 +45,27 @@ void main() {
   test('wherePivot works with Column object', () async {
     await User().roles().wherePivot(schema.isActive, true).get();
 
-    // Expect: ... WHERE "user_roles"."is_active" = ?
     expect(dbSpy.lastSql, contains('"user_roles"."is_active" = ?'));
   });
 
   test('wherePivotIn works with Column object', () async {
     await User().roles().wherePivotIn(schema.isActive, [true, false]).get();
 
-    // Expect: ... WHERE "user_roles"."is_active" IN (?, ?)
     expect(dbSpy.lastSql, contains('"user_roles"."is_active" IN (?, ?)'));
   });
 
   test('wherePivotNull works with Column object', () async {
     await User().roles().wherePivotNull(schema.grantedAt).get();
 
-    // Expect: ... WHERE "user_roles"."granted_at" IS NULL
     expect(dbSpy.lastSql, contains('"user_roles"."granted_at" IS NULL'));
   });
 
   test('withPivot works with Column object', () async {
     await User().roles().withPivot([schema.isActive]).get();
 
-    // Expect: SELECT "roles".*, "user_roles"."is_active" AS "pivot_is_active" ...
-    expect(dbSpy.lastSql, contains('"user_roles"."is_active" AS "pivot_is_active"'));
+    expect(
+      dbSpy.lastSql,
+      contains('"user_roles"."is_active" AS "pivot_is_active"'),
+    );
   });
 }

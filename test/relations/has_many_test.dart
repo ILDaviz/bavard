@@ -44,7 +44,7 @@ void main() {
       await user.posts().get();
 
       expect(dbSpy.lastSql, contains('SELECT "posts".* FROM "posts"'));
-      expect(dbSpy.lastSql, contains('WHERE "user_id" = ?'));
+      expect(dbSpy.lastSql, contains('WHERE "posts"."user_id" = ?'));
       expect(dbSpy.lastArgs, [1]);
     });
 

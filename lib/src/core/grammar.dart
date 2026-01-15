@@ -12,7 +12,7 @@ abstract class Grammar {
   String compileSelect(QueryBuilder query);
 
   /// Compiles an INSERT query into a SQL string.
-  String compileInsert(QueryBuilder query, Map<String, dynamic> values);
+  String compileInsert(QueryBuilder query, List<Map<String, dynamic>> values);
 
   /// Compiles an UPDATE query into a SQL string.
   String compileUpdate(QueryBuilder query, Map<String, dynamic> values);
@@ -32,6 +32,9 @@ abstract class Grammar {
   /// Normalizes bindings for the specific database driver.
   List<dynamic> prepareBindings(List<dynamic> bindings);
 
+  /// Formats a boolean value for debug SQL output.
+  String formatBoolForDebug(bool value) => value ? '1' : '0';
+
   /// Concatenates components of a SELECT query.
   String concatenate(List<String> components) {
     return components.where((component) => component.isNotEmpty).join(' ');
@@ -42,6 +45,7 @@ abstract class Grammar {
   List<String> compileComponents(QueryBuilder query) {
     return [
       'SELECT',
+      if (query.distinctValue) 'DISTINCT',
       compileColumns(query, query.columns),
       'FROM',
       wrap(query.table),
@@ -49,10 +53,24 @@ abstract class Grammar {
       compileWheres(query),
       compileGroups(query, query.groups),
       compileHavings(query),
+      compileUnions(query),
       compileOrders(query, query.orders),
       compileLimit(query, query.limitValue),
       compileOffset(query, query.offsetValue),
     ];
+  }
+
+  String compileUnions(QueryBuilder query) {
+    if (query.unions.isEmpty) return '';
+
+    return query.unions
+        .map((union) {
+          final type = union['type'];
+          final childQuery = union['query'] as QueryBuilder;
+          final sql = childQuery.toSql();
+          return '$type $sql';
+        })
+        .join(' ');
   }
 
   String compileColumns(QueryBuilder query, List<dynamic> columns) {
@@ -86,7 +104,7 @@ abstract class Grammar {
   }
 
   List<String> compileJoins(QueryBuilder query, List<String> joins) {
-    return joins; // Joins are currently stored as raw strings in QueryBuilder
+    return joins;
   }
 
   String compileWheres(QueryBuilder query) {
@@ -100,7 +118,6 @@ abstract class Grammar {
         })
         .join(' ');
 
-    // Remove the leading logic operator (AND/OR)
     return 'WHERE ' + sql.replaceFirst(RegExp(r'^(AND|OR)\s+'), '');
   }
 

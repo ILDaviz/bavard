@@ -67,12 +67,10 @@ void main() {
 
       final generatedId = user.id as String?;
 
-      // UUID v4 deve avere 36 caratteri (8-4-4-4-12)
       expect(generatedId, isNotNull);
       expect(generatedId!.length, 36);
       expect(generatedId.contains('-'), isTrue);
 
-      // Verifica pattern UUID v4: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
       final uuidRegex = RegExp(
         r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
         caseSensitive: false,

@@ -33,7 +33,7 @@ void main() {
       await post.author().get();
 
       expect(dbSpy.lastSql, contains('FROM "users"'));
-      expect(dbSpy.lastSql, contains('WHERE "id" = ?'));
+      expect(dbSpy.lastSql, contains('WHERE "users"."id" = ?'));
       expect(dbSpy.lastArgs, [99]);
     });
 

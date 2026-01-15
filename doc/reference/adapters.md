@@ -18,6 +18,34 @@ The `DatabaseAdapter` interface requires you to implement the `grammar` getter:
 Grammar get grammar => SQLiteGrammar(); // or PostgresGrammar()
 ```
 
+## Implementing `DatabaseAdapter`
+
+The `DatabaseAdapter` interface is straightforward. You only need to implement methods for executing SQL queries and managing transactions.
+
+::: tip Automatic Reactivity
+You do **not** need to implement any logic for `watch()` or change notifications. 
+Bavard's core `DatabaseManager` automatically handles table change tracking and stream updates by wrapping your adapter's `execute` and `insert` calls.
+:::
+
+### Key Methods
+
+- **`getAll(sql, [args])`**: Returns a list of rows (`List<Map<String, dynamic>>`).
+- **`get(sql, [args])`**: Returns a single row (`Map<String, dynamic>`).
+- **`execute(table, sql, [args])`**: Executes an UPDATE/DELETE command and returns the number of affected rows. **Note:** The `table` argument is used by the core for change tracking.
+- **`insert(table, values)`**: Inserts a row and returns the new ID (or primary key).
+- **`transaction(callback)`**: Executes a callback within a database transaction.
+
+### Transactions
+
+The `transaction` method receives a callback that provides a `TransactionContext`. This context has the same API as the adapter (`get`, `getAll`, `execute`, `insert`) but operates inside the transaction.
+
+Your adapter is responsible for:
+1. Starting the transaction (e.g., `BEGIN`).
+2. Creating a context that executes queries on that transaction.
+3. Committing or Rolling back based on whether the callback throws an error.
+
+Bavard automatically handles buffering notifications during transactions, so you don't need to worry about dirty reads in your streams.
+
 Below are the **reference implementations** for the most common use cases. You can copy these files directly into your project.
 
 
@@ -71,7 +99,7 @@ class SqliteAdapter implements DatabaseAdapter {
   }
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
     _db.execute(sql, _sanitize(arguments ?? []));
     return _db.getUpdatedRows();
   }
@@ -84,11 +112,6 @@ class SqliteAdapter implements DatabaseAdapter {
 
     _db.execute(sql, _sanitize(values.values.toList()));
     return _db.lastInsertRowId;
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> watch(String sql, {List<dynamic>? parameters}) {
-    return Stream.fromFuture(getAll(sql, parameters));
   }
 
   @override
@@ -128,7 +151,7 @@ class _SqliteTransactionContext implements TransactionContext {
   }
 
   @override
-  Future<int> execute(String sql, [List? arguments]) async {
+  Future<int> execute(String table, String sql, [List? arguments]) async {
     _db.execute(sql, _sanitize(arguments ?? []));
     return _db.getUpdatedRows();
   }
@@ -222,10 +245,10 @@ class PowerSyncDatabaseAdapter with _PowerSyncExecutor implements DatabaseAdapte
   Grammar get grammar => SQLiteGrammar();
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) async {
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) async {
     return db.writeTransaction((tx) async {
       final context = _PowerSyncTransactionContext(tx);
-      return context.execute(sql, arguments);
+      return context.execute(table, sql, arguments);
     });
   }
 
@@ -235,16 +258,6 @@ class PowerSyncDatabaseAdapter with _PowerSyncExecutor implements DatabaseAdapte
       final context = _PowerSyncTransactionContext(tx);
       return context.insert(table, values);
     });
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> watch(
-    String sql, {
-      List<dynamic>? parameters,
-    }) {
-    return db.watch(sql, parameters: parameters ?? []).map(
-        (rows) => rows.map((r) => Map<String, dynamic>.from(r)).toList(),
-    );
   }
 
   @override
@@ -271,7 +284,7 @@ class _PowerSyncTransactionContext with _PowerSyncExecutor implements Transactio
     _txn.execute(sql, arguments ?? []);
 
   @override
-  Future<int> execute(String sql, [List<dynamic>? arguments]) =>
+  Future<int> execute(String table, String sql, [List<dynamic>? arguments]) =>
     _executeInternal(sql, arguments);
 
   @override

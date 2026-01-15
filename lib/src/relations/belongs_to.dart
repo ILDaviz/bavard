@@ -1,5 +1,6 @@
 import 'relation.dart';
 import '../core/model.dart';
+import '../core/query_builder.dart';
 
 /// Defines an inverse one-to-one or many-to-one relationship where the foreign key
 /// resides on the child model (the [parent] of this relation instance).
@@ -17,7 +18,7 @@ class BelongsTo<R extends Model> extends Relation<R> {
   /// [ownerKey] matches the current model's [foreignKey].
   @override
   void addConstraints() {
-    where(ownerKey, parent.attributes[foreignKey]);
+    where('$table.$ownerKey', parent.attributes[foreignKey]);
   }
 
   Future<R?> getResult() => first();
@@ -29,13 +30,20 @@ class BelongsTo<R extends Model> extends Relation<R> {
   Future<void> match(
     List<Model> models,
     String relationName, {
-    List<String> nested = const [],
+    ScopeCallback? scope,
+    Map<String, ScopeCallback?> nested = const {},
   }) async {
     final ids = getKeys(models, foreignKey).where((id) => id != null).toList();
 
-    final results = await creator(
-      {},
-    ).newQuery().withRelations(nested).whereIn(ownerKey, ids).get();
+    final query = creator({}).newQuery();
+    query.withRelations(nested);
+    query.whereIn(ownerKey, ids);
+
+    if (scope != null) {
+      scope(query);
+    }
+
+    final results = await query.get();
 
     // Map results by owner ID for O(1) assignment back to child models.
     final dictionary = {

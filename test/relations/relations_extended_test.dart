@@ -116,9 +116,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // HAS ONE
-  // ===========================================================================
   group('HasOne Extended', () {
     test('returns null when no related model exists', () async {
       final emptyMock = MockDatabaseSpy([], {});
@@ -151,7 +148,6 @@ void main() {
       final mockDb = MockDatabaseSpy([], {
         'FROM profiles': [
           {'id': 100, 'user_id': 1, 'bio': 'Bio 1'},
-          // No profile for user 2
         ],
       });
       DatabaseManager().setDatabase(mockDb);
@@ -182,9 +178,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // HAS MANY
-  // ===========================================================================
   group('HasMany Extended', () {
     test('returns empty list when no children', () async {
       final emptyMock = MockDatabaseSpy([], {});
@@ -248,9 +241,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // BELONGS TO
-  // ===========================================================================
   group('BelongsTo Extended', () {
     test('returns null when foreign key is null', () async {
       final post = Post({'id': 1, 'user_id': null});
@@ -298,6 +288,41 @@ void main() {
       expect((posts[0].relations['author'] as User).id, 1);
       expect(posts[1].relations.containsKey('author'), isFalse);
       expect((posts[2].relations['author'] as User).id, 2);
+    });
+
+    test('Conditional Eager Loading (Constraining eager loads)', () async {
+      final mockDb = MockDatabaseSpy([], {
+        'FROM "users"': [
+          {'id': 1, 'name': 'David'},
+        ],
+        'FROM "posts"': [
+          {'id': 100, 'user_id': 1, 'title': 'Active Post', 'active': 1},
+          {'id': 101, 'user_id': 1, 'title': 'Inactive Post', 'active': 0},
+        ],
+      });
+
+      mockDb.setMockData({
+        'FROM "users"': [
+          {'id': 1, 'name': 'David'},
+        ],
+        '"active" = ?': [
+          {'id': 100, 'user_id': 1, 'title': 'Active Post', 'active': 1},
+        ],
+      });
+
+      DatabaseManager().setDatabase(mockDb);
+
+      final users = await User().query().withRelations({
+        'posts': (q) => q.where('active', 1),
+      }).get();
+
+      final user = users.first;
+      final posts = user.getRelationList<Post>('posts');
+
+      expect(mockDb.history.any((sql) => sql.contains('"active" = ?')), isTrue);
+
+      expect(posts, hasLength(1));
+      expect(posts.first.id, 100);
     });
   });
 }

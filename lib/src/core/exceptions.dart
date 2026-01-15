@@ -5,8 +5,9 @@
 abstract class BavardException implements Exception {
   final String message;
   final dynamic originalError;
+  final StackTrace? stackTrace;
 
-  const BavardException(this.message, [this.originalError]);
+  const BavardException(this.message, [this.originalError, this.stackTrace]);
 
   @override
   String toString() => 'ActiveSyncException: $message';
@@ -20,11 +21,17 @@ class ModelNotFoundException extends BavardException {
   final String model;
   final dynamic id;
 
-  const ModelNotFoundException({required this.model, this.id, String? message})
-    : super(
-        message ??
-            'No query results for model [$model]${id != null ? ' with ID: $id' : ''}.',
-      );
+  const ModelNotFoundException({
+    required this.model,
+    this.id,
+    String? message,
+    StackTrace? stackTrace,
+  }) : super(
+         message ??
+             'No query results for model [$model]${id != null ? ' with ID: $id' : ''}.',
+         null,
+         stackTrace,
+       );
 
   @override
   String toString() => 'ModelNotFoundException: $message';
@@ -43,7 +50,8 @@ class QueryException extends BavardException {
     this.bindings,
     required String message,
     dynamic originalError,
-  }) : super(message, originalError);
+    StackTrace? stackTrace,
+  }) : super(message, originalError, stackTrace);
 
   @override
   String toString() =>
@@ -61,7 +69,8 @@ class TransactionException extends BavardException {
     required String message,
     this.wasRolledBack = true,
     dynamic originalError,
-  }) : super(message, originalError);
+    StackTrace? stackTrace,
+  }) : super(message, originalError, stackTrace);
 
   @override
   String toString() =>
@@ -72,10 +81,12 @@ class TransactionException extends BavardException {
 ///
 /// Signals that `DatabaseManager().setDatabase()` was not called.
 class DatabaseNotInitializedException extends BavardException {
-  const DatabaseNotInitializedException()
+  const DatabaseNotInitializedException([StackTrace? stackTrace])
     : super(
         'Database driver not initialized. '
         'Call DatabaseManager().setDatabase(driver) first.',
+        null,
+        stackTrace,
       );
 
   @override
@@ -89,8 +100,15 @@ class MassAssignmentException extends BavardException {
   final String attribute;
   final String model;
 
-  const MassAssignmentException({required this.attribute, required this.model})
-    : super('Cannot mass-assign [$attribute] on model [$model].');
+  const MassAssignmentException({
+    required this.attribute,
+    required this.model,
+    StackTrace? stackTrace,
+  }) : super(
+         'Cannot mass-assign [$attribute] on model [$model].',
+         null,
+         stackTrace,
+       );
 
   @override
   String toString() => 'MassAssignmentException: $message';
@@ -100,7 +118,8 @@ class MassAssignmentException extends BavardException {
 ///
 /// Examples: Invalid operator, malformed identifier, or conflicting clauses.
 class InvalidQueryException extends BavardException {
-  const InvalidQueryException(String message) : super(message);
+  const InvalidQueryException(String message, {StackTrace? stackTrace})
+    : super(message, null, stackTrace);
 
   @override
   String toString() => 'InvalidQueryException: $message';
@@ -114,8 +133,15 @@ class RelationNotFoundException extends BavardException {
   final String relation;
   final String model;
 
-  const RelationNotFoundException({required this.relation, required this.model})
-    : super('Relation [$relation] not found on model [$model].');
+  const RelationNotFoundException({
+    required this.relation,
+    required this.model,
+    StackTrace? stackTrace,
+  }) : super(
+         'Relation [$relation] not found on model [$model].',
+         null,
+         stackTrace,
+       );
 
   @override
   String toString() => 'RelationNotFoundException: $message';

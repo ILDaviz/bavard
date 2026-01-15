@@ -8,3 +8,5 @@ dependencies:
   bavard:
     path: /app/bavard
   sqlite3: ^2.0.0
+  shared_test_suite:
+    path: ../shared_test_suite

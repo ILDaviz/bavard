@@ -84,7 +84,6 @@ void main() {
 
       final postComments = posts.first.relations['comments'] as List;
 
-      // Should only include post comments, not video comments
       expect(postComments.length, 1);
       expect(
         (postComments.first as Comment).attributes['body'],

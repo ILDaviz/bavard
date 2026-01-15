@@ -71,6 +71,14 @@ await User().query()
     .get();
 ```
 
+### Distinct
+
+The `distinct` method forces the query to return unique results:
+
+```dart
+await User().query().distinct().select(['role']).get();
+```
+
 ## Where Clauses
 
 ### Basic Where
@@ -192,16 +200,51 @@ The `orderBy` method allows you to sort the results. It supports both string col
 .offset(5)
 ```
 
-## Aggregates
+## Unions
 
-The query builder supports various aggregate methods, which also accept `Column` objects:
+Bavard allows you to combine the results of two queries using `UNION`, `UNION ALL`, `INTERSECT`, and `EXCEPT`.
 
 ```dart
+final first = User().query().where('first_name', 'John');
+final second = User().query().where('last_name', 'Doe');
+
+// UNION
+final users = await first.union(second).get();
+
+// UNION ALL (includes duplicates)
+final allUsers = await first.unionAll(second).get();
+
+// INTERSECT (only rows present in both)
+final commonUsers = await first.intersect(second).get();
+
+// EXCEPT (rows in first but not in second)
+final exclusiveUsers = await first.except(second).get();
+```
+
+## Aggregates
+
+The query builder supports various aggregate methods, all of which accept both string column names and `Column` objects:
+
+```dart
+// Count
 final count = await User().query().count();
-final max = await Product().query().max('price');
-final min = await Product().query().min(Product.schema.price); // Type-safe
-final avg = await Product().query().avg('rating');
-final sum = await Order().query().sum('total');
+final countActive = await User().query().where('active', 1).count();
+
+// Max
+final maxPrice = await Product().query().max('price');
+final maxScore = await User().query().max(User.schema.score); // Type-safe
+
+// Min
+final minPrice = await Product().query().min('price');
+final minAge = await User().query().min(User.schema.age); // Type-safe
+
+// Avg
+final avgRating = await Product().query().avg('rating');
+final avgScore = await User().query().avg(User.schema.score); // Type-safe
+
+// Sum
+final totalSales = await Order().query().sum('total');
+final totalPoints = await User().query().sum(User.schema.points); // Type-safe
 ```
 
 ## Inserts, Updates, and Deletes
@@ -221,7 +264,21 @@ await User().query().insert({
   User.schema.email: 'jane@example.com',
   User.schema.votes: 0,
 });
+
 ```
+
+### Bulk Inserts
+
+To insert multiple records in a single query, use the `insertAll` method. This method accepts a `List` of maps and returns `true` on success.
+
+```dart
+await User().query().insertAll([
+  {'email': 'picard@example.com', 'votes': 0},
+  {'email': 'janeway@example.com', 'votes': 0},
+]);
+```
+
+**Note:** Like `insert`, `insertAll` performs a raw database operation. It does **not** trigger model events (like `created`) or manage timestamps automatically.
 
 ### Updates
 
@@ -277,6 +334,19 @@ StreamBuilder<List<User>>(
   },
 )
 ```
+
+## Lazy Streaming (Cursor)
+
+When working with large datasets, loading all records into memory at once can cause performance issues or crashes. The `cursor` method allows you to iterate through the database records using a stream, fetching them in small chunks.
+
+```dart
+// Iterate over all users, loading 100 at a time
+await for (final user in User().query().cursor(batchSize: 100)) {
+  print(user.name);
+}
+```
+
+This method uses offset-based pagination internally to fetch batches while exposing a seamless stream of individual `Model` instances.
 
 ## SQL Dialects
 
