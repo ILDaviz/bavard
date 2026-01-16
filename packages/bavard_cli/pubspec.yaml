@@ -1,0 +1,17 @@
+name: bavard_cli
+description: Command line interface for Bavard ORM.
+version: 0.0.1
+resolution: workspace
+publish_to: 'none'
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  # Se la CLI ha bisogno di generare codice che usa Bavard, potrebbe non servire dipendere da bavard
+  # a meno che non importi classi di core. Per ora lo lascio pulito.
+  path: ^1.8.0
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^6.0.0
