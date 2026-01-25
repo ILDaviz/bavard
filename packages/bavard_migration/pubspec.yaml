@@ -1,0 +1,19 @@
+name: bavard_migration
+description: Migration system for Bavard ORM.
+version: 0.0.1
+resolution: workspace
+publish_to: 'none'
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  bavard:
+    path: ../bavard
+  bavard_cli:
+    path: ../bavard_cli
+  path: ^1.8.0
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^6.0.0

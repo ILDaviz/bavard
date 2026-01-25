@@ -1,3 +1,4 @@
+import '../schema/blueprint.dart';
 import 'query_builder.dart';
 
 class RawExpression {
@@ -19,6 +20,15 @@ abstract class Grammar {
 
   /// Compiles a DELETE query into a SQL string.
   String compileDelete(QueryBuilder query);
+
+  /// Compiles a CREATE TABLE statement.
+  String compileCreateTable(Blueprint blueprint);
+  
+  /// Compiles a DROP TABLE statement.
+  String compileDropTable(String table);
+
+  /// Compiles the index/constraint creation statements for a blueprint.
+  List<String> compileIndexes(Blueprint blueprint);
 
   /// Wraps a value (table or column name) in quotes.
   String wrap(String value);

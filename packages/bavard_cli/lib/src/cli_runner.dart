@@ -7,9 +7,10 @@ import 'utils.dart';
 class CliRunner {
   final Map<String, BaseCommand> _commands = {};
 
-  CliRunner() {
+  CliRunner([List<BaseCommand> extraCommands = const []]) {
     _register(MakeModelCommand());
     _register(MakePivotCommand());
+    extraCommands.forEach(_register);
   }
 
   void _register(BaseCommand command) {

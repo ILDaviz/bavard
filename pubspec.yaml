@@ -6,3 +6,4 @@ environment:
 workspace:
   - packages/bavard
   - packages/bavard_cli
+  - packages/bavard_migration
