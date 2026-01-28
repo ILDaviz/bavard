@@ -9,7 +9,7 @@ class ColumnDefinition {
   bool isUnsigned = false;
   dynamic defaultValue;
   
-  // Additional properties for specific types
+  // Additional prop
   int? length;
   int? precision;
   int? scale;
@@ -49,14 +49,22 @@ class ColumnDefinition {
   }
 }
 
+/// Base class for schema commands.
+abstract class Command {
+  String get type;
+}
+
 /// Represents an index or constraint definition.
-class IndexDefinition {
-  final String type;
+class IndexDefinition extends Command {
+  final String _type;
   final List<String> columns;
   final String? name;
   String? _language;
 
-  IndexDefinition(this.type, this.columns, {this.name});
+  IndexDefinition(this._type, this.columns, {this.name});
+
+  @override
+  String get type => _type;
 
   String? get languageValue => _language;
 
@@ -66,11 +74,81 @@ class IndexDefinition {
   }
 }
 
+class DropIndexCommand extends Command {
+  final String name;
+  final String _type;
+
+  DropIndexCommand(this.name, this._type);
+
+  @override
+  String get type => 'drop${_capitalize(_type)}';
+  
+  String _capitalize(String s) => s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
+}
+
+class DropColumnCommand extends Command {
+  final List<String> columns;
+
+  DropColumnCommand(this.columns);
+
+  @override
+  String get type => 'dropColumn';
+}
+
+class RenameColumnCommand extends Command {
+  final String from;
+  final String to;
+
+  RenameColumnCommand(this.from, this.to);
+
+  @override
+  String get type => 'renameColumn';
+}
+
+class ForeignKeyDefinition extends Command {
+  final String column;
+  String? _onTable;
+  String? _referencesColumn;
+  String? _onDelete;
+  String? _onUpdate;
+
+  ForeignKeyDefinition(this.column);
+
+  @override
+  String get type => 'foreign';
+
+  ForeignKeyDefinition references(String column) {
+    _referencesColumn = column;
+    return this;
+  }
+
+  ForeignKeyDefinition on(String table) {
+    _onTable = table;
+    return this;
+  }
+
+  ForeignKeyDefinition onDelete(String action) {
+    _onDelete = action;
+    return this;
+  }
+
+  ForeignKeyDefinition onUpdate(String action) {
+    _onUpdate = action;
+    return this;
+  }
+
+  String? get onTable => _onTable;
+  String? get referencesColumn => _referencesColumn;
+  String? get onDeleteValue => _onDelete;
+  String? get onUpdateValue => _onUpdate;
+}
+
+
 /// Defines the schema of a table to be created.
 class Blueprint {
   final String table;
   final List<ColumnDefinition> columns = [];
-  final List<IndexDefinition> commands = [];
+  final List<Command> commands = [];
 
   Blueprint(this.table);
 
@@ -365,5 +443,42 @@ class Blueprint {
     final index = IndexDefinition('spatial', list, name: name);
     commands.add(index);
     return index;
+  }
+
+  // --- Drop Indexes ---
+
+  void dropIndex(String name) {
+    commands.add(DropIndexCommand(name, 'index'));
+  }
+
+  void dropUnique(String name) {
+    commands.add(DropIndexCommand(name, 'unique'));
+  }
+
+  void dropPrimary([String? name]) {
+    commands.add(DropIndexCommand(name ?? 'primary', 'primary'));
+  }
+
+  // --- Foreign Keys ---
+
+  ForeignKeyDefinition foreign(String column) {
+    final fk = ForeignKeyDefinition(column);
+    commands.add(fk);
+    return fk;
+  }
+  
+  void dropForeign(String indexName) {
+     commands.add(DropIndexCommand(indexName, 'foreign'));
+  }
+
+  // --- Column Modification ---
+
+  void dropColumn(dynamic columns) {
+    final list = columns is String ? [columns] : (columns as List).cast<String>();
+    commands.add(DropColumnCommand(list));
+  }
+
+  void renameColumn(String from, String to) {
+    commands.add(RenameColumnCommand(from, to));
   }
 }

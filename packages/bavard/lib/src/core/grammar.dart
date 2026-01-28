@@ -21,14 +21,29 @@ abstract class Grammar {
   /// Compiles a DELETE query into a SQL string.
   String compileDelete(QueryBuilder query);
 
-  /// Compiles a CREATE TABLE statement.
+  /// Compiles a CREATE TABLE statement. (Migration tool)
   String compileCreateTable(Blueprint blueprint);
   
-  /// Compiles a DROP TABLE statement.
+  /// Compiles a DROP TABLE statement. (Migration tool)
   String compileDropTable(String table);
 
-  /// Compiles the index/constraint creation statements for a blueprint.
+  /// Compiles the index/constraint creation statements for a blueprint. (Migration tool)
   List<String> compileIndexes(Blueprint blueprint);
+
+  /// Compiles the statements to add columns to an existing table. (Migration tool)
+  List<String> compileAdd(Blueprint blueprint);
+
+  /// Compiles the statements to drop columns from an existing table. (Migration tool)
+  List<String> compileDropColumn(Blueprint blueprint);
+
+  /// Compiles the statements to rename a column. (Migration tool)
+  List<String> compileRenameColumn(Blueprint blueprint);
+
+  /// Compiles the statements to drop an index. (Migration tool)
+  List<String> compileDropIndex(Blueprint blueprint);
+
+  /// Compiles the statements to drop a foreign key constraint. (Migration tool)
+  List<String> compileDropForeign(Blueprint blueprint);
 
   /// Wraps a value (table or column name) in quotes.
   String wrap(String value);
