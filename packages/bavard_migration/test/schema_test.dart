@@ -38,11 +38,9 @@ void main() {
         table.index('slug', 'custom_slug_index');
       });
 
-      // Check CREATE TABLE (includes PRIMARY KEY and UNIQUE)
       expect(db.history[0], contains('PRIMARY KEY ("id", "user_id")'));
       expect(db.history[0], contains('"slug" TEXT UNIQUE'));
 
-      // Check separate CREATE INDEX
       expect(db.history[1], contains('CREATE INDEX "custom_slug_index" ON "posts" ("slug")'));
     });
 

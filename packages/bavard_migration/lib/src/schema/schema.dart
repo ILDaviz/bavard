@@ -5,6 +5,7 @@ class Schema {
 
   Schema(this._adapter);
 
+  /// Create a new table with the provided blueprint.
   Future<void> create(String table, void Function(Blueprint) callback) async {
     final blueprint = Blueprint(table);
     callback(blueprint);
@@ -18,20 +19,55 @@ class Schema {
     }
   }
 
+  /// Modify an existing table (add/drop columns, indexes, etc.).
+  Future<void> table(String table, void Function(Blueprint) callback) async {
+    final blueprint = Blueprint(table);
+    callback(blueprint);
+
+    final grammar = _adapter.grammar;
+    final commands = <String>[];
+
+    if (blueprint.dropForeigns.isNotEmpty) {
+      commands.addAll(grammar.compileDropForeign(blueprint));
+    }
+    
+    if (blueprint.commands.where((c) => c.type.startsWith('dropIndex') || c.type.startsWith('dropUnique') || c.type.startsWith('dropPrimary')).isNotEmpty) {
+       commands.addAll(grammar.compileDropIndex(blueprint));
+    }
+
+    if (blueprint.commands.where((c) => c.type == 'dropColumn').isNotEmpty) {
+      commands.addAll(grammar.compileDropColumn(blueprint));
+    }
+
+    if (blueprint.columns.where((c) => !c.isChange).isNotEmpty) {
+      commands.addAll(grammar.compileAdd(blueprint));
+    }
+
+    if (blueprint.columns.where((c) => c.isChange).isNotEmpty) {
+      commands.addAll(grammar.compileChange(blueprint));
+    }
+
+    if (blueprint.commands.where((c) => c.type == 'renameColumn').isNotEmpty) {
+      commands.addAll(grammar.compileRenameColumn(blueprint));
+    }
+
+    if (blueprint.commands.where((c) => c.type == 'index' || c.type == 'unique' || c.type == 'fulltext' || c.type == 'spatial').isNotEmpty) {
+      commands.addAll(grammar.compileIndexes(blueprint));
+    }
+
+    for (final sql in commands) {
+      await _adapter.execute(table, sql);
+    }
+  }
+
+  /// Drop an existing table.
   Future<void> drop(String table) async {
     final sql = _adapter.grammar.compileDropTable(table);
     await _adapter.execute(table, sql);
   }
-  
+
+  /// Drop an existing table if it exists.
   Future<void> dropIfExists(String table) async {
-    // Basic support assuming DROP TABLE IF EXISTS syntax is common or grammar handles it
-    // But Grammar only has compileDropTable. 
-    // For now, let's just do DROP TABLE IF EXISTS manually or add it to Grammar?
-    // User asked to use core grammar. 
-    // I will use direct SQL for "IF EXISTS" or assume drop handles it if I updated Grammar.
-    // I only added compileDropTable.
-    // Let's rely on standard SQL for IF EXISTS or wrap in try-catch if adapter allows?
-    // Standard SQL:
     await _adapter.execute(table, 'DROP TABLE IF EXISTS $table');
   }
 }

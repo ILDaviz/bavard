@@ -37,7 +37,6 @@ void main() {
       final m1 = TestMigration();
       final m2 = TestMigration();
       
-      // Setup mock to return empty ran migrations
       db.setMockData({
         'SELECT migration_name': [],
         'SELECT MAX(batch)': [{'batch': 0}]
@@ -51,8 +50,6 @@ void main() {
       expect(m1.upCalled, isTrue);
       expect(m2.upCalled, isTrue);
       
-      // Verify logs
-      // History should contain INSERTs
       final inserts = db.history.where((sql) => sql.startsWith('INSERT INTO "migrations"'));
       expect(inserts.length, equals(2));
     });
@@ -61,7 +58,6 @@ void main() {
       final m1 = TestMigration();
       final m2 = TestMigration();
 
-      // Mock m1 as already ran
       db.setMockData({
         'SELECT migration_name': [{'migration_name': 'm1'}],
          'SELECT MAX(batch)': [{'batch': 1}]
@@ -79,7 +75,6 @@ void main() {
     test('runDown reverts last batch', () async {
       final m1 = TestMigration();
       
-      // Mock last batch
       db.setMockData({
         'SELECT * FROM migrations WHERE batch': [
           {'migration_name': 'm1'}
