@@ -33,6 +33,9 @@ abstract class Grammar {
   /// Compiles the statements to add columns to an existing table. (Migration tool)
   List<String> compileAdd(Blueprint blueprint);
 
+  /// Compiles the statements to change columns in an existing table. (Migration tool)
+  List<String> compileChange(Blueprint blueprint);
+
   /// Compiles the statements to drop columns from an existing table. (Migration tool)
   List<String> compileDropColumn(Blueprint blueprint);
 

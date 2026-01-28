@@ -102,12 +102,48 @@ class PostgresGrammar extends Grammar {
     }).toList();
   }
 
+  @override
   List<String> compileAdd(Blueprint blueprint) {
-    return blueprint.columns.map((col) {
+    return blueprint.columns.where((c) => !c.isChange).map((col) {
       return 'ALTER TABLE ${wrap(blueprint.table)} ADD COLUMN ${_compileColumn(col)}';
     }).toList();
   }
 
+  List<String> compileChange(Blueprint blueprint) {
+    final changes = <String>[];
+
+    for (final col in blueprint.columns.where((c) => c.isChange)) {
+      final table = wrap(blueprint.table);
+      final column = wrap(col.name);
+      final type = _getType(col);
+
+      changes.add(
+        'ALTER TABLE $table ALTER COLUMN $column TYPE $type USING $column::$type',
+      );
+
+      if (col.isNullable) {
+        changes.add('ALTER TABLE $table ALTER COLUMN $column DROP NOT NULL');
+      } else {
+        changes.add('ALTER TABLE $table ALTER COLUMN $column SET NOT NULL');
+      }
+
+      if (col.defaultValue != null) {
+        changes.add(
+          'ALTER TABLE $table ALTER COLUMN $column SET DEFAULT ${parameter(col.defaultValue)}',
+        );
+      } else if (col.useCurrent) {
+        changes.add(
+          'ALTER TABLE $table ALTER COLUMN $column SET DEFAULT CURRENT_TIMESTAMP',
+        );
+      } else {
+        changes.add('ALTER TABLE $table ALTER COLUMN $column DROP DEFAULT');
+      }
+    }
+
+    return changes;
+  }
+
+  @override
   List<String> compileDropColumn(Blueprint blueprint) {
     return blueprint.commands.whereType<DropColumnCommand>().expand((cmd) {
       return cmd.columns.map(
@@ -117,26 +153,25 @@ class PostgresGrammar extends Grammar {
     }).toList();
   }
 
+  @override
   List<String> compileRenameColumn(Blueprint blueprint) {
     return blueprint.commands.whereType<RenameColumnCommand>().map((cmd) {
       return 'ALTER TABLE ${wrap(blueprint.table)} RENAME COLUMN ${wrap(cmd.from)} TO ${wrap(cmd.to)}';
     }).toList();
   }
 
+  @override
   List<String> compileDropIndex(Blueprint blueprint) {
     return blueprint.commands.whereType<DropIndexCommand>().map((cmd) {
       return 'DROP INDEX ${wrap(cmd.name)}';
     }).toList();
   }
 
+  @override
   List<String> compileDropForeign(Blueprint blueprint) {
-    return blueprint.commands
-        .whereType<DropIndexCommand>()
-        .where((c) => c.type == 'dropForeign')
-        .map((cmd) {
-          return 'ALTER TABLE ${wrap(blueprint.table)} DROP CONSTRAINT ${wrap(cmd.name)}';
-        })
-        .toList();
+    return blueprint.dropForeigns.map((cmd) {
+      return 'ALTER TABLE ${wrap(blueprint.table)} DROP CONSTRAINT ${wrap(cmd.name)}';
+    }).toList();
   }
 
   @override

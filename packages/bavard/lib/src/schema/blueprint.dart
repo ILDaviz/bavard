@@ -7,9 +7,9 @@ class ColumnDefinition {
   bool isAutoIncrement = false;
   bool isUnique = false;
   bool isUnsigned = false;
+  bool isChange = false;
   dynamic defaultValue;
   
-  // Additional prop
   int? length;
   int? precision;
   int? scale;
@@ -45,6 +45,11 @@ class ColumnDefinition {
   
   ColumnDefinition defaultTo(dynamic value) {
     defaultValue = value;
+    return this;
+  }
+
+  ColumnDefinition change() {
+    isChange = true;
     return this;
   }
 }
@@ -149,10 +154,9 @@ class Blueprint {
   final String table;
   final List<ColumnDefinition> columns = [];
   final List<Command> commands = [];
+  final List<DropIndexCommand> dropForeigns = [];
 
   Blueprint(this.table);
-
-  // --- ID & Increments ---
 
   void id() {
     bigIncrements('id');
@@ -165,8 +169,6 @@ class Blueprint {
   ColumnDefinition bigIncrements(String name) {
      return unsignedBigInteger(name)..isPrimaryKey = true..isAutoIncrement = true;
   }
-
-  // --- Strings ---
 
   ColumnDefinition string(String name, [int length = 255]) {
     final col = ColumnDefinition(name, 'string')..length = length;
@@ -250,8 +252,6 @@ class Blueprint {
     return bigInteger(name).unsigned();
   }
 
-  // --- Floats & Decimals ---
-
   ColumnDefinition float(String name) {
     final col = ColumnDefinition(name, 'float');
     columns.add(col);
@@ -272,15 +272,11 @@ class Blueprint {
     return col;
   }
 
-  // --- Boolean ---
-
   ColumnDefinition boolean(String name) {
     final col = ColumnDefinition(name, 'boolean');
     columns.add(col);
     return col;
   }
-
-  // --- Date & Time ---
 
   ColumnDefinition date(String name) {
     final col = ColumnDefinition(name, 'date');
@@ -342,15 +338,11 @@ class Blueprint {
     return timestampTz(name).nullable();
   }
 
-  // --- Binary ---
-
   ColumnDefinition binary(String name) {
     final col = ColumnDefinition(name, 'binary');
     columns.add(col);
     return col;
   }
-
-  // --- JSON ---
 
   ColumnDefinition json(String name) {
     final col = ColumnDefinition(name, 'json');
@@ -364,16 +356,12 @@ class Blueprint {
     return col;
   }
 
-  // --- UUID / ULID ---
-
   ColumnDefinition uuid(String name) {
     final col = ColumnDefinition(name, 'uuid');
     columns.add(col);
     return col;
   }
 
-  // --- Specialty ---
-  
   ColumnDefinition enumCol(String name, List<String> allowed) {
     final col = ColumnDefinition(name, 'enum')..allowedValues = allowed;
     columns.add(col);
@@ -407,8 +395,6 @@ class Blueprint {
     string('${name}_type');
     index(['${name}_type', '${name}_id']);
   }
-
-  // --- Indexes ---
 
   IndexDefinition primary(dynamic columns) {
     final list = columns is String ? [columns] : (columns as List).cast<String>();
@@ -445,8 +431,6 @@ class Blueprint {
     return index;
   }
 
-  // --- Drop Indexes ---
-
   void dropIndex(String name) {
     commands.add(DropIndexCommand(name, 'index'));
   }
@@ -459,19 +443,26 @@ class Blueprint {
     commands.add(DropIndexCommand(name ?? 'primary', 'primary'));
   }
 
-  // --- Foreign Keys ---
-
   ForeignKeyDefinition foreign(String column) {
     final fk = ForeignKeyDefinition(column);
     commands.add(fk);
     return fk;
   }
   
-  void dropForeign(String indexName) {
-     commands.add(DropIndexCommand(indexName, 'foreign'));
+  void dropForeign(dynamic index) {
+     String name;
+     if (index is String) {
+       name = index;
+     } else if (index is List) {
+       final cols = index.cast<String>();
+       name = '${table}_${cols.join('_')}_foreign';
+     } else {
+       throw ArgumentError('dropForeign expects a String or List<String>');
+     }
+     
+     final cmd = DropIndexCommand(name, 'foreign');
+     dropForeigns.add(cmd);
   }
-
-  // --- Column Modification ---
 
   void dropColumn(dynamic columns) {
     final list = columns is String ? [columns] : (columns as List).cast<String>();

@@ -117,9 +117,16 @@ class SQLiteGrammar extends Grammar {
 
   @override
   List<String> compileAdd(Blueprint blueprint) {
-    return blueprint.columns.map((col) {
+    return blueprint.columns.where((c) => !c.isChange).map((col) {
       return 'ALTER TABLE ${wrap(blueprint.table)} ADD COLUMN ${_compileColumn(col)}';
     }).toList();
+  }
+
+  @override
+  List<String> compileChange(Blueprint blueprint) {
+    throw UnimplementedError(
+      'CHANGE is not supported natively by SQLite. Use compileTableRebuild.',
+    );
   }
 
   @override
@@ -158,13 +165,47 @@ class SQLiteGrammar extends Grammar {
     final originalTableName = blueprint.table;
     final tempTableName = 'temp_$originalTableName';
 
-    String createSql = compileCreateTable(blueprint);
-    createSql = createSql.replaceFirst(
-      wrap(originalTableName),
-      wrap(tempTableName),
-    );
+    final droppedForeignNames = blueprint.dropForeigns
+        .map((d) => d.name)
+        .toSet();
+
+    final filteredCommands = blueprint.commands.where((cmd) {
+      if (cmd is ForeignKeyDefinition) {
+        final constraintName = '${blueprint.table}_${cmd.column}_foreign';
+        if (droppedForeignNames.contains(constraintName)) return false;
+      }
+      return true;
+    }).toList();
+
+    final columns = blueprint.columns.map(_compileColumn).toList();
+
+    final constraints = filteredCommands
+        .whereType<IndexDefinition>()
+        .where((c) => c.type == 'primary' || c.type == 'unique')
+        .map((c) {
+          final cols = c.columns.map(wrap).join(', ');
+          if (c.type == 'primary') return 'PRIMARY KEY ($cols)';
+          if (c.type == 'unique') return 'UNIQUE ($cols)';
+          return '';
+        })
+        .where((s) => s.isNotEmpty);
+
+    final foreignKeys = filteredCommands.whereType<ForeignKeyDefinition>().map((
+      fk,
+    ) {
+      String sql =
+          'FOREIGN KEY (${wrap(fk.column)}) REFERENCES ${wrap(fk.onTable!)} (${wrap(fk.referencesColumn!)})';
+      if (fk.onDeleteValue != null) sql += ' ON DELETE ${fk.onDeleteValue}';
+      if (fk.onUpdateValue != null) sql += ' ON UPDATE ${fk.onUpdateValue}';
+      return sql;
+    }).toList();
+
+    final all = [...columns, ...constraints, ...foreignKeys].join(', ');
+
+    String createSql = 'CREATE TABLE ${wrap(tempTableName)} ($all)';
 
     final columnNames = blueprint.columns.map((c) => wrap(c.name)).join(', ');
+
     final copySql =
         'INSERT INTO ${wrap(tempTableName)} ($columnNames) SELECT $columnNames FROM ${wrap(oldTable)}';
 
