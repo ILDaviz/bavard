@@ -20,7 +20,6 @@ class Migrator {
     _schema = Schema(_adapter);
   }
 
-  // Helper to find files, used by CLI commands before generation
   List<File> scan(String directory) {
     final dir = Directory(directory);
     if (!dir.existsSync()) return [];
@@ -36,7 +35,6 @@ class Migrator {
     await _repo.prepareTable();
     final ran = await _repo.getRanMigrations();
     
-    // Sort provided migrations
     migrations.sort((a, b) => a.name.compareTo(b.name));
 
     final batch = await _repo.getNextBatchNumber();
@@ -75,7 +73,7 @@ class Migrator {
           await _repo.delete(name);
           print('Rolled back:  $name');
       } catch (e) {
-          if (e is StateError) { // firstWhere failed
+          if (e is StateError) {
               print('Migration $name found in DB but file missing locally. Skipping rollback logic for it, but removing from DB? No, unsafe.');
               throw Exception('Migration $name not found locally.');
           }
