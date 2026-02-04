@@ -4,9 +4,9 @@ This repository contains the source code for the Bavard ORM and its documentatio
 
 ## Structure
 
-- **[packages/bavard](packages/bavard)**: The Dart package source code. [![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
-- **[packages/bavard_cli](packages/bavard_cli)**: The Dart package cli tool. [![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard_cli)
-- **[packages/bavard_migration](packages/bavard_migration)**: The Dart package migration tool. [![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard_migration)
+- **[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard) [packages/bavard](packages/bavard)**: The Dart package source code.
+- **[![pub.dev](https://img.shields.io/pub/v/bavard_cli.svg)](https://pub.dev/packages/bavard_cli) [packages/bavard_cli](packages/bavard_cli)**: The Dart package cli tool.
+- **[![pub.dev](https://img.shields.io/pub/v/bavard_migration.svg)](https://pub.dev/packages/bavard_migration) [packages/bavard_migration](packages/bavard_migration)**: The Dart package migration tool.
 - **[packages/documentation](packages/documentation)**: The documentation website (VitePress).
 
 ## 🚀 Key Features
