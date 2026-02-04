@@ -27,7 +27,6 @@ class MakePivotCommand extends BaseCommand {
     bool force = false;
     String? customPath;
 
-    // Parse arguments
     for (var i = 1; i < args.length; i++) {
       final arg = args[i];
       if (arg.startsWith('--columns=')) {
@@ -47,12 +46,10 @@ class MakePivotCommand extends BaseCommand {
 
     final fileName = '${toSnakeCase(className)}.dart';
     
-    // Determine output path
     String outputDir;
     if (customPath != null) {
       outputDir = customPath;
     } else {
-      // Auto-discovery priority
       if (Directory('lib/models').existsSync()) {
         outputDir = 'lib/models';
       } else if (Directory('lib/src/models').existsSync()) {
@@ -62,7 +59,6 @@ class MakePivotCommand extends BaseCommand {
       }
     }
 
-    // Ensure directory exists
     final dir = Directory(outputDir);
     if (!dir.existsSync()) {
       printInfo("Creating directory: $outputDir");
@@ -123,7 +119,6 @@ class MakePivotCommand extends BaseCommand {
     buffer.writeln('  );');
     buffer.writeln();
 
-    // Accessors
     columns.forEach((name, type) {
       final dartType = _mapTypeToDartType(type);
       final dbName = toSnakeCase(name);
@@ -136,7 +131,6 @@ class MakePivotCommand extends BaseCommand {
       buffer.writeln();
     });
 
-    // Columns List
     buffer.writeln('  static List<Column> get columns => [');
     columns.forEach((name, _) {
        final schemaKey = toCamelCase(name);

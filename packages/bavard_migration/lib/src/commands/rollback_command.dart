@@ -12,15 +12,23 @@ class RollbackCommand extends BaseCommand {
 
   @override
   void printUsage() {
-    print('Usage: dart run bavard migrate:rollback');
+    print('Usage: dart run bavard migrate:rollback [--path=<dir>]');
     print('Requires lib/config/database.dart exporting "Future<DatabaseAdapter> getDatabaseAdapter()".');
   }
 
   @override
   Future<int> run(List<String> args) async {
-    final migrationsDir = Directory('database/migrations');
+    String? pathArg;
+    for (final arg in args) {
+      if (arg.startsWith('--path=')) {
+        pathArg = arg.substring(7);
+      }
+    }
+    final migrationsPath = pathArg ?? 'database/migrations';
+
+    final migrationsDir = Directory(migrationsPath);
     if (!migrationsDir.existsSync()) {
-      print('No migrations found in database/migrations.');
+      print('No migrations found in $migrationsPath.');
       return 0;
     }
 
@@ -45,11 +53,12 @@ class RollbackCommand extends BaseCommand {
         .toList()
       ..sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
 
-    // Generate runner script
     final runnerDir = Directory('.dart_tool/bavard');
+
     if (!runnerDir.existsSync()) {
       runnerDir.createSync(recursive: true);
     }
+
     final runnerFile = File(p.join(runnerDir.path, 'rollback_runner.dart'));
 
     final imports = StringBuffer();
@@ -63,7 +72,9 @@ class RollbackCommand extends BaseCommand {
       final file = migrationFiles[i];
       final filename = p.basename(file.path);
       final importAlias = 'm$i';
-      imports.writeln("import '../../database/migrations/$filename' as $importAlias;");
+      
+      final relativePath = migrationsPath.replaceAll(r'\', '/');
+      imports.writeln("import '../../$relativePath/$filename' as $importAlias;");
       
       final content = file.readAsStringSync();
       final classMatch = RegExp(r'class\s+(\w+)\s+extends\s+Migration').firstMatch(content);

@@ -12,15 +12,23 @@ class MigrateCommand extends BaseCommand {
 
   @override
   void printUsage() {
-    print('Usage: dart run bavard migrate');
+    print('Usage: dart run bavard migrate [--path=<dir>]');
     print('Requires lib/config/database.dart exporting "Future<DatabaseAdapter> getDatabaseAdapter()".');
   }
 
   @override
   Future<int> run(List<String> args) async {
-    final migrationsDir = Directory('database/migrations');
+    String? pathArg;
+    for (final arg in args) {
+      if (arg.startsWith('--path=')) {
+        pathArg = arg.substring(7);
+      }
+    }
+    final migrationsPath = pathArg ?? 'database/migrations';
+
+    final migrationsDir = Directory(migrationsPath);
     if (!migrationsDir.existsSync()) {
-      print('No migrations found in database/migrations.');
+      print('No migrations found in $migrationsPath.');
       return 0;
     }
 
@@ -50,7 +58,6 @@ class MigrateCommand extends BaseCommand {
       return 0;
     }
 
-    // Generate runner script
     final runnerDir = Directory('.dart_tool/bavard');
     if (!runnerDir.existsSync()) {
       runnerDir.createSync(recursive: true);
@@ -62,18 +69,16 @@ class MigrateCommand extends BaseCommand {
 
     imports.writeln("import 'package:bavard/bavard.dart';");
     imports.writeln("import 'package:bavard_migration/bavard_migration.dart';");
-    // Convention: User must provide this entry point.
-    // We try to check if it exists or we just generate and let it fail with helpful message.
     imports.writeln("import 'package:$packageName/config/database.dart' as db_config;");
 
     for (var i = 0; i < migrationFiles.length; i++) {
       final file = migrationFiles[i];
       final filename = p.basename(file.path);
       final importAlias = 'm$i';
-      // Use relative path from .dart_tool/bavard/ to database/migrations/
-      imports.writeln("import '../../database/migrations/$filename' as $importAlias;");
       
-      // Parse class name
+      final relativePath = migrationsPath.replaceAll(r'\', '/');
+      imports.writeln("import '../../$relativePath/$filename' as $importAlias;");
+      
       final content = file.readAsStringSync();
       final classMatch = RegExp(r'class\s+(\w+)\s+extends\s+Migration').firstMatch(content);
       if (classMatch == null) {

@@ -2,6 +2,42 @@
 
 Bavard comes with a built-in CLI tool to help you scaffold your models and pivot tables quickly. The CLI features colored output for better readability and supports generating complete, ready-to-use code.
 
+## Setup
+
+To use the Bavard CLI in your project, you need to expose it through a script in your `bin/` directory. This allows you to run it using `dart run bavard`.
+
+### Create the CLI Wrapper
+Create a file at `bin/bavard.dart` in your project root:
+
+```dart
+import 'package:bavard_cli/bavard_cli.dart';
+import 'package:bavard_migration/bavard_migration.dart';
+
+void main(List<String> args) {
+  // Register standard CLI commands along with migration commands
+  CliRunner([
+    MakeMigrationCommand(),
+    MigrateCommand(),
+    RollbackCommand(),
+  ]).run(args);
+}
+```
+
+### Configure Database for Migrations
+Commands that interact with the database (like `migrate`) need to know how to connect to it. By convention, they look for a `getDatabaseAdapter()` function in `lib/config/database.dart`.
+
+Create `lib/config/database.dart`:
+
+```dart
+import 'package:bavard/bavard.dart';
+
+/// This function is used by the CLI to obtain a database connection.
+Future<DatabaseAdapter> getDatabaseAdapter() async {
+  // Return your configured adapter
+  return SQLiteAdapter('database.db');
+}
+```
+
 ## Usage
 
 Run the CLI using `dart run`:
@@ -140,4 +176,36 @@ class UserRole extends Pivot {
     UserRole.schema.createdAt,
   ];
 }
+```
+
+### `make:migration`
+
+Creates a new migration file in `database/migrations`.
+
+**Syntax:**
+```bash
+dart run bavard make:migration <MigrationName>
+```
+
+**Example:**
+```bash
+dart run bavard make:migration create_users_table
+```
+
+### `migrate`
+
+Executes all outstanding migrations.
+
+**Syntax:**
+```bash
+dart run bavard migrate
+```
+
+### `migrate:rollback`
+
+Rolls back the last batch of migrations.
+
+**Syntax:**
+```bash
+dart run bavard migrate:rollback
 ```

@@ -28,7 +28,6 @@ class MakeModelCommand extends BaseCommand {
     bool force = false;
     String? customPath;
 
-    // Parse arguments
     for (var i = 1; i < args.length; i++) {
       final arg = args[i];
       if (arg.startsWith('--table=')) {
@@ -48,16 +47,13 @@ class MakeModelCommand extends BaseCommand {
       }
     }
 
-    // Defaults
     tableName ??= pluralize(toSnakeCase(className));
     final fileName = '${toSnakeCase(className)}.dart';
     
-    // Determine output path
     String outputDir;
     if (customPath != null) {
       outputDir = customPath;
     } else {
-      // Auto-discovery priority
       if (Directory('lib/models').existsSync()) {
         outputDir = 'lib/models';
       } else if (Directory('lib/src/models').existsSync()) {
@@ -67,7 +63,6 @@ class MakeModelCommand extends BaseCommand {
       }
     }
 
-    // Ensure directory exists
     final dir = Directory(outputDir);
     if (!dir.existsSync()) {
       printInfo("Creating directory: $outputDir");
@@ -125,7 +120,6 @@ class MakeModelCommand extends BaseCommand {
     buffer.writeln("  @override");
     buffer.writeln("  $className fromMap(Map<String, dynamic> map) => $className(map);");
 
-    // Schema
     if (columns.isNotEmpty) {
       buffer.writeln();
       buffer.writeln('  // ---------------------------------------------------------------------------');
@@ -142,7 +136,6 @@ class MakeModelCommand extends BaseCommand {
       buffer.writeln('  );');
     }
 
-    // Getters/Setters
     if (columns.isNotEmpty) {
       buffer.writeln();
       buffer.writeln('  // ---------------------------------------------------------------------------');
@@ -157,7 +150,6 @@ class MakeModelCommand extends BaseCommand {
       });
     }
 
-    // Casts
     final castColumns = columns.entries.where((e) => _needsCast(e.value)).toList();
     
     if (castColumns.isNotEmpty) {

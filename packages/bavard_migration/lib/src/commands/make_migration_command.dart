@@ -11,22 +11,34 @@ class MakeMigrationCommand extends BaseCommand {
 
   @override
   void printUsage() {
-    print('Usage: dart run bavard make:migration <name>');
+    print('Usage: dart run bavard make:migration <name> [--path=<dir>]');
   }
 
   @override
   Future<int> run(List<String> args) async {
-    if (args.isEmpty) {
+    String? pathArg;
+    final otherArgs = <String>[];
+    
+    for (final arg in args) {
+      if (arg.startsWith('--path=')) {
+        pathArg = arg.substring(7);
+      } else {
+        otherArgs.add(arg);
+      }
+    }
+
+    if (otherArgs.isEmpty) {
       print('Error: Migration name is required.');
       printUsage();
       return 1;
     }
 
-    final name = args[0];
+    final name = otherArgs[0];
+    final migrationsPath = pathArg ?? 'database/migrations';
     final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[^0-9]'), '').substring(0, 14); // YYYYMMDDHHMMSS
     final filename = '${timestamp}_$name.dart';
     
-    final dir = Directory('database/migrations');
+    final dir = Directory(migrationsPath);
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
     }

@@ -1,15 +1,19 @@
 # Introduction
 
-Bavard is an Object-Relational Mapping (ORM) library that brings the **Active Record** pattern to Dart. If you're familiar with Eloquent, you'll feel right at home.
+Bavard is a modular, Eloquent-inspired ecosystem for Dart and Flutter. It brings the **Active Record** pattern to the Dart ecosystem, allowing you to interact with your database using an expressive, fluent syntax.
 
-The goal is to simplify database interactions with SQLite, PostgreSQL, or PowerSync while keeping your code clean and readable.
+Unlike many Dart ORMs that rely heavily on complex code generation, Bavard is designed to be dynamic and flexible. It leverages Dart's runtime capabilities and a "Convention over Configuration" philosophy to minimize friction in your development loop.
 
-Bavard is designed to minimize friction in your development loop by reducing reliance on code generation. Unlike many Dart ORMs that require running `build_runner` for every schema change or relationship definition, Bavard relies on Dart's runtime capabilities and a strict "Convention over Configuration" philosophy.
+## The Ecosystem
 
-Core features like relationship resolution, query building, and data hydration are handled dynamically through mixins such as `HasCasts` and `HasRelationships`. This means you can define a relationship or add a new column helper and use it immediately without waiting for a watcher process. Code generation is treated as an optional enhancement for reducing boilerplate—such as creating strictly typed getters—rather than a requirement for the ORM to function. This approach significantly speeds up iteration times and keeps your codebase cleaner and more transparent.
+Bavard is built as a collection of specialized packages. While the core is standalone, the tooling suite ensures a smooth workflow:
+
+- **[`bavard`](/guide/installation)**: The core runtime. It includes the Model implementation, the Fluent Query Builder, and the Relationship engine.
+- **[`bavard_migration`](/guide/migrations)** & **[`bavard_cli`](/tooling/cli)**: The tooling suite. These two packages work hand-in-hand to manage your database schema and scaffold your code. While optional.
 
 ## Why Bavard?
 
+- **Modular Architecture:** Choose between a lightweight core or a full-featured suite with migrations and CLI tools.
 - **Flutter ready:** Seamlessly integrated with Flutter for mobile, desktop, and web applications.
 - **Fluent Syntax:** Write readable queries such as `User().query().where(User.schema.age.greaterThan(18)).get()`.
 - **Offline-first ready:** Native support for client-side UUIDs (`HasUuids`) and driver-agnostic architecture.
@@ -17,14 +21,11 @@ Core features like relationship resolution, query building, and data hydration a
 - **No Magic:** Code generation is 100% optional. Bavard leverages Dart's runtime capabilities and mixins to handle relationships and data casting dynamically at runtime, allowing you to iterate without waiting for build processes.
 - **Type Safety:** Optional code generation for fully typed getters and setters.
 
-## Core Concepts
+## Core Philosophy
 
-### Type Casting and Data Lifecycle
+Bavard focuses on speed of development. Relationship resolution, query building, and data hydration are handled dynamically. This means you can add a new relationship or column and use it immediately.
 
-Bavard manages data conversion through the `HasCasts` mixin, acting as a bridge between raw database values and Dart objects. 
-
-- **Hydration** occurs when fetching records; the framework stores the raw data internally but lazily parses it—converting timestamps, booleans, or JSON strings into their respective objects—only when you access an attribute via `getAttribute`. 
-- **Dehydration** prepares data for storage or comparison. When setting values or saving a model, the framework serializes rich Dart objects back into database-compatible primitives (like integers for booleans), ensuring complex structures are correctly encoded for persistence and dirty checking.
+If you prefer strictly typed properties, you can use the CLI to generate them, but the ORM remains functional and transparent even without a single line of generated code.
 
 ## Quick Example
 

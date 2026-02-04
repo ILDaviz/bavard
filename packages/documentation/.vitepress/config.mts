@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 import fs from 'fs'
 import path from 'path'
 
-const pubspecPath = path.resolve(__dirname, '../../pubspec.yaml')
+const pubspecPath = path.resolve(__dirname, '../../bavard/pubspec.yaml')
 const pubspecContent = fs.readFileSync(pubspecPath, 'utf-8')
 const versionMatch = pubspecContent.match(/version:\s+(\d+\.\d+\.\d+)/)
 const bavardVersion = versionMatch ? versionMatch[1] : '0.0.0'
@@ -62,6 +62,7 @@ export default defineConfig({
           { text: 'Initial Setup', link: '/guide/setup' },
           { text: 'Conventions', link: '/guide/conventions' },
           { text: 'Creating Models', link: '/guide/models' },
+          { text: 'Migrations', link: '/guide/migrations' },
         ]
       },
       {
