@@ -1,6 +1,12 @@
-# Bavard Monorepo
+# Bavard ORM 🗣️
 
-This repository contains the source code for the Bavard ORM and its documentation.
+[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
+
+**The Eloquent-style ORM for Dart.**
+
+> **Work in Progress**: This project is currently under active development. APIs may change.
+
+Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It is designed to provide a fluent, expressive interface for database interactions, prioritizing developer experience, runtime flexibility, and readability.
 
 ## Structure
 
@@ -8,6 +14,14 @@ This repository contains the source code for the Bavard ORM and its documentatio
 - **[![pub.dev](https://img.shields.io/pub/v/bavard_cli.svg)](https://pub.dev/packages/bavard_cli) [packages/bavard_cli](packages/bavard_cli)**: The Dart package cli tool.
 - **[![pub.dev](https://img.shields.io/pub/v/bavard_migration.svg)](https://pub.dev/packages/bavard_migration) [packages/bavard_migration](packages/bavard_migration)**: The Dart package migration tool.
 - **[packages/documentation](packages/documentation)**: The documentation website (VitePress).
+
+---
+
+## 📚 Documentation
+
+For detailed guides, API references, and usage examples, please visit our documentation:
+
+👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
 
 ## 🚀 Key Features
 

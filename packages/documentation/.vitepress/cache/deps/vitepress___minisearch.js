@@ -1,4 +1,4 @@
-// ../../../../.yarn/berry/cache/minisearch-npm-7.2.0-6dca5d0e50-10c0.zip/node_modules/minisearch/dist/es/index.js
+// node_modules/minisearch/dist/es/index.js
 var ENTRIES = "ENTRIES";
 var KEYS = "KEYS";
 var VALUES = "VALUES";
