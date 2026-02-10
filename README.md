@@ -1,7 +1,5 @@
 # Bavard ORM 🗣️
 
-[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
-
 **The Eloquent-style ORM for Dart.**
 
 > **Work in Progress**: This project is currently under active development. APIs may change.
@@ -10,9 +8,9 @@ Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It 
 
 ## Structure
 
-- **[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard) [packages/bavard](packages/bavard)**: The Dart package source code.
-- **[![pub.dev](https://img.shields.io/pub/v/bavard_cli.svg)](https://pub.dev/packages/bavard_cli) [packages/bavard_cli](packages/bavard_cli)**: The Dart package cli tool.
-- **[![pub.dev](https://img.shields.io/pub/v/bavard_migration.svg)](https://pub.dev/packages/bavard_migration) [packages/bavard_migration](packages/bavard_migration)**: The Dart package migration tool.
+- **[packages/bavard](packages/bavard)**: The Dart package source code. [![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
+- **[packages/bavard_cli](packages/bavard_cli)**: The Dart package cli tool. [![pub.dev](https://img.shields.io/pub/v/bavard_cli.svg)](https://pub.dev/packages/bavard_cli)
+- **[packages/bavard_migration](packages/bavard_migration)**: The Dart package migration tool. [![pub.dev](https://img.shields.io/pub/v/bavard_migration.svg)](https://pub.dev/packages/bavard_migration)
 - **[packages/documentation](packages/documentation)**: The documentation website (VitePress).
 
 ---
