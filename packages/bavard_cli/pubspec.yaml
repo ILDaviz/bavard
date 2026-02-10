@@ -8,9 +8,9 @@ environment:
   sdk: ^3.10.1
 
 dependencies:
-  # Se la CLI ha bisogno di generare codice che usa Bavard, potrebbe non servire dipendere da bavard
-  # a meno che non importi classi di core. Per ora lo lascio pulito.
   path: ^1.8.0
+  yaml: ^3.1.2
+  bavard_migration: ^0.0.1
 
 dev_dependencies:
   test: ^1.25.0

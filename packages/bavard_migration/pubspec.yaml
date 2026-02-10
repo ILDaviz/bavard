@@ -8,10 +8,8 @@ environment:
   sdk: ^3.10.1
 
 dependencies:
-  bavard:
-    path: ../bavard
-  bavard_cli:
-    path: ../bavard_cli
+  bavard: ^0.0.1
+  bavard_cli: ^0.0.1
   path: ^1.8.0
 
 dev_dependencies:
