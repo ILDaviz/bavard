@@ -3,21 +3,11 @@
 Command-line interface for the [Bavard ORM](https://github.com/ILDaviz/bavard).
 This tool helps you quickly generate models and pivot tables for your Bavard project.
 
-## Installation
+## 📚 Documentation
 
-You can install the CLI globally using Dart:
+For detailed guides, API references, and usage examples, please visit our documentation:
 
-```bash
-dart pub global activate bavard_cli
-```
-
-Or run it directly if included in your project dev_dependencies:
-
-```bash
-dart run bavard_cli:bavard <command>
-```
-
-## Usage
+👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
 
 ### Make Model
 
