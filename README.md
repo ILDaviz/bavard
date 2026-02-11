@@ -16,13 +16,13 @@ Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It 
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 For detailed guides, API references, and usage examples, please visit our documentation:
 
 👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
 
-## 🚀 Key Features
+## Key Features
 
 - 💙 **Flutter ready:** Seamlessly integrated with Flutter for mobile, desktop, and web applications.
 - ⚡️ **Runtime-first architecture:** Code generation is 100% optional. Bavard leverages Dart's runtime capabilities and mixins to work entirely without build processes.
