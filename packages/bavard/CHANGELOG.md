@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Schema:** Added support for table alterations (`Schema.table(...)`) and column modifications via the new `Blueprint` and `Grammar` updates.
+- **Schema:** Added `change()` method to `ColumnDefinition` for modifying existing columns.
+- **Grammar:** Enhanced `SQLiteGrammar` and `PostgresGrammar` to generate DDL for schema changes (`ADD COLUMN`, `ALTER COLUMN`, `DROP COLUMN`).
+- **Migrations:** Exposed necessary internals to support the `bavard_migration` package.
 - **CLI:** Introduced `dart run bavard` CLI tool for scaffolding models and pivots without code generation.
     - `make:model`: Generates a Model class with schema, accessors, and casts.
     - `make:pivot`: Generates a Pivot class with accessors and columns list.
