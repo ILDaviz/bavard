@@ -12,6 +12,7 @@ Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It 
 - **[packages/bavard_cli](packages/bavard_cli)**: The Dart package cli tool. [![pub.dev](https://img.shields.io/pub/v/bavard_cli.svg)](https://pub.dev/packages/bavard_cli)
 - **[packages/bavard_migration](packages/bavard_migration)**: The Dart package migration tool. [![pub.dev](https://img.shields.io/pub/v/bavard_migration.svg)](https://pub.dev/packages/bavard_migration)
 - **[packages/documentation](packages/documentation)**: The documentation website (VitePress).
+- **[packages/bavard_example_project](packages/bavard_example_project)**: demonstrative Flutter project that illustrates how to integrate and use **Bavard ORM**
 
 ---
 
