@@ -45,6 +45,12 @@ jobs:
         working-directory: ./packages/documentation
         run: yarn run docs:build
 
+      - name: Debug Build Output
+        run: ls -R packages/documentation/.vitepress/dist
+
+      - name: Remove .gitignore to allow upload
+        run: rm packages/documentation/.gitignore
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
