@@ -3,7 +3,6 @@ name: Deploy Docs to GitHub Pages
 on:
   push:
     branches: [main]
-    # Attiva il workflow solo se ci sono modifiche nella cartella doc
     paths:
       - 'packages/documentation/**'
 
