@@ -35,7 +35,15 @@ class MakeMigrationCommand extends BaseCommand {
 
     final name = otherArgs[0];
     final migrationsPath = pathArg ?? 'database/migrations';
-    final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[^0-9]'), '').substring(0, 14); // YYYYMMDDHHMMSS
+    
+    final now = DateTime.now();
+    final timestamp = "${now.year}_"
+        "${now.month.toString().padLeft(2, '0')}_"
+        "${now.day.toString().padLeft(2, '0')}_"
+        "${now.hour.toString().padLeft(2, '0')}"
+        "${now.minute.toString().padLeft(2, '0')}"
+        "${now.second.toString().padLeft(2, '0')}";
+        
     final filename = '${timestamp}_$name.dart';
     
     final dir = Directory(migrationsPath);

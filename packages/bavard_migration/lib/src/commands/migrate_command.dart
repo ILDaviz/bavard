@@ -87,7 +87,7 @@ class MigrateCommand extends BaseCommand {
       }
       final className = classMatch.group(1);
 
-      registry.writeln("    MigrationRegistryEntry('$filename', $importAlias.$className()),");
+      registry.writeln("    MigrationRegistryEntry($importAlias.$className(), '$filename'),");
     }
 
     final script = '''

@@ -36,21 +36,25 @@ void main() {
     test('runUp executes new migrations', () async {
       final m1 = TestMigration();
       final m2 = TestMigration();
-      
+
       db.setMockData({
         'SELECT migration_name': [],
-        'SELECT MAX(batch)': [{'batch': 0}]
+        'SELECT MAX(batch)': [
+          {'batch': 0},
+        ],
       });
 
       await migrator.runUp([
-        MigrationRegistryEntry('m1', m1),
-        MigrationRegistryEntry('m2', m2),
+        MigrationRegistryEntry(m1, 'm1'),
+        MigrationRegistryEntry(m2, 'm2'),
       ]);
 
       expect(m1.upCalled, isTrue);
       expect(m2.upCalled, isTrue);
-      
-      final inserts = db.history.where((sql) => sql.startsWith('INSERT INTO "migrations"'));
+
+      final inserts = db.history.where(
+        (sql) => sql.startsWith('INSERT INTO "migrations"'),
+      );
       expect(inserts.length, equals(2));
     });
 
@@ -59,13 +63,17 @@ void main() {
       final m2 = TestMigration();
 
       db.setMockData({
-        'SELECT migration_name': [{'migration_name': 'm1'}],
-         'SELECT MAX(batch)': [{'batch': 1}]
+        'SELECT migration_name': [
+          {'migration_name': 'm1'},
+        ],
+        'SELECT MAX(batch)': [
+          {'batch': 1},
+        ],
       });
 
       await migrator.runUp([
-        MigrationRegistryEntry('m1', m1),
-        MigrationRegistryEntry('m2', m2),
+        MigrationRegistryEntry(m1, 'm1'),
+        MigrationRegistryEntry(m2, 'm2'),
       ]);
 
       expect(m1.upCalled, isFalse);
@@ -74,19 +82,20 @@ void main() {
 
     test('runDown reverts last batch', () async {
       final m1 = TestMigration();
-      
+
       db.setMockData({
         'SELECT * FROM migrations WHERE batch': [
-          {'migration_name': 'm1'}
-        ]
+          {'migration_name': 'm1'},
+        ],
       });
 
-      await migrator.runDown([
-        MigrationRegistryEntry('m1', m1),
-      ]);
+      await migrator.runDown([MigrationRegistryEntry(m1, 'm1')]);
 
       expect(m1.downCalled, isTrue);
-      expect(db.history.any((sql) => sql.startsWith('DELETE FROM migrations')), isTrue);
+      expect(
+        db.history.any((sql) => sql.startsWith('DELETE FROM migrations')),
+        isTrue,
+      );
     });
   });
 }

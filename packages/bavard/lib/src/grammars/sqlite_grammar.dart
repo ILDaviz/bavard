@@ -74,7 +74,7 @@ class SQLiteGrammar extends Grammar {
     }
 
     if (col.defaultValue != null) {
-      def += ' DEFAULT ${parameter(col.defaultValue)}';
+      def += ' DEFAULT ${_formatDefaultValue(col.defaultValue)}';
     } else if (col.useCurrent) {
       def += ' DEFAULT CURRENT_TIMESTAMP';
     }
@@ -85,6 +85,13 @@ class SQLiteGrammar extends Grammar {
     }
 
     return def;
+  }
+
+  String _formatDefaultValue(dynamic value) {
+    if (value is bool) return value ? '1' : '0';
+    if (value is num) return value.toString();
+    if (value is DateTime) return "'${value.toIso8601String()}'";
+    return "'$value'";
   }
 
   List<String> _compileForeignKeys(Blueprint blueprint) {

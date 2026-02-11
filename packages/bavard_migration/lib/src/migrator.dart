@@ -8,7 +8,16 @@ import 'package:path/path.dart' as p;
 class MigrationRegistryEntry {
   final String name;
   final Migration instance;
-  MigrationRegistryEntry(this.name, this.instance);
+
+  MigrationRegistryEntry(this.instance, [String? name])
+      : name = name ?? _toSnakeCase(instance.runtimeType.toString());
+
+  static String _toSnakeCase(String input) {
+    return input
+        .replaceAllMapped(
+            RegExp(r'([a-z])([A-Z])'), (Match m) => '${m[1]}_${m[2]}')
+        .toLowerCase();
+  }
 }
 
 class Migrator {
