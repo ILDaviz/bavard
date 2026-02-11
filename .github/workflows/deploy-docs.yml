@@ -5,7 +5,7 @@ on:
     branches: [main]
     # Attiva il workflow solo se ci sono modifiche nella cartella doc
     paths:
-      - 'doc/**'
+      - 'packages/documentation/**'
 
 permissions:
   contents: read
@@ -33,23 +33,23 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-          cache-dependency-path: doc/yarn.lock
+          cache-dependency-path: packages/documentation/yarn.lock
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
-        working-directory: ./doc
+        working-directory: ./packages/documentation
         run: yarn install --immutable
 
       - name: Build with VitePress
-        working-directory: ./doc
+        working-directory: ./packages/documentation
         run: yarn run docs:build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: doc/.vitepress/dist
+          path: packages/documentation/.vitepress/dist
 
   deploy:
     environment:

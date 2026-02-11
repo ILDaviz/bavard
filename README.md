@@ -1,16 +1,28 @@
 # Bavard ORM 🗣️
 
-[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
-
 **The Eloquent-style ORM for Dart.**
 
 > **Work in Progress**: This project is currently under active development. APIs may change.
 
 Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It is designed to provide a fluent, expressive interface for database interactions, prioritizing developer experience, runtime flexibility, and readability.
 
+## Structure
+
+- **[packages/bavard](packages/bavard)**: The Dart package source code. [![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
+- **[packages/bavard_cli](packages/bavard_cli)**: The Dart package cli tool. [![pub.dev](https://img.shields.io/pub/v/bavard_cli.svg)](https://pub.dev/packages/bavard_cli)
+- **[packages/bavard_migration](packages/bavard_migration)**: The Dart package migration tool. [![pub.dev](https://img.shields.io/pub/v/bavard_migration.svg)](https://pub.dev/packages/bavard_migration)
+- **[packages/documentation](packages/documentation)**: The documentation website (VitePress).
+- **[packages/bavard_example_project](packages/bavard_example_project)**: demonstrative Flutter project that illustrates how to integrate and use **Bavard ORM**
+
 ---
 
-## 🚀 Key Features
+## Documentation
+
+For detailed guides, API references, and usage examples, please visit our documentation:
+
+👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
+
+## Key Features
 
 - 💙 **Flutter ready:** Seamlessly integrated with Flutter for mobile, desktop, and web applications.
 - ⚡️ **Runtime-first architecture:** Code generation is 100% optional. Bavard leverages Dart's runtime capabilities and mixins to work entirely without build processes.
@@ -23,138 +35,10 @@ Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It 
 - 🚀 **Eager Loading:** Powerful eager loading system to eliminate N+1 query problems.
 - 🌐 **Database Agnostic:** Flexible adapter system with native support for SQLite and PostgreSQL.
 
----
+### Running Tests
 
-## 📚 Documentation
+To run tests for the all Bavard package:
 
-For detailed guides, API references, and usage examples, please visit our documentation:
-
-👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
-
----
-
-## 🏁 Quick Start
-
-### 0. Initialize Database
-
-Bavard is driver-agnostic. You just need to provide an implementation of `DatabaseAdapter` (see [Adapters documentation](https://ildaviz.github.io/bavard/reference/adapters.html) for reference implementations).
-
-```dart
-import 'package:bavard/bavard.dart';
-import 'your_project/my_database_adapter.dart'; // Your custom implementation
-
-void main() async {
-  // Initialize your custom adapter (SQLite, Postgres, PowerSync, etc.)
-  final adapter = MyDatabaseAdapter();
-  await adapter.connect();
-  
-  // Register it as the default connection
-  DatabaseManager().setDatabase(adapter);
-}
+```bash
+make test
 ```
-
-### 1. Define a Model
-
-Bavard models use a schema-first approach. For the best experience, use code generation to get full type safety.
-
-```dart
-import 'package:bavard/bavard.dart';
-
-part 'user.g.dart';
-
-@fillable
-class User extends Model with $UserFillable {
-  @override
-  String get table => 'users';
-
-  // Define schema for query safety and automatic casting
-  static const schema = (
-    id: IdColumn(),
-    name: TextColumn('name'),
-    email: TextColumn('email'),
-    isActive: BoolColumn('is_active'),
-  );
-
-  User([super.attributes]);
-  
-  @override
-  User fromMap(Map<String, dynamic> map) => User(map);
-}
-```
-
-### 2. Use it!
-
-Enjoy a fluent, expressive, and type-safe API.
-
-```dart
-// Create
-final user = User();
-user.name = 'Mario'; // Typed setter
-user.isActive = true;
-await user.save();
-
-// Read (Type-Safe)
-final users = await User().query()
-    .where(User.schema.isActive, true) // Uses generated schema
-    .orderBy(User.schema.name)
-    .get();
-
-// Update (with Dirty Checking)
-final mario = await User().query().find(1);
-mario.name = 'Super Mario';
-await mario.save(); // Only updates the 'name' column
-
-// Reactive Streams (Flutter friendly)
-StreamBuilder<List<User>>(
-  stream: User().query().watch(), // Auto-updates on DB changes
-  builder: (context, snapshot) {
-    // ...
-  },
-);
-```
-
----
-
-## 🔗 Relationships
-
-Defining relationships is easy, but requires overriding `getRelation` for proper dispatching.
-
-```dart
-class User extends Model {
-  // ... (table, columns, etc.)
-
-  // Define the relationship
-  HasMany<Post> posts() => hasMany(Post.new);
-
-  // REGISTER the relationship (Mandatory!)
-  @override
-  Relation? getRelation(String name) {
-    if (name == 'posts') return posts();
-    return super.getRelation(name);
-  }
-}
-
-// Usage
-final user = await User().query().find(1);
-
-// Lazy Load
-final posts = await user.posts().get();
-
-// Eager Load (Avoid N+1)
-final usersWithPosts = await User().query().withRelations(['posts']).get();
-```
-
----
-
-## 🧪 Examples & Integration
-
-To see Bavard in action with a real database environment, check the integration suite:
-
-*   [SQLite + Docker Integration Test](example/sqlite-docker/)
-*   [PostgreSQL + Docker Integration Test](example/postgresql-docker/)
-
----
-
-## 🤝 Contributing
-
-Bavard is open-source. Feel free to explore the code, report issues, or submit pull requests.
