@@ -18,8 +18,20 @@ void main() {
         table.integer('age').nullable();
       });
 
-      expect(db.history.any((sql) => sql.contains('ALTER TABLE "users" ADD COLUMN "email" TEXT NOT NULL')), isTrue);
-      expect(db.history.any((sql) => sql.contains('ALTER TABLE "users" ADD COLUMN "age" INTEGER')), isTrue);
+      expect(
+        db.history.any(
+          (sql) => sql.contains(
+            'ALTER TABLE "users" ADD COLUMN "email" TEXT NOT NULL',
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        db.history.any(
+          (sql) => sql.contains('ALTER TABLE "users" ADD COLUMN "age" INTEGER'),
+        ),
+        isTrue,
+      );
     });
 
     test('renames columns correctly', () async {
@@ -27,7 +39,14 @@ void main() {
         table.renameColumn('name', 'full_name');
       });
 
-      expect(db.history.any((sql) => sql.contains('ALTER TABLE "users" RENAME COLUMN "name" TO "full_name"')), isTrue);
+      expect(
+        db.history.any(
+          (sql) => sql.contains(
+            'ALTER TABLE "users" RENAME COLUMN "name" TO "full_name"',
+          ),
+        ),
+        isTrue,
+      );
     });
 
     test('drops indexes correctly', () async {
@@ -35,7 +54,12 @@ void main() {
         table.dropIndex('users_email_unique');
       });
 
-      expect(db.history.any((sql) => sql.contains('DROP INDEX "users_email_unique"')), isTrue);
+      expect(
+        db.history.any(
+          (sql) => sql.contains('DROP INDEX "users_email_unique"'),
+        ),
+        isTrue,
+      );
     });
   });
 }

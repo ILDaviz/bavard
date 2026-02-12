@@ -10,16 +10,17 @@ class MigrationRepository {
   /// Ensures the migrations tracking table exists.
   Future<void> prepareTable() async {
     final grammar = _adapter.grammar;
-    
+
     // Default to SQLite syntax for auto-incrementing IDs
     String idDef = 'id INTEGER PRIMARY KEY AUTOINCREMENT';
-    
+
     // Use Postgres-specific syntax if applicable
     if (grammar is! SQLiteGrammar) {
-        idDef = 'id SERIAL PRIMARY KEY';
+      idDef = 'id SERIAL PRIMARY KEY';
     }
 
-    final sql = '''
+    final sql =
+        '''
       CREATE TABLE IF NOT EXISTS $_table (
         $idDef,
         migration_name VARCHAR(255) NOT NULL,
@@ -35,33 +36,33 @@ class MigrationRepository {
   Future<List<String>> getRanMigrations() async {
     try {
       final results = await _adapter.getAll(
-        'SELECT migration_name FROM $_table ORDER BY batch ASC, id ASC'
+        'SELECT migration_name FROM $_table ORDER BY batch ASC, id ASC',
       );
-      
+
       return results.map((row) => row['migration_name'] as String).toList();
     } catch (e) {
       // Return empty if the table doesn't exist yet
       return [];
     }
   }
-  
+
   /// Gets all migration records from the very last batch.
   Future<List<Map<String, dynamic>>> getLastBatch() async {
-     try {
+    try {
       final results = await _adapter.getAll(
-        'SELECT * FROM $_table WHERE batch = (SELECT MAX(batch) FROM $_table) ORDER BY id DESC'
+        'SELECT * FROM $_table WHERE batch = (SELECT MAX(batch) FROM $_table) ORDER BY id DESC',
       );
       return results;
     } catch (e) {
       return [];
     }
   }
-  
+
   /// Calculates the next batch number to be used for new migrations.
   Future<int> getNextBatchNumber() async {
     try {
       final result = await _adapter.get(
-        'SELECT MAX(batch) as batch FROM $_table'
+        'SELECT MAX(batch) as batch FROM $_table',
       );
       final batch = result['batch'];
       if (batch == null) return 1;
@@ -83,10 +84,9 @@ class MigrationRepository {
   /// Removes a migration record from the tracking table.
   Future<void> delete(String name) async {
     await _adapter.execute(
-      _table, 
+      _table,
       'DELETE FROM $_table WHERE migration_name = ?',
-      [name]
+      [name],
     );
   }
 }
-

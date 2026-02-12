@@ -18,7 +18,7 @@ class MakeMigrationCommand extends BaseCommand {
   Future<int> run(List<String> args) async {
     String? pathArg;
     final otherArgs = <String>[];
-    
+
     for (final arg in args) {
       if (arg.startsWith('--path=')) {
         pathArg = arg.substring(7);
@@ -35,17 +35,18 @@ class MakeMigrationCommand extends BaseCommand {
 
     final name = otherArgs[0];
     final migrationsPath = pathArg ?? 'database/migrations';
-    
+
     final now = DateTime.now();
-    final timestamp = "${now.year}_"
+    final timestamp =
+        "${now.year}_"
         "${now.month.toString().padLeft(2, '0')}_"
         "${now.day.toString().padLeft(2, '0')}_"
         "${now.hour.toString().padLeft(2, '0')}"
         "${now.minute.toString().padLeft(2, '0')}"
         "${now.second.toString().padLeft(2, '0')}";
-        
+
     final filename = '${timestamp}_$name.dart';
-    
+
     final dir = Directory(migrationsPath);
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
@@ -54,7 +55,8 @@ class MakeMigrationCommand extends BaseCommand {
     final filePath = p.join(dir.path, filename);
     final className = _toPascalCase(name);
 
-    final content = '''
+    final content =
+        '''
 import 'package:bavard_migration/bavard_migration.dart';
 
 class $className extends Migration {
@@ -79,9 +81,12 @@ class $className extends Migration {
   }
 
   String _toPascalCase(String input) {
-    return input.split('_').map((s) {
-      if (s.isEmpty) return '';
-      return s[0].toUpperCase() + s.substring(1);
-    }).join('');
+    return input
+        .split('_')
+        .map((s) {
+          if (s.isEmpty) return '';
+          return s[0].toUpperCase() + s.substring(1);
+        })
+        .join('');
   }
 }

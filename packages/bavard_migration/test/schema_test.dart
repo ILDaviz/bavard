@@ -41,7 +41,10 @@ void main() {
       expect(db.history[0], contains('PRIMARY KEY ("id", "user_id")'));
       expect(db.history[0], contains('"slug" TEXT UNIQUE'));
 
-      expect(db.history[1], contains('CREATE INDEX "custom_slug_index" ON "posts" ("slug")'));
+      expect(
+        db.history[1],
+        contains('CREATE INDEX "custom_slug_index" ON "posts" ("slug")'),
+      );
     });
 
     test('drop generates correct SQL', () async {

@@ -13,7 +13,9 @@ class RollbackCommand extends BaseCommand {
   @override
   void printUsage() {
     print('Usage: dart run bavard migrate:rollback [--path=<dir>]');
-    print('Requires lib/config/database.dart exporting "Future<DatabaseAdapter> getDatabaseAdapter()".');
+    print(
+      'Requires lib/config/database.dart exporting "Future<DatabaseAdapter> getDatabaseAdapter()".',
+    );
   }
 
   @override
@@ -46,12 +48,13 @@ class RollbackCommand extends BaseCommand {
       return 1;
     }
 
-    final migrationFiles = migrationsDir
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'))
-        .toList()
-      ..sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
+    final migrationFiles =
+        migrationsDir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'))
+            .toList()
+          ..sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
 
     final runnerDir = Directory('.dart_tool/bavard');
 
@@ -66,27 +69,36 @@ class RollbackCommand extends BaseCommand {
 
     imports.writeln("import 'package:bavard/bavard.dart';");
     imports.writeln("import 'package:bavard_migration/bavard_migration.dart';");
-    imports.writeln("import 'package:$packageName/config/database.dart' as db_config;");
+    imports.writeln(
+      "import 'package:$packageName/config/database.dart' as db_config;",
+    );
 
     for (var i = 0; i < migrationFiles.length; i++) {
       final file = migrationFiles[i];
       final filename = p.basename(file.path);
       final importAlias = 'm$i';
-      
+
       final relativePath = migrationsPath.replaceAll(r'\', '/');
-      imports.writeln("import '../../$relativePath/$filename' as $importAlias;");
-      
+      imports.writeln(
+        "import '../../$relativePath/$filename' as $importAlias;",
+      );
+
       final content = file.readAsStringSync();
-      final classMatch = RegExp(r'class\s+(\w+)\s+extends\s+Migration').firstMatch(content);
+      final classMatch = RegExp(
+        r'class\s+(\w+)\s+extends\s+Migration',
+      ).firstMatch(content);
       if (classMatch == null) {
         continue;
       }
       final className = classMatch.group(1);
 
-      registry.writeln("    MigrationRegistryEntry($importAlias.$className(), '$filename'),");
+      registry.writeln(
+        "    MigrationRegistryEntry($importAlias.$className(), '$filename'),",
+      );
     }
 
-    final script = '''
+    final script =
+        '''
 // GENERATED CODE - DO NOT MODIFY BY HAND
 $imports
 
@@ -121,13 +133,13 @@ $registry
     print('Executing...');
 
     final result = await Process.run('dart', ['run', runnerFile.path]);
-    
+
     if (result.stdout.toString().isNotEmpty) print(result.stdout);
     if (result.stderr.toString().isNotEmpty) print(result.stderr);
 
     if (result.exitCode != 0) {
-        print('Rollback failed.');
-        return result.exitCode;
+      print('Rollback failed.');
+      return result.exitCode;
     }
 
     return 0;

@@ -1,4 +1,3 @@
-import 'package:bavard/bavard.dart'; // For DatabaseAdapter
 import 'package:bavard/testing.dart';
 import 'package:bavard_migration/src/migration.dart';
 import 'package:bavard_migration/src/migration_repository.dart';

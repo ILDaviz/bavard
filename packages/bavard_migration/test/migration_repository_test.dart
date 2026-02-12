@@ -30,7 +30,7 @@ void main() {
         'SELECT migration_name': [
           {'migration_name': 'm1'},
           {'migration_name': 'm2'},
-        ]
+        ],
       });
 
       final result = await repo.getRanMigrations();

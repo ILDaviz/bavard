@@ -13,7 +13,9 @@ class MigrateCommand extends BaseCommand {
   @override
   void printUsage() {
     print('Usage: dart run bavard migrate [--path=<dir>]');
-    print('Requires lib/config/database.dart exporting "Future<DatabaseAdapter> getDatabaseAdapter()".');
+    print(
+      'Requires lib/config/database.dart exporting "Future<DatabaseAdapter> getDatabaseAdapter()".',
+    );
   }
 
   @override
@@ -46,12 +48,13 @@ class MigrateCommand extends BaseCommand {
       return 1;
     }
 
-    final migrationFiles = migrationsDir
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'))
-        .toList()
-      ..sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
+    final migrationFiles =
+        migrationsDir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'))
+            .toList()
+          ..sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
 
     if (migrationFiles.isEmpty) {
       print('No migration files found.');
@@ -69,28 +72,39 @@ class MigrateCommand extends BaseCommand {
 
     imports.writeln("import 'package:bavard/bavard.dart';");
     imports.writeln("import 'package:bavard_migration/bavard_migration.dart';");
-    imports.writeln("import 'package:$packageName/config/database.dart' as db_config;");
+    imports.writeln(
+      "import 'package:$packageName/config/database.dart' as db_config;",
+    );
 
     for (var i = 0; i < migrationFiles.length; i++) {
       final file = migrationFiles[i];
       final filename = p.basename(file.path);
       final importAlias = 'm$i';
-      
+
       final relativePath = migrationsPath.replaceAll(r'\', '/');
-      imports.writeln("import '../../$relativePath/$filename' as $importAlias;");
-      
+      imports.writeln(
+        "import '../../$relativePath/$filename' as $importAlias;",
+      );
+
       final content = file.readAsStringSync();
-      final classMatch = RegExp(r'class\s+(\w+)\s+extends\s+Migration').firstMatch(content);
+      final classMatch = RegExp(
+        r'class\s+(\w+)\s+extends\s+Migration',
+      ).firstMatch(content);
       if (classMatch == null) {
-        print('Warning: Could not find Migration class in $filename. Skipping.');
+        print(
+          'Warning: Could not find Migration class in $filename. Skipping.',
+        );
         continue;
       }
       final className = classMatch.group(1);
 
-      registry.writeln("    MigrationRegistryEntry($importAlias.$className(), '$filename'),");
+      registry.writeln(
+        "    MigrationRegistryEntry($importAlias.$className(), '$filename'),",
+      );
     }
 
-    final script = '''
+    final script =
+        '''
 // GENERATED CODE - DO NOT MODIFY BY HAND
 $imports
 
@@ -125,16 +139,18 @@ $registry
     print('Executing...');
 
     final result = await Process.run('dart', ['run', runnerFile.path]);
-    
+
     if (result.stdout.toString().isNotEmpty) print(result.stdout);
     if (result.stderr.toString().isNotEmpty) print(result.stderr);
 
     if (result.exitCode != 0) {
-        print('Migration failed.');
-        if (result.stderr.toString().contains("URI doesn't exist")) {
-            print('\nHint: Ensure "lib/config/database.dart" exists and exports "Future<DatabaseAdapter> getDatabaseAdapter()".');
-        }
-        return result.exitCode;
+      print('Migration failed.');
+      if (result.stderr.toString().contains("URI doesn't exist")) {
+        print(
+          '\nHint: Ensure "lib/config/database.dart" exists and exports "Future<DatabaseAdapter> getDatabaseAdapter()".',
+        );
+      }
+      return result.exitCode;
     }
 
     return 0;
