@@ -19,7 +19,8 @@ class CliRunner {
 
   void run(List<String> args) {
     if (args.isEmpty || args.contains('--help') || args.contains('-h')) {
-      if (args.isEmpty || (args.length == 1 && (args[0] == '--help' || args[0] == '-h'))) {
+      if (args.isEmpty ||
+          (args.length == 1 && (args[0] == '--help' || args[0] == '-h'))) {
         printUsage();
         return;
       }
@@ -46,8 +47,10 @@ class CliRunner {
     _commands.forEach((name, command) {
       print('  ${colorized(name.padRight(15), green)} ${command.description}');
     });
-    
+
     print('');
-    print('Run "dart run bavard <command> --help" for more information on a command.');
+    print(
+      'Run "dart run bavard <command> --help" for more information on a command.',
+    );
   }
 }

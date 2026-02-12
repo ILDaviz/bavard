@@ -33,9 +33,20 @@ void main() {
       expect(content, contains('class UserRole extends Pivot'));
       expect(content, contains('static const schema = ('));
       expect(content, contains('isActive: BoolColumn(\'is_active\'),'));
-      expect(content, contains('bool get isActive => get(UserRole.schema.isActive);'));
-      expect(content, contains('set isActive(bool value) => set(UserRole.schema.isActive, value);'));
-      expect(content, contains("DateTime get createdAt => get(UserRole.schema.createdAt);"));
+      expect(
+        content,
+        contains('bool get isActive => get(UserRole.schema.isActive);'),
+      );
+      expect(
+        content,
+        contains(
+          'set isActive(bool value) => set(UserRole.schema.isActive, value);',
+        ),
+      );
+      expect(
+        content,
+        contains("DateTime get createdAt => get(UserRole.schema.createdAt);"),
+      );
 
       // Columns List
       expect(content, contains("static List<Column> get columns => ["));
@@ -44,16 +55,13 @@ void main() {
     });
 
     test('creates an empty pivot if no columns provided', () async {
-      final exitCode = await command.run([
-        'TagPost',
-        '--path=${tempDir.path}',
-      ]);
+      final exitCode = await command.run(['TagPost', '--path=${tempDir.path}']);
 
       expect(exitCode, 0);
 
       final file = File('${tempDir.path}/tag_post.dart');
       final content = file.readAsStringSync();
-      
+
       expect(content, contains('class TagPost extends Pivot'));
       expect(content, contains('static List<Column> get columns => ['));
       expect(content, contains('];'));

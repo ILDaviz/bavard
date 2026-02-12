@@ -49,7 +49,7 @@ class MakeModelCommand extends BaseCommand {
 
     tableName ??= pluralize(toSnakeCase(className));
     final fileName = '${toSnakeCase(className)}.dart';
-    
+
     String outputDir;
     if (customPath != null) {
       outputDir = customPath;
@@ -68,7 +68,7 @@ class MakeModelCommand extends BaseCommand {
       printInfo("Creating directory: $outputDir");
       dir.createSync(recursive: true);
     }
-    
+
     final filePath = '${dir.path}/$fileName';
 
     if (File(filePath).existsSync() && !force) {
@@ -90,22 +90,42 @@ class MakeModelCommand extends BaseCommand {
     print('${colorized('Usage:', bold)}');
     print('  dart run bavard $name <Name> [options]\n');
     print('${colorized('Options:', bold)}');
-    print('  ${colorized('--table=<name>', green)}      Specify the database table name.');
-    print('  ${colorized('--columns=<list>', green)}    Comma-separated list of columns (name:type).');
-    print('                      Types: string, int, double, bool, datetime, json.');
-    print('  ${colorized('--path=<path>', green)}       Specify the output directory (e.g., --path=lib/data/models).');
-    print('  ${colorized('--force', green)}             Overwrite existing file.');
-    print('  ${colorized('-h, --help', green)}          Show this help message.\n');
+    print(
+      '  ${colorized('--table=<name>', green)}      Specify the database table name.',
+    );
+    print(
+      '  ${colorized('--columns=<list>', green)}    Comma-separated list of columns (name:type).',
+    );
+    print(
+      '                      Types: string, int, double, bool, datetime, json.',
+    );
+    print(
+      '  ${colorized('--path=<path>', green)}       Specify the output directory (e.g., --path=lib/data/models).',
+    );
+    print(
+      '  ${colorized('--force', green)}             Overwrite existing file.',
+    );
+    print(
+      '  ${colorized('-h, --help', green)}          Show this help message.\n',
+    );
     print('${colorized('Examples:', bold)}');
     print('  1. Basic Model:');
     print('     dart run bavard $name Product\n');
     print('  2. Model with Schema:');
-    print('     dart run bavard $name User --columns=name:string,age:int,active:bool\n');
+    print(
+      '     dart run bavard $name User --columns=name:string,age:int,active:bool\n',
+    );
     print('  3. Custom Table & Path:');
-    print('     dart run bavard $name Category --table=product_categories --path=lib/features/shop/models');
+    print(
+      '     dart run bavard $name Category --table=product_categories --path=lib/features/shop/models',
+    );
   }
 
-  String _generateModelContent(String className, String tableName, Map<String, String> columns) {
+  String _generateModelContent(
+    String className,
+    String tableName,
+    Map<String, String> columns,
+  ) {
     final buffer = StringBuffer();
 
     buffer.writeln("import 'package:bavard/bavard.dart';");
@@ -118,13 +138,19 @@ class MakeModelCommand extends BaseCommand {
     buffer.writeln('  $className([super.attributes]);');
     buffer.writeln();
     buffer.writeln("  @override");
-    buffer.writeln("  $className fromMap(Map<String, dynamic> map) => $className(map);");
+    buffer.writeln(
+      "  $className fromMap(Map<String, dynamic> map) => $className(map);",
+    );
 
     if (columns.isNotEmpty) {
       buffer.writeln();
-      buffer.writeln('  // ---------------------------------------------------------------------------');
+      buffer.writeln(
+        '  // ---------------------------------------------------------------------------',
+      );
       buffer.writeln('  // SCHEMA');
-      buffer.writeln('  // ---------------------------------------------------------------------------');
+      buffer.writeln(
+        '  // ---------------------------------------------------------------------------',
+      );
       buffer.writeln();
       buffer.writeln('  static const schema = (');
       columns.forEach((name, type) {
@@ -138,25 +164,39 @@ class MakeModelCommand extends BaseCommand {
 
     if (columns.isNotEmpty) {
       buffer.writeln();
-      buffer.writeln('  // ---------------------------------------------------------------------------');
+      buffer.writeln(
+        '  // ---------------------------------------------------------------------------',
+      );
       buffer.writeln('  // ACCESSORS');
-      buffer.writeln('  // ---------------------------------------------------------------------------');
+      buffer.writeln(
+        '  // ---------------------------------------------------------------------------',
+      );
       columns.forEach((name, type) {
         final dartType = _mapTypeToDartType(type);
         final dbName = toSnakeCase(name);
         final dartName = toCamelCase(name);
-        buffer.writeln("  $dartType? get $dartName => getAttribute<$dartType>('$dbName');");
-        buffer.writeln("  set $dartName($dartType? value) => setAttribute('$dbName', value);");
+        buffer.writeln(
+          "  $dartType? get $dartName => getAttribute<$dartType>('$dbName');",
+        );
+        buffer.writeln(
+          "  set $dartName($dartType? value) => setAttribute('$dbName', value);",
+        );
       });
     }
 
-    final castColumns = columns.entries.where((e) => _needsCast(e.value)).toList();
-    
+    final castColumns = columns.entries
+        .where((e) => _needsCast(e.value))
+        .toList();
+
     if (castColumns.isNotEmpty) {
       buffer.writeln();
-      buffer.writeln('  // ---------------------------------------------------------------------------');
+      buffer.writeln(
+        '  // ---------------------------------------------------------------------------',
+      );
       buffer.writeln('  // CASTS');
-      buffer.writeln('  // ---------------------------------------------------------------------------');
+      buffer.writeln(
+        '  // ---------------------------------------------------------------------------',
+      );
       buffer.writeln();
       buffer.writeln("  @override");
       buffer.writeln("  Map<String, String> get casts => {");
@@ -173,25 +213,37 @@ class MakeModelCommand extends BaseCommand {
 
   String _mapTypeToColumnClass(String type) {
     switch (type) {
-      case 'int': return 'IntColumn';
-      case 'double': return 'DoubleColumn';
-      case 'bool': return 'BoolColumn';
-      case 'datetime': return 'DateTimeColumn';
-      case 'json': return 'JsonColumn';
+      case 'int':
+        return 'IntColumn';
+      case 'double':
+        return 'DoubleColumn';
+      case 'bool':
+        return 'BoolColumn';
+      case 'datetime':
+        return 'DateTimeColumn';
+      case 'json':
+        return 'JsonColumn';
       case 'string':
-      default: return 'TextColumn';
+      default:
+        return 'TextColumn';
     }
   }
 
   String _mapTypeToDartType(String type) {
     switch (type) {
-      case 'int': return 'int';
-      case 'double': return 'double';
-      case 'bool': return 'bool';
-      case 'datetime': return 'DateTime';
-      case 'json': return 'dynamic';
+      case 'int':
+        return 'int';
+      case 'double':
+        return 'double';
+      case 'bool':
+        return 'bool';
+      case 'datetime':
+        return 'DateTime';
+      case 'json':
+        return 'dynamic';
       case 'string':
-      default: return 'String';
+      default:
+        return 'String';
     }
   }
 

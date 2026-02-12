@@ -17,10 +17,7 @@ void main() {
     });
 
     test('creates a basic model file', () async {
-      final exitCode = await command.run([
-        'Product',
-        '--path=${tempDir.path}',
-      ]);
+      final exitCode = await command.run(['Product', '--path=${tempDir.path}']);
 
       expect(exitCode, 0);
 
@@ -64,9 +61,15 @@ void main() {
       expect(content, contains('BoolColumn(\'is_active\')'));
 
       // Accessors
-      expect(content, contains("String? get name => getAttribute<String>('name');"));
+      expect(
+        content,
+        contains("String? get name => getAttribute<String>('name');"),
+      );
       expect(content, contains("int? get age => getAttribute<int>('age');"));
-      expect(content, contains("bool? get isActive => getAttribute<bool>('is_active');"));
+      expect(
+        content,
+        contains("bool? get isActive => getAttribute<bool>('is_active');"),
+      );
 
       // Casts
       expect(content, contains("Map<String, String> get casts => {"));
@@ -80,10 +83,7 @@ void main() {
       final filePath = '${tempDir.path}/product.dart';
       File(filePath).createSync();
 
-      final exitCode = await command.run([
-        'Product',
-        '--path=${tempDir.path}',
-      ]);
+      final exitCode = await command.run(['Product', '--path=${tempDir.path}']);
 
       expect(exitCode, 1);
     });

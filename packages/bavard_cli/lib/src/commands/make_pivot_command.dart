@@ -7,7 +7,8 @@ class MakePivotCommand extends BaseCommand {
   String get name => 'make:pivot';
 
   @override
-  String get description => 'Create a new Bavard Pivot class for Many-to-Many relationships (Single File).';
+  String get description =>
+      'Create a new Bavard Pivot class for Many-to-Many relationships (Single File).';
 
   @override
   Future<int> run(List<String> args) async {
@@ -45,7 +46,7 @@ class MakePivotCommand extends BaseCommand {
     }
 
     final fileName = '${toSnakeCase(className)}.dart';
-    
+
     String outputDir;
     if (customPath != null) {
       outputDir = customPath;
@@ -64,7 +65,7 @@ class MakePivotCommand extends BaseCommand {
       printInfo("Creating directory: $outputDir");
       dir.createSync(recursive: true);
     }
-    
+
     final filePath = '${dir.path}/$fileName';
 
     if (File(filePath).existsSync() && !force) {
@@ -86,14 +87,26 @@ class MakePivotCommand extends BaseCommand {
     print('${colorized('Usage:', bold)}');
     print('  dart run bavard $name <Name> [options]\n');
     print('${colorized('Options:', bold)}');
-    print('  ${colorized('--columns=<list>', green)}    Comma-separated list of pivot columns (name:type).');
-    print('                      Types: string, int, double, bool, datetime, json.');
-    print('  ${colorized('--path=<path>', green)}       Specify the output directory.');
-    print('  ${colorized('--force', green)}             Overwrite existing file.');
-    print('  ${colorized('-h, --help', green)}          Show this help message.\n');
+    print(
+      '  ${colorized('--columns=<list>', green)}    Comma-separated list of pivot columns (name:type).',
+    );
+    print(
+      '                      Types: string, int, double, bool, datetime, json.',
+    );
+    print(
+      '  ${colorized('--path=<path>', green)}       Specify the output directory.',
+    );
+    print(
+      '  ${colorized('--force', green)}             Overwrite existing file.',
+    );
+    print(
+      '  ${colorized('-h, --help', green)}          Show this help message.\n',
+    );
     print('${colorized('Examples:', bold)}');
     print('  1. Basic Pivot:');
-    print('     dart run bavard $name UserRole --columns=is_active:bool,created_at:datetime');
+    print(
+      '     dart run bavard $name UserRole --columns=is_active:bool,created_at:datetime',
+    );
   }
 
   String _generateContent(String className, Map<String, String> columns) {
@@ -126,15 +139,19 @@ class MakePivotCommand extends BaseCommand {
       final propertyName = toCamelCase(name);
 
       buffer.writeln("  /// Accessor for [$propertyName] (DB: $dbName)");
-      buffer.writeln("  $dartType get $propertyName => get($className.schema.$schemaKey);");
-      buffer.writeln("  set $propertyName($dartType value) => set($className.schema.$schemaKey, value);");
+      buffer.writeln(
+        "  $dartType get $propertyName => get($className.schema.$schemaKey);",
+      );
+      buffer.writeln(
+        "  set $propertyName($dartType value) => set($className.schema.$schemaKey, value);",
+      );
       buffer.writeln();
     });
 
     buffer.writeln('  static List<Column> get columns => [');
     columns.forEach((name, _) {
-       final schemaKey = toCamelCase(name);
-       buffer.writeln('    $className.schema.$schemaKey,');
+      final schemaKey = toCamelCase(name);
+      buffer.writeln('    $className.schema.$schemaKey,');
     });
     buffer.writeln('  ];');
 
@@ -144,25 +161,37 @@ class MakePivotCommand extends BaseCommand {
 
   String _mapTypeToColumnClass(String type) {
     switch (type) {
-      case 'int': return 'IntColumn';
-      case 'double': return 'DoubleColumn';
-      case 'bool': return 'BoolColumn';
-      case 'datetime': return 'DateTimeColumn';
-      case 'json': return 'JsonColumn';
+      case 'int':
+        return 'IntColumn';
+      case 'double':
+        return 'DoubleColumn';
+      case 'bool':
+        return 'BoolColumn';
+      case 'datetime':
+        return 'DateTimeColumn';
+      case 'json':
+        return 'JsonColumn';
       case 'string':
-      default: return 'TextColumn';
+      default:
+        return 'TextColumn';
     }
   }
 
   String _mapTypeToDartType(String type) {
     switch (type) {
-      case 'int': return 'int';
-      case 'double': return 'double';
-      case 'bool': return 'bool';
-      case 'datetime': return 'DateTime';
-      case 'json': return 'dynamic';
+      case 'int':
+        return 'int';
+      case 'double':
+        return 'double';
+      case 'bool':
+        return 'bool';
+      case 'datetime':
+        return 'DateTime';
+      case 'json':
+        return 'dynamic';
       case 'string':
-      default: return 'String';
+      default:
+        return 'String';
     }
   }
 }
