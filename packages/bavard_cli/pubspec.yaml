@@ -9,7 +9,6 @@ environment:
 dependencies:
   path: ^1.8.0
   yaml: ^3.1.2
-  bavard_migration: ^0.0.1
 
 dev_dependencies:
   test: ^1.25.0
