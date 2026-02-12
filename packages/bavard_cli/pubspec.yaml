@@ -2,7 +2,6 @@ name: bavard_cli
 description: Command line interface for Bavard ORM.
 version: 0.0.1
 resolution: workspace
-publish_to: 'none'
 
 environment:
   sdk: ^3.10.1
