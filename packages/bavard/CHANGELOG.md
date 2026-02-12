@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.28] - 2026-02-12
+
 ### Added
 - **Schema:** Added support for table alterations (`Schema.table(...)`) and column modifications via the new `Blueprint` and `Grammar` updates.
 - **Schema:** Added `change()` method to `ColumnDefinition` for modifying existing columns.
