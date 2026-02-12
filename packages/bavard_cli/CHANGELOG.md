@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-02-12
+
 ### Added
 - **Initial Release:** Extracted CLI tools into a dedicated `bavard_cli` package.
 - **Scaffolding:**
