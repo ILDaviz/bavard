@@ -176,6 +176,24 @@
                  Automatic hydration of complex types like JSON, DateTime, and Booleans between Dart and your database.
               </p>
             </a>
+            <a href="/bavard/tooling/cli" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
+              <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+                ⌨️
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">CLI Tool</h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Powerful command-line interface for scaffolding models, migrations, and managing your database.
+              </p>
+            </a>
+            <a href="/bavard/guide/migrations" class="p-6 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 group no-underline">
+              <div class="w-12 h-12 mb-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
+                🏗️
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Schema Migrations</h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Version control for your database schema with a fluent, type-safe Dart API.
+              </p>
+            </a>
           </div>
         </div>
   </div>
