@@ -8,11 +8,11 @@ class ColumnDefinition {
   bool isAutoIncrement = false;
   bool isUnique = false;
   bool isUnsigned = false;
-  
+
   /// Indicates if this column should be modified instead of being created from scratch.
   bool isChange = false;
   dynamic defaultValue;
-  
+
   // Additional properties for specific types
   int? length;
   int? precision;
@@ -27,7 +27,7 @@ class ColumnDefinition {
     isNullable = true;
     return this;
   }
-  
+
   /// Sets the column as the primary key of the table.
   ColumnDefinition primary() {
     isPrimaryKey = true;
@@ -45,13 +45,13 @@ class ColumnDefinition {
     isUnsigned = true;
     return this;
   }
-  
+
   /// Sets the current timestamp as the default value (for date/time fields).
   ColumnDefinition useCurrentTimestamp() {
     useCurrent = true;
     return this;
   }
-  
+
   /// Defines a default value for the column.
   ColumnDefinition defaultTo(dynamic value) {
     defaultValue = value;
@@ -101,8 +101,9 @@ class DropIndexCommand extends Command {
 
   @override
   String get type => 'drop${_capitalize(_type)}';
-  
-  String _capitalize(String s) => s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
+
+  String _capitalize(String s) =>
+      s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
 }
 
 /// Command to delete one or more columns.
@@ -169,18 +170,17 @@ class ForeignKeyDefinition extends Command {
   String? get onUpdateValue => _onUpdate;
 }
 
-
 /// Blueprint defines the structure of a table (schema) in a fluent way.
 /// It is used to create new tables or modify existing ones.
 class Blueprint {
   final String table;
-  
+
   /// List of defined columns.
   final List<ColumnDefinition> columns = [];
-  
+
   /// List of commands (indexes, constraints, etc.).
   final List<Command> commands = [];
-  
+
   /// Specific list for dropping foreign keys.
   final List<DropIndexCommand> dropForeigns = [];
 
@@ -195,12 +195,16 @@ class Blueprint {
 
   /// Adds an auto-incrementing integer column as primary key.
   ColumnDefinition increments(String name) {
-     return unsignedInteger(name)..isPrimaryKey = true..isAutoIncrement = true;
+    return unsignedInteger(name)
+      ..isPrimaryKey = true
+      ..isAutoIncrement = true;
   }
 
   /// Adds an auto-incrementing big integer column as primary key.
   ColumnDefinition bigIncrements(String name) {
-     return unsignedBigInteger(name)..isPrimaryKey = true..isAutoIncrement = true;
+    return unsignedBigInteger(name)
+      ..isPrimaryKey = true
+      ..isAutoIncrement = true;
   }
 
   // --- Strings ---
@@ -225,14 +229,14 @@ class Blueprint {
     columns.add(col);
     return col;
   }
-  
+
   /// Adds a medium-sized text column.
   ColumnDefinition mediumText(String name) {
     final col = ColumnDefinition(name, 'mediumText');
     columns.add(col);
     return col;
   }
-  
+
   /// Adds a long text column.
   ColumnDefinition longText(String name) {
     final col = ColumnDefinition(name, 'longText');
@@ -351,7 +355,7 @@ class Blueprint {
     columns.add(col);
     return col;
   }
-  
+
   /// Adds a date and time column with Timezone support.
   ColumnDefinition dateTimeTz(String name) {
     final col = ColumnDefinition(name, 'dateTimeTz');
@@ -365,7 +369,7 @@ class Blueprint {
     columns.add(col);
     return col;
   }
-  
+
   /// Adds a time-only column with Timezone support.
   ColumnDefinition timeTz(String name) {
     final col = ColumnDefinition(name, 'timeTz');
@@ -379,31 +383,31 @@ class Blueprint {
     columns.add(col);
     return col;
   }
-  
+
   /// Adds a timestamp column with Timezone support.
   ColumnDefinition timestampTz(String name) {
     final col = ColumnDefinition(name, 'timestampTz');
     columns.add(col);
     return col;
   }
-  
+
   /// Automatically adds 'created_at' and 'updated_at' columns.
   void timestamps() {
     timestamp('created_at').nullable();
     timestamp('updated_at').nullable();
   }
-  
+
   /// Adds 'created_at' and 'updated_at' columns with Timezone support.
   void timestampsTz() {
     timestampTz('created_at').nullable();
     timestampTz('updated_at').nullable();
   }
-  
+
   /// Adds a 'deleted_at' column for Soft Delete support.
   ColumnDefinition softDeletes([String name = 'deleted_at']) {
     return timestamp(name).nullable();
   }
-  
+
   /// Adds 'deleted_at' for Soft Delete with Timezone support.
   ColumnDefinition softDeletesTz([String name = 'deleted_at']) {
     return timestampTz(name).nullable();
@@ -426,7 +430,7 @@ class Blueprint {
     columns.add(col);
     return col;
   }
-  
+
   /// Adds a JSONB (optimized binary JSON) column.
   ColumnDefinition jsonb(String name) {
     final col = ColumnDefinition(name, 'jsonb');
@@ -444,7 +448,7 @@ class Blueprint {
   }
 
   // --- Specialty ---
-  
+
   /// Adds an ENUM column with a set of allowed values.
   ColumnDefinition enumCol(String name, List<String> allowed) {
     final col = ColumnDefinition(name, 'enum')..allowedValues = allowed;
@@ -458,7 +462,7 @@ class Blueprint {
     columns.add(col);
     return col;
   }
-  
+
   /// Adds a column for MAC addresses.
   ColumnDefinition macAddress(String name) {
     final col = ColumnDefinition(name, 'macAddress');
@@ -477,7 +481,7 @@ class Blueprint {
     string('${name}_type');
     index(['${name}_type', '${name}_id']);
   }
-  
+
   /// Adds the necessary columns for a UUID-based polymorphic relationship.
   void uuidMorphs(String name) {
     uuid('${name}_id');
@@ -489,7 +493,9 @@ class Blueprint {
 
   /// Creates a composite primary key.
   IndexDefinition primary(dynamic columns) {
-    final list = columns is String ? [columns] : (columns as List).cast<String>();
+    final list = columns is String
+        ? [columns]
+        : (columns as List).cast<String>();
     final index = IndexDefinition('primary', list);
     commands.add(index);
     return index;
@@ -497,7 +503,9 @@ class Blueprint {
 
   /// Creates a unique index on one or more columns.
   IndexDefinition unique(dynamic columns, [String? name]) {
-    final list = columns is String ? [columns] : (columns as List).cast<String>();
+    final list = columns is String
+        ? [columns]
+        : (columns as List).cast<String>();
     final index = IndexDefinition('unique', list, name: name);
     commands.add(index);
     return index;
@@ -505,7 +513,9 @@ class Blueprint {
 
   /// Creates a standard index on one or more columns.
   IndexDefinition index(dynamic columns, [String? name]) {
-    final list = columns is String ? [columns] : (columns as List).cast<String>();
+    final list = columns is String
+        ? [columns]
+        : (columns as List).cast<String>();
     final index = IndexDefinition('index', list, name: name);
     commands.add(index);
     return index;
@@ -513,7 +523,9 @@ class Blueprint {
 
   /// Creates a FullText index for advanced text searches.
   IndexDefinition fullText(dynamic columns, [String? name]) {
-    final list = columns is String ? [columns] : (columns as List).cast<String>();
+    final list = columns is String
+        ? [columns]
+        : (columns as List).cast<String>();
     final index = IndexDefinition('fulltext', list, name: name);
     commands.add(index);
     return index;
@@ -521,7 +533,9 @@ class Blueprint {
 
   /// Creates a spatial index (GIST in Postgres) for geographical data.
   IndexDefinition spatialIndex(dynamic columns, [String? name]) {
-    final list = columns is String ? [columns] : (columns as List).cast<String>();
+    final list = columns is String
+        ? [columns]
+        : (columns as List).cast<String>();
     final index = IndexDefinition('spatial', list, name: name);
     commands.add(index);
     return index;
@@ -552,29 +566,31 @@ class Blueprint {
     commands.add(fk);
     return fk;
   }
-  
-  /// Removes a foreign key constraint. 
+
+  /// Removes a foreign key constraint.
   /// Accepts the constraint name (String) or a list of columns to generate the standard name.
   void dropForeign(dynamic index) {
-     String name;
-     if (index is String) {
-       name = index;
-     } else if (index is List) {
-       final cols = index.cast<String>();
-       name = '${table}_${cols.join('_')}_foreign';
-     } else {
-       throw ArgumentError('dropForeign expects a String or List<String>');
-     }
-     
-     final cmd = DropIndexCommand(name, 'foreign');
-     dropForeigns.add(cmd);
+    String name;
+    if (index is String) {
+      name = index;
+    } else if (index is List) {
+      final cols = index.cast<String>();
+      name = '${table}_${cols.join('_')}_foreign';
+    } else {
+      throw ArgumentError('dropForeign expects a String or List<String>');
+    }
+
+    final cmd = DropIndexCommand(name, 'foreign');
+    dropForeigns.add(cmd);
   }
 
   // --- Column Modification ---
 
   /// Removes one or more columns from the table.
   void dropColumn(dynamic columns) {
-    final list = columns is String ? [columns] : (columns as List).cast<String>();
+    final list = columns is String
+        ? [columns]
+        : (columns as List).cast<String>();
     commands.add(DropColumnCommand(list));
   }
 

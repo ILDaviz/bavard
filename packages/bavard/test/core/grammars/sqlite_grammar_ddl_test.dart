@@ -22,7 +22,10 @@ void main() {
       final sql = grammar.compileCreateTable(blueprint);
 
       expect(sql, startsWith('CREATE TABLE "all_types"'));
-      expect(sql, contains('"id" INTEGER PRIMARY KEY AUTOINCREMENT')); // SQLite uses INTEGER for auto-inc
+      expect(
+        sql,
+        contains('"id" INTEGER PRIMARY KEY AUTOINCREMENT'),
+      ); // SQLite uses INTEGER for auto-inc
       expect(sql, contains('"name" TEXT NOT NULL'));
       expect(sql, contains('"is_active" INTEGER NOT NULL'));
       expect(sql, contains('"created_at" TEXT NOT NULL'));

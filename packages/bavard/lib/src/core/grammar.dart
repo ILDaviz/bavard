@@ -23,7 +23,7 @@ abstract class Grammar {
 
   /// Compiles a CREATE TABLE statement. (Migration tool)
   String compileCreateTable(Blueprint blueprint);
-  
+
   /// Compiles a DROP TABLE statement. (Migration tool)
   String compileDropTable(String table);
 

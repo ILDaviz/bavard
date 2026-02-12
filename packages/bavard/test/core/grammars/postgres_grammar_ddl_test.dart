@@ -28,7 +28,10 @@ void main() {
       final sql = grammar.compileCreateTable(blueprint);
 
       expect(sql, startsWith('CREATE TABLE "all_types"'));
-      expect(sql, contains('"id" BIGSERIAL PRIMARY KEY')); // id() uses bigIncrements -> BIGSERIAL
+      expect(
+        sql,
+        contains('"id" BIGSERIAL PRIMARY KEY'),
+      ); // id() uses bigIncrements -> BIGSERIAL
       expect(sql, contains('"name" VARCHAR(255) NOT NULL'));
       expect(sql, contains('"description" TEXT NOT NULL'));
       expect(sql, contains('"age" INTEGER NOT NULL'));
@@ -48,9 +51,9 @@ void main() {
       blueprint.id();
       blueprint.string('email').unique();
       blueprint.string('username').defaultTo('guest');
-      
+
       final sql = grammar.compileCreateTable(blueprint);
-      
+
       expect(sql, contains('"email" VARCHAR(255) UNIQUE NOT NULL'));
       expect(sql, contains('"username" VARCHAR(255) NOT NULL DEFAULT ?'));
     });

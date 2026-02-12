@@ -67,8 +67,11 @@ Future<void> runIntegrationTests() async {
     if (popular.length != 2)
       throw 'Where operator (>) failed. Expected 2, got ${popular.length}';
 
-    final top =
-        await Post().query().orderBy('views', direction: 'desc').limit(1).get();
+    final top = await Post()
+        .query()
+        .orderBy('views', direction: 'desc')
+        .limit(1)
+        .get();
     if (top.first.attributes['title'] != 'Post 5')
       throw 'OrderBy or Limit failed';
   });
@@ -82,8 +85,10 @@ Future<void> runIntegrationTests() async {
     });
     await orphanPost.save();
 
-    final loaded =
-        await Post().query().withRelations(['author']).find(orphanPost.id);
+    final loaded = await Post()
+        .query()
+        .withRelations(['author'])
+        .find(orphanPost.id);
     final author = loaded!.getRelated<User>('author');
 
     if (author != null)
@@ -105,14 +110,18 @@ Future<void> runIntegrationTests() async {
       'user_id': u.id,
     }).save();
 
-    final userWithPosts =
-        await User().query().withRelations(['posts']).find(u.id);
+    final userWithPosts = await User()
+        .query()
+        .withRelations(['posts'])
+        .find(u.id);
     final posts = userWithPosts!.getRelationList<Post>('posts');
 
     if (posts.isEmpty) throw 'Failed to load posts';
 
-    final postWithComments =
-        await Post().query().withRelations(['comments']).find(posts.first.id);
+    final postWithComments = await Post()
+        .query()
+        .withRelations(['comments'])
+        .find(posts.first.id);
     final comments = postWithComments!.getRelationList<Comment>('comments');
 
     if (comments.isEmpty) throw 'Failed to load nested comments';
@@ -144,8 +153,10 @@ Future<void> runIntegrationTests() async {
 
     await p!.categories().attach(c, {'created_at': '2025-01-01'});
 
-    final result =
-        await Post().query().withRelations(['categories']).find(p.id);
+    final result = await Post()
+        .query()
+        .withRelations(['categories'])
+        .find(p.id);
     final cats = result!.getRelationList<Category>('categories');
 
     if (cats.isEmpty) throw 'No categories found';
@@ -172,8 +183,10 @@ Future<void> runIntegrationTests() async {
     });
     await c.save();
 
-    final loadedComment =
-        await Comment().query().withRelations(['commentable']).find(c.id);
+    final loadedComment = await Comment()
+        .query()
+        .withRelations(['commentable'])
+        .find(c.id);
     final parent = loadedComment!.getRelated<Model>('commentable');
 
     if (parent == null) throw 'Polymorphic parent not loaded';
@@ -354,8 +367,10 @@ Future<void> runIntegrationTests() async {
       'user_id': user.id,
     }).save();
 
-    final fetchedUser =
-        await User().query().withRelations(['postComments']).find(user.id);
+    final fetchedUser = await User()
+        .query()
+        .withRelations(['postComments'])
+        .find(user.id);
     if (fetchedUser == null) throw 'User not found';
 
     final comments = fetchedUser.getRelationList<Comment>('postComments');
@@ -443,8 +458,10 @@ Future<void> runIntegrationTests() async {
 
     await Future.wait(futures);
 
-    final count =
-        await User().query().where('name', 'Concurrent%', 'LIKE').count();
+    final count = await User()
+        .query()
+        .where('name', 'Concurrent%', 'LIKE')
+        .count();
     if (count != 10) throw 'Concurrency failed. Expected 10, got $count';
   });
 
@@ -634,11 +651,14 @@ Future<void> runIntegrationTests() async {
       'created_at': isoNow(),
     }).save();
 
-    final loadedUser = await User().query().withRelations({
-      'posts': (q) {
-        q.where('views', 0, '>').orderBy('views', direction: 'DESC');
-      },
-    }).find(user.id);
+    final loadedUser = await User()
+        .query()
+        .withRelations({
+          'posts': (q) {
+            q.where('views', 0, '>').orderBy('views', direction: 'DESC');
+          },
+        })
+        .find(user.id);
 
     final posts = loadedUser!.getRelationList<Post>('posts');
 
