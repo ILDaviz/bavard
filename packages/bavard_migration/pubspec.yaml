@@ -1,6 +1,6 @@
 name: bavard_migration
 description: Migration system for Bavard ORM.
-version: 0.0.1
+version: 0.0.2
 resolution: workspace
 publish_to: 'none'
 

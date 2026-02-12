@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-02-12
+
 ### Added
 - **Initial Release:** Introduced `bavard_migration` package for managing database schema changes.
 - **Core:**
