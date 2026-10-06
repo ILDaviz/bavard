@@ -4,7 +4,7 @@ import 'package:bavard/src/generators/utility.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:build/build.dart';
 
-import '../../bavard.dart';
+import 'annotations.dart';
 
 /// Entry point for the builder. Generates a `.g.dart` file containing
 /// the mixin implementation for models annotated with `@Fillable`.
@@ -96,8 +96,9 @@ class FillableGenerator extends GeneratorForAnnotation<Fillable> {
       if (col.columnType == 'IdColumn') continue;
       if (hasTimestamps &&
           (col.columnType == 'CreatedAtColumn' ||
-              col.columnType == 'UpdatedAtColumn'))
+              col.columnType == 'UpdatedAtColumn')) {
         continue;
+      }
       if (hasSoftDeletes && col.columnType == 'DeletedAtColumn') continue;
 
       buffer.writeln();

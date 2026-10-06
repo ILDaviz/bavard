@@ -1,8 +1,12 @@
-import '../../bavard.dart';
 import './concerns/has_casts.dart';
 import './concerns/has_events.dart';
+import './concerns/has_guards_attributes.dart';
 import './concerns/has_relationships.dart';
 import './concerns/has_attribute_helpers.dart';
+import './database_manager.dart';
+import './pivot.dart';
+import './query_builder.dart';
+import './typed_query.dart';
 
 /// Core Active Record implementation serving as the bridge between Dart objects and the DB.
 ///

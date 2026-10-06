@@ -1,4 +1,4 @@
-import '../../../schema.dart';
+import '../../schema/columns.dart';
 import '../exceptions.dart';
 import '../model.dart';
 import '../query_builder.dart';
@@ -43,9 +43,9 @@ mixin WhereClauses<T extends Model> on QueryBuilderBase<T> {
 
     if (targetValue == null) {
       final checkOp = normalizeOperator(targetOperator);
-      if (checkOp == '=') {
+      if (checkOp == '=' || checkOp == 'IS') {
         return whereNull(targetColumn, boolean: targetBoolean);
-      } else if (checkOp == '<>' || checkOp == '!=') {
+      } else if (checkOp == '<>' || checkOp == '!=' || checkOp == 'IS NOT') {
         return whereNotNull(targetColumn, boolean: targetBoolean);
       }
     }
@@ -62,8 +62,8 @@ mixin WhereClauses<T extends Model> on QueryBuilderBase<T> {
     if (finalOp == 'IN' || finalOp == 'NOT IN') {
       if (targetValue is! List) {
         throw ArgumentError(
-          'QueryBuilder Error: L\'operatore "$finalOp" richiede una List come valore. '
-          'Ricevuto: ${targetValue.runtimeType}',
+          'QueryBuilder error: operator "$finalOp" requires a List as its value. '
+          'Received: ${targetValue.runtimeType}',
         );
       }
 
@@ -80,7 +80,7 @@ mixin WhereClauses<T extends Model> on QueryBuilderBase<T> {
     } else if (finalOp == 'BETWEEN') {
       if (targetValue is! List || targetValue.length != 2) {
         throw ArgumentError(
-          'QueryBuilder Error: L\'operatore "BETWEEN" richiede una List di esattamente 2 elementi [min, max].',
+          'QueryBuilder error: operator "BETWEEN" requires a List of exactly 2 elements [min, max].',
         );
       }
       sqlString =
@@ -89,8 +89,8 @@ mixin WhereClauses<T extends Model> on QueryBuilderBase<T> {
     } else {
       if (targetValue is List) {
         throw ArgumentError(
-          'QueryBuilder Error: Non puoi usare una List con l\'operatore "$finalOp". '
-          'Usa IN, NOT IN o BETWEEN.',
+          'QueryBuilder error: you cannot use a List with operator "$finalOp". '
+          'Use IN, NOT IN or BETWEEN.',
         );
       }
 
@@ -350,7 +350,7 @@ mixin WhereClauses<T extends Model> on QueryBuilderBase<T> {
     assertIdentifier(targetSecond, dotted: true, what: 'column name');
 
     final finalOp = normalizeOperator(targetOperator);
-    if (!allowedWhereOps.contains(finalOp)) {
+    if (!allowedColumnOps.contains(finalOp)) {
       throw InvalidQueryException(
         'Invalid operator for whereColumn: $targetOperator',
       );

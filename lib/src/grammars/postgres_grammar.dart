@@ -16,7 +16,7 @@ class PostgresGrammar extends Grammar {
 
     final columnsSql = wrapArray(columns).join(', ');
     final rowPlaceholders =
-        '(' + List.filled(columns.length, '?').join(', ') + ')';
+        '(${List.filled(columns.length, '?').join(', ')})';
     final valuesSql = List.filled(values.length, rowPlaceholders).join(', ');
 
     return 'INSERT INTO ${wrap(query.table)} ($columnsSql) VALUES $valuesSql';
@@ -109,6 +109,7 @@ class PostgresGrammar extends Grammar {
     }).toList();
   }
 
+  @override
   List<String> compileChange(Blueprint blueprint) {
     final changes = <String>[];
 
@@ -205,8 +206,9 @@ class PostgresGrammar extends Grammar {
 
   String _getType(ColumnDefinition col) {
     if (col.isAutoIncrement) {
-      if (col.type == 'bigInteger' || col.type == 'unsignedBigInteger')
+      if (col.type == 'bigInteger' || col.type == 'unsignedBigInteger') {
         return 'BIGSERIAL';
+      }
       return 'SERIAL';
     }
 

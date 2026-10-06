@@ -1,4 +1,4 @@
-import '../../bavard.dart';
+import 'model.dart';
 
 import 'query_builder/aggregate_queries.dart';
 import 'query_builder/base.dart';

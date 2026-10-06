@@ -480,4 +480,96 @@ void main() {
     expect(dbSpy.lastSql, contains('UNION'));
     expect(dbSpy.lastSql, endsWith(') as temp_table'));
   });
+
+  group('Compound operators through where() (regression: operator whitelist)', () {
+    test('It compiles IN with a List value', () async {
+      await TestUser().query().where('role', ['admin', 'editor'], 'IN').get();
+
+      expect(dbSpy.lastSql, contains('WHERE "role" IN (?, ?)'));
+      expect(dbSpy.lastArgs, ['admin', 'editor']);
+    });
+
+    test('It compiles NOT IN with a List value', () async {
+      await TestUser().query().where('role', ['guest'], 'NOT IN').get();
+
+      expect(dbSpy.lastSql, contains('WHERE "role" NOT IN (?)'));
+      expect(dbSpy.lastArgs, ['guest']);
+    });
+
+    test('It compiles BETWEEN with a [min, max] list', () async {
+      await TestUser().query().where('age', [18, 30], 'BETWEEN').get();
+
+      expect(dbSpy.lastSql, contains('WHERE "age" BETWEEN ? AND ?'));
+      expect(dbSpy.lastArgs, [18, 30]);
+    });
+
+    test('It rejects a non-List value for IN', () {
+      expect(
+        () => TestUser().query().where('role', 'admin', 'IN'),
+        throwsArgumentError,
+      );
+    });
+
+    test('It rejects a List of the wrong length for BETWEEN', () {
+      expect(
+        () => TestUser().query().where('age', [1, 2, 3], 'BETWEEN'),
+        throwsArgumentError,
+      );
+    });
+
+    test('It rejects a List value for scalar operators', () {
+      expect(
+        () => TestUser().query().where('age', [1, 2], '='),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  group('Typed schema conditions through where() (regression)', () {
+    test('It compiles column.inList / notInList conditions', () async {
+      await TestUser().query().where(TextColumn('role').inList(['admin'])).get();
+
+      expect(dbSpy.lastSql, contains('WHERE "role" IN (?)'));
+      expect(dbSpy.lastArgs, ['admin']);
+
+      await TestUser()
+          .query()
+          .where(TextColumn('role').notInList(['guest']))
+          .get();
+
+      expect(dbSpy.lastSql, contains('WHERE "role" NOT IN (?)'));
+      expect(dbSpy.lastArgs, ['guest']);
+    });
+
+    test('It compiles column.between conditions', () async {
+      await TestUser().query().where(IntColumn('age').between(18, 30)).get();
+
+      expect(dbSpy.lastSql, contains('WHERE "age" BETWEEN ? AND ?'));
+      expect(dbSpy.lastArgs, [18, 30]);
+    });
+
+    test('It compiles column.isNull / isNotNull conditions', () async {
+      await TestUser().query().where(TextColumn('deleted_at').isNull()).get();
+
+      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NULL'));
+
+      await TestUser().query().where(TextColumn('deleted_at').isNotNull()).get();
+
+      expect(dbSpy.lastSql, contains('WHERE "deleted_at" IS NOT NULL'));
+    });
+  });
+
+  test('It still rejects unknown operators', () {
+    expect(
+      () => TestUser().query().where('age', 5, 'DROP'),
+      throwsA(isA<InvalidQueryException>()),
+    );
+  });
+
+  test('whereColumn still rejects compound operators', () {
+    expect(
+      () => TestUser().query().whereColumn('first_name', 'last_name', 'IN'),
+      throwsA(isA<InvalidQueryException>()),
+    );
+  });
 }

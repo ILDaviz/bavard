@@ -196,7 +196,9 @@ void main() {
 
           throw Exception('Rollback Trigger');
         });
-      } catch (e) {}
+      } catch (e) {
+        // Expected: the rollback exception is swallowed to assert the DB state below.
+      }
 
       mockDb.setMockData({
         'FROM "users"': [

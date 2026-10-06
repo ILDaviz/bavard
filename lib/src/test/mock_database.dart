@@ -1,5 +1,8 @@
 import 'dart:async';
-import 'package:bavard/bavard.dart';
+
+import '../core/database_adapter.dart';
+import '../core/grammar.dart';
+import '../grammars/sqlite_grammar.dart';
 
 /// A test double for [DatabaseAdapter] that records query history and allows
 /// configuring responses based on SQL substrings.
@@ -15,7 +18,7 @@ class MockDatabaseSpy implements DatabaseAdapter {
   List<String> history = [];
 
   final List<Map<String, dynamic>> _defaultData;
-  Map<String, List<Map<String, dynamic>>> _smartResponses;
+  final Map<String, List<Map<String, dynamic>>> _smartResponses;
 
   bool _inTransaction = false;
 

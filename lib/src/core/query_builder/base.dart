@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
-import 'package:bavard/schema.dart';
+
+import '../../schema/columns.dart';
 
 import '../concerns/has_timestamps.dart';
 import '../database_manager.dart';

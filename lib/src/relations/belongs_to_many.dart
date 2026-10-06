@@ -268,7 +268,9 @@ class BelongsToMany<R extends Model> extends Relation<R> {
       }
     });
 
-    for (var k in keysToRemove) model.attributes.remove(k);
+    for (var k in keysToRemove) {
+      model.attributes.remove(k);
+    }
 
     model.pivot = _pivotCreator!(pivotData);
   }

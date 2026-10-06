@@ -8,7 +8,12 @@ final RegExp _dottedIdentifier = RegExp(
   r'^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$',
 );
 
-/// Operators accepted in WHERE clauses (logic-injection whitelist).
+/// Operators accepted in WHERE value comparisons (logic-injection whitelist).
+///
+/// Includes the compound operators handled by dedicated branches in
+/// `WhereClauses.where`: IN/NOT IN require a List value, BETWEEN requires a
+/// [min, max] pair. Column-to-column comparisons use [allowedColumnOps]
+/// instead.
 const Set<String> allowedWhereOps = {
   '=',
   '!=',
@@ -19,7 +24,16 @@ const Set<String> allowedWhereOps = {
   '<=',
   'LIKE',
   'NOT LIKE',
+  'IN',
+  'NOT IN',
+  'BETWEEN',
 };
+
+/// Operators accepted in column-to-column comparisons (`whereColumn`).
+///
+/// Compound operators (IN, BETWEEN) are excluded on purpose: they require
+/// value lists and have no column-to-column semantics.
+const Set<String> allowedColumnOps = {'=', '!=', '<>', '>', '<', '>=', '<='};
 
 /// Operators accepted in JOIN ... ON clauses.
 const Set<String> allowedJoinOps = {'=', '!=', '<>', '>', '<', '>=', '<='};

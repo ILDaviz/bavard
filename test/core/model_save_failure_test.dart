@@ -100,7 +100,9 @@ void main() {
 
       try {
         await user.save();
-      } catch (e) {}
+      } catch (e) {
+        // Expected: the save failure is swallowed to assert the model state below.
+      }
 
       expect(user.attributes['name'], isNot(equals(user.original['name'])));
 

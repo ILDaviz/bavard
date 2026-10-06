@@ -92,8 +92,9 @@ mixin ExecutesQueries<T extends Model> on QueryBuilderBase<T> {
   /// WARNING: Bypasses the Model lifecycle (no events, automatic timestamps, or casts).
   /// Returns the ID of the inserted record (if supported by the driver, e.g., autoincrement).
   Future<int> insert(Map<dynamic, dynamic> values) async {
-    if (values.isEmpty)
+    if (values.isEmpty) {
       throw const InvalidQueryException('Insert values cannot be empty');
+    }
 
     final resolvedValues = values.map((key, value) {
       final colName = resolveColumnNameForWrite(key);

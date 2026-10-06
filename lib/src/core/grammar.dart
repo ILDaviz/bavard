@@ -146,12 +146,12 @@ abstract class Grammar {
         })
         .join(' ');
 
-    return 'WHERE ' + sql.replaceFirst(RegExp(r'^(AND|OR)\s+'), '');
+    return 'WHERE ${sql.replaceFirst(RegExp(r'^(AND|OR)\s+'), '')}';
   }
 
   String compileGroups(QueryBuilder query, List<String> groups) {
     if (groups.isEmpty) return '';
-    return 'GROUP BY ' + groups.map(wrap).join(', ');
+    return 'GROUP BY ${groups.map(wrap).join(', ')}';
   }
 
   String compileHavings(QueryBuilder query) {
@@ -165,7 +165,7 @@ abstract class Grammar {
         })
         .join(' ');
 
-    return 'HAVING ' + sql.replaceFirst(RegExp(r'^(AND|OR)\s+'), '');
+    return 'HAVING ${sql.replaceFirst(RegExp(r'^(AND|OR)\s+'), '')}';
   }
 
   String compileOrders(QueryBuilder query, String? orderBy) {

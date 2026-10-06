@@ -29,7 +29,7 @@ class PivotGenerator extends GeneratorForAnnotation<BavardPivot> {
 
     buffer.writeln();
 
-    buffer.writeln('mixin \$${className} on Pivot {');
+    buffer.writeln('mixin \$$className on Pivot {');
 
     for (final col in columnsData) {
       buffer.writeln();

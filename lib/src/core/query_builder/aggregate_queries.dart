@@ -95,7 +95,7 @@ mixin AggregateQueries<T extends Model> on QueryBuilderBase<T> {
   /// Helper for aggregate queries (Count, Sum, etc).
   ///
   /// Modifies the SELECT clause to return a single scalar value.
-  Future<T?> _scalar<T>(String expression) async {
+  Future<R?> _scalar<R>(String expression) async {
     applyScopes();
     final dbManager = DatabaseManager();
 
@@ -110,9 +110,9 @@ mixin AggregateQueries<T extends Model> on QueryBuilderBase<T> {
         if (row.isEmpty || row['aggregate'] == null) return null;
 
         final value = row['aggregate'];
-        if (T == int && value is num) return value.toInt() as T;
-        if (T == double && value is num) return value.toDouble() as T;
-        return value as T;
+        if (R == int && value is num) return value.toInt() as R;
+        if (R == double && value is num) return value.toDouble() as R;
+        return value as R;
       } catch (e) {
         throw QueryException(
           sql: wrapperSql,
@@ -141,14 +141,14 @@ mixin AggregateQueries<T extends Model> on QueryBuilderBase<T> {
 
       final value = row['aggregate'];
 
-      if (T == int && value is num) {
-        return value.toInt() as T;
+      if (R == int && value is num) {
+        return value.toInt() as R;
       }
-      if (T == double && value is num) {
-        return value.toDouble() as T;
+      if (R == double && value is num) {
+        return value.toDouble() as R;
       }
 
-      return value as T;
+      return value as R;
     } catch (e) {
       throw QueryException(
         sql: sql,
