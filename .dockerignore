@@ -1,0 +1,10 @@
+# Keep Docker build contexts lean: only ship the package source.
+.git
+.github
+.idea
+.dart_tool
+utility
+**/.dart_tool
+**/node_modules
+**/build
+pubspec.lock

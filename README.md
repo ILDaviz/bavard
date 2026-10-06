@@ -1,30 +1,16 @@
 # Bavard ORM 🗣️
 
-**The Eloquent-style ORM for Dart.**
+[![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
 
-> **Work in Progress**: This project is currently under active development. APIs may change.
+**The Eloquent-style ORM for Dart.**
 
 Bavard brings the elegance and simplicity of Eloquent to the Dart ecosystem. It is designed to provide a fluent, expressive interface for database interactions, prioritizing developer experience, runtime flexibility, and readability.
 
-## Structure
-
-- **[packages/bavard](packages/bavard)**: The Dart package source code. [![pub.dev](https://img.shields.io/pub/v/bavard.svg)](https://pub.dev/packages/bavard)
-- **[packages/bavard_cli](packages/bavard_cli)**: The Dart package cli tool. [![pub.dev](https://img.shields.io/pub/v/bavard_cli.svg)](https://pub.dev/packages/bavard_cli)
-- **[packages/bavard_migration](packages/bavard_migration)**: The Dart package migration tool. [![pub.dev](https://img.shields.io/pub/v/bavard_migration.svg)](https://pub.dev/packages/bavard_migration)
-- **[packages/documentation](packages/documentation)**: The documentation website (VitePress).
-- **[packages/bavard_example_project](packages/bavard_example_project)**: demonstrative Flutter project that illustrates how to integrate and use **Bavard ORM**
-
 ---
 
-## Documentation
+## 🚀 Key Features
 
-For detailed guides, API references, and usage examples, please visit our documentation:
-
-👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
-
-## Key Features
-
-- 💙 **Flutter ready:** Seamlessly integrated with Flutter for mobile, desktop, and web applications.
+- 💙 **Flutter ready:** Optimized for mobile (iOS/Android) with SQLite, PostgreSQL and PowerSync; works anywhere a Dart-compatible driver exists.
 - ⚡️ **Runtime-first architecture:** Code generation is 100% optional. Bavard leverages Dart's runtime capabilities and mixins to work entirely without build processes.
 - 🏗️ **Fluent Query Builder:** Construct complex SQL queries using an expressive and type-safe interface.
 - 🔗 **Rich Relationship Mapping:** Full support for One-to-One, One-to-Many, Many-to-Many, Polymorphic, and HasManyThrough relations.
@@ -35,10 +21,37 @@ For detailed guides, API references, and usage examples, please visit our docume
 - 🚀 **Eager Loading:** Powerful eager loading system to eliminate N+1 query problems.
 - 🌐 **Database Agnostic:** Flexible adapter system with native support for SQLite and PostgreSQL.
 
-### Running Tests
+---
 
-To run tests for the all Bavard package:
+## 📚 Documentation
 
-```bash
-make test
-```
+For detailed guides, API references, and usage examples, please visit our documentation:
+
+👉 **[Read the Documentation](https://ildaviz.github.io/bavard/)**
+
+---
+
+## 🧪 Examples & Integration
+
+To see Bavard in action with a real database environment, check the integration suite:
+
+*   [SQLite + Docker Integration Test](example/sqlite-docker/)
+*   [PostgreSQL + Docker Integration Test](example/postgresql-docker/)
+
+A complete Flutter demo app lives in [`utility/bavard_example_project`](utility/bavard_example_project).
+
+---
+
+## 🗂️ Repository Structure
+
+The repository root **is** the package. Extras live outside the pub build:
+
+- **`utility/documentation/`**: The documentation website (VitePress), deployed to [ildaviz.github.io/bavard](https://ildaviz.github.io/bavard/).
+- **`utility/bavard_example_project/`**: Demonstrative Flutter project that illustrates how to integrate and use **Bavard ORM**.
+- Both are excluded from the published package via `.pubignore`.
+
+---
+
+## 🤝 Contributing
+
+Bavard is open-source. Feel free to explore the code, report issues, or submit pull requests.

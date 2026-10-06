@@ -1,0 +1,6 @@
+utility/
+example/
+doc/
+.idea/
+.github/
+Makefile
