@@ -15,7 +15,7 @@ The former `bavard_migration` and `bavard_cli` packages have been discontinued: 
 ## Why Bavard?
 
 - **Single dependency:** Everything — ORM, relationships, and runtime migrations — ships in one package with zero `dart:io` requirements.
-- **Flutter ready:** Seamlessly integrated with Flutter for mobile, desktop, and web applications.
+- **Flutter ready:** Optimized for mobile (iOS/Android) with SQLite, PostgreSQL and PowerSync; works anywhere a Dart-compatible driver exists.
 - **Fluent Syntax:** Write readable queries such as `User().query().where(User.schema.age.greaterThan(18)).get()`.
 - **Offline-first ready:** Native support for client-side UUIDs (`HasUuids`), driver-agnostic architecture, and in-place schema upgrades via the `Migrator`.
 - **Advanced features:** Already includes soft deletes, Automatic timestamps, Global scopes, and Polymorphic relationships.

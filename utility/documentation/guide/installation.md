@@ -29,4 +29,4 @@ The former `bavard_migration` and `bavard_cli` packages have been discontinued. 
 ## Requirements
 
 - **Dart SDK**: `^3.10.1` (or compatible Flutter version)
-- **Platforms**: Mobile (iOS/Android), Desktop (macOS/Windows/Linux), Web, and Server.
+- **Platforms**: Mobile (iOS/Android) is the primary target; also runs on Desktop (macOS/Windows/Linux), Web, and Server with a compatible driver.
