@@ -1,15 +1,10 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: Dart
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -18,29 +13,45 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Note: This workflow uses the latest stable version of the Dart SDK.
-      # You can specify other versions if desired, see documentation here:
-      # https://github.com/dart-lang/setup-dart/blob/main/README.md
-      # - uses: dart-lang/setup-dart@v1
       - uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
 
       - name: Install dependencies
-        working-directory: packages/bavard
         run: dart pub get
 
-      # Uncomment this step to verify the use of 'dart format' on each commit.
-      # - name: Verify formatting
-      #   working-directory: packages/bavard
-      #   run: dart format --output=none --set-exit-if-changed .
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
 
-      # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: Analyze project source
-        working-directory: packages/bavard
-        run: dart analyze
+        run: dart analyze --fatal-infos
 
-      # Your project will need to have tests in test/ and a dependency on
-      # package:test for this step to succeed. Note that Flutter projects will
-      # want to change this to 'flutter test'.
-      - name: Run tests
-        working-directory: packages/bavard
-        run: dart test
+      - name: Run tests with coverage
+        run: dart test --coverage=coverage
+
+      - name: Activate coverage tools
+        run: dart pub global activate coverage
+
+      - name: Format coverage as LCOV
+        run: dart pub global run coverage:format_coverage --packages=.dart_tool/package_config.json --report-on=lib --lcov-out=coverage/lcov.info
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+
+  builder-usage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+
+      - name: Install dependencies
+        run: cd example/builder_usage && dart pub get
+
+      - name: Run code generation
+        run: cd example/builder_usage && dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run generated-code tests
+        run: cd example/builder_usage && dart test

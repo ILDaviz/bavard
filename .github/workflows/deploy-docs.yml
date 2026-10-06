@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'packages/documentation/**'
+      - 'utility/documentation/**'
 
 permissions:
   contents: read
@@ -32,29 +32,29 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-          cache-dependency-path: packages/documentation/yarn.lock
+          cache-dependency-path: utility/documentation/yarn.lock
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
-        working-directory: ./packages/documentation
+        working-directory: ./utility/documentation
         run: yarn install --immutable
 
       - name: Build with VitePress
-        working-directory: ./packages/documentation
+        working-directory: ./utility/documentation
         run: yarn run docs:build
 
       - name: Debug Build Output
-        run: ls -R packages/documentation/.vitepress/dist
+        run: ls -R utility/documentation/.vitepress/dist
 
       - name: Remove .gitignore to allow upload
-        run: rm packages/documentation/.gitignore
+        run: rm utility/documentation/.gitignore
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: packages/documentation/.vitepress/dist
+          path: utility/documentation/.vitepress/dist
 
   deploy:
     environment:
