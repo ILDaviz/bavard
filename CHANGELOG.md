@@ -24,7 +24,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI: formatting check (`dart format --set-exit-if-changed`), `--fatal-infos`
   analysis, test coverage artifacts, and a dedicated job running the codegen
   example suite (`example/builder_usage`) with `build_runner`.
-- `CONTRIBUTING.md` and `ARCHITECTURE.md` for contributors.
+- `CONTRIBUTING.md` for contributors.
+- **Compound operators in `where()`**: `where()` now accepts `IN`, `NOT IN` and
+  `BETWEEN` directly (e.g. `where('role', ['admin'], 'IN')`), with strict value
+  validation: `IN`/`NOT IN` require a `List`, `BETWEEN` requires a `[min, max]`
+  list, and passing a `List` to a scalar operator throws. `IS` and `IS NOT`
+  operators with a `null` value are normalized to `whereNull`/`whereNotNull`.
+- **QueryBuilder restructured into composable mixins**: the monolithic query
+  builder is now split into `WhereClauses`, `JoinClauses`, `HavingClauses`,
+  `SelectClauses`, `AggregateQueries`, `ExecutesQueries`, `StreamsResults`,
+  `DumpsQuery`, `Identifiers` and `UnionClauses` on top of `QueryBuilderBase`.
+  No public API changes.
+
+### Changed
+
+- `whereColumn` validates operators against a dedicated whitelist
+  (`=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`): compound operators such as `IN` or
+  `BETWEEN` now throw an `InvalidQueryException` instead of being accepted.
+- QueryBuilder validation error messages are now in English (previously Italian).
+- Aggregate helpers (`count`, `sum`, `avg`, `min`, `max`) use a dedicated generic
+  parameter for the scalar result instead of shadowing the builder's model type.
 
 ### Fixed
 

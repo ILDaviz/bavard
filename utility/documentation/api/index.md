@@ -40,6 +40,8 @@ Classes used inside the `static const schema` Record to define type-safe columns
 | `BoolColumn` | `bool` | `INTEGER` (0/1) | Stores boolean values as integers for compatibility. |
 | `DateTimeColumn` | `DateTime` | `TEXT` (ISO-8601) | Stores dates as standardized strings. |
 | `JsonColumn` | `dynamic` | `TEXT` (JSON) | Stores Maps/Lists. Enables [JsonPath](../core/schema-columns.md#jsoncolumn-jsonpathcolumn) querying. |
+| `ArrayColumn` | `List` | `TEXT` (JSON) | Stores Lists as JSON arrays. |
+| `ObjectColumn` | `Map` | `TEXT` (JSON) | Stores Maps as JSON objects. |
 | `EnumColumn<T>` | `Enum` | `TEXT` | Stores the `name` of the Enum. |
 
 ## Relationships
@@ -102,6 +104,8 @@ Exceptions thrown by the framework that you should handle.
 | `QueryException` | Thrown when a raw SQL error occurs (syntax error, constraint violation). |
 | `TransactionException` | Thrown when a transaction fails or is explicitly rolled back. |
 | `InvalidQueryException` | Thrown when the QueryBuilder detects unsafe or malformed input. |
+| `MassAssignmentException` | Thrown when trying to mass-assign a guarded attribute (if configured). |
+| `RelationNotFoundException` | Thrown when accessing an undefined relationship. |
 | `DatabaseNotInitializedException` | Thrown if you try to use a Model before calling `setDatabase()`. |
 
 ## Annotations & Tooling

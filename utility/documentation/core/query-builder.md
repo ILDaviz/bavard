@@ -95,7 +95,18 @@ The `where` method accepts three arguments: the column, the value, and an option
 
 // LIKE
 .where('name', 'Mar%', 'LIKE')
+
+// Compound operators (require a List value)
+.where('role', ['admin', 'editor'], 'IN')
+.where('role', ['guest'], 'NOT IN')
+.where('age', [18, 30], 'BETWEEN')
+
+// Null checks (converted to whereNull / whereNotNull)
+.where('deleted_at', null, 'IS')
+.where('updated_at', null, 'IS NOT')
 ```
+
+> **Note:** `IN` and `NOT IN` require a `List` as their value, and `BETWEEN` requires a `List` of exactly two elements `[min, max]`. Passing a `List` to a scalar operator (or a non-`List` to a compound one) throws an `ArgumentError`.
 
 ### Type-Safe Where (Recommended)
 
@@ -184,6 +195,8 @@ You can also use `orWhereColumn`:
 .orWhereColumn('first_name', 'last_name')
 ```
 
+> **Note:** `whereColumn` only accepts simple comparison operators (`=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`). Compound operators like `IN` or `BETWEEN` have no column-to-column semantics and throw an `InvalidQueryException`.
+
 ## Ordering
 
 The `orderBy` method allows you to sort the results. It supports both string column names and `Column` objects.
@@ -245,6 +258,9 @@ final avgScore = await User().query().avg(User.schema.score); // Type-safe
 // Sum
 final totalSales = await Order().query().sum('total');
 final totalPoints = await User().query().sum(User.schema.points); // Type-safe
+
+// Count non-null values of a column
+final withRole = await User().query().count('role');
 ```
 
 ## Inserts, Updates, and Deletes
@@ -266,6 +282,8 @@ await User().query().insert({
 });
 
 ```
+
+> **Note:** `insert` performs a raw database operation: it does **not** trigger model events or manage timestamps. Passing an empty map throws an `InvalidQueryException`.
 
 ### Bulk Inserts
 
@@ -346,7 +364,7 @@ await for (final user in User().query().cursor(batchSize: 100)) {
 }
 ```
 
-This method uses offset-based pagination internally to fetch batches while exposing a seamless stream of individual `Model` instances.
+Internally it uses **keyset pagination**: after the first batch, iteration resumes via a `(key > last) OR (key = last AND id > lastId)` predicate, with the primary key always appended as an ordering tiebreaker. This keeps each batch O(1) on indexed keys and makes the stream stable even if rows are inserted or deleted while iterating. An `offset` set on the query is honored for the first batch only.
 
 ## SQL Dialects
 
