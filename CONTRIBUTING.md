@@ -57,15 +57,3 @@ See `git log` for examples.
 
 Maintainers cut releases with `make release v=X.Y.Z`, which bumps `pubspec.yaml`,
 tags and pushes. `CHANGELOG.md` must be updated in the same release cycle.
-
-## Design pacts
-
-Two invariants guide changes to this codebase — see `ARCHITECTURE.md` for the
-full picture:
-
-1. **Runtime-first**: every feature must work with zero code generation.
-   Codegen (`@fillable`, `@bavardPivot`) is sugar on top and must never become
-   a requirement.
-2. **Dialect-agnostic core**: `QueryBuilder` and relations only emit dialect
-   SQL through the `Grammar` contract. Anything dialect-specific belongs in
-   `lib/src/grammars/`.
